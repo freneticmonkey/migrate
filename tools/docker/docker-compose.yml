@@ -6,7 +6,7 @@ services:
           - MYSQL_ROOT_PASSWORD=test
           - MYSQL_DATABASE=gogs
       ports:
-          - "3400:3306"
+          - "3306:3306"
 
     management_db:
       image: mysql:5.6
