@@ -1,0 +1,35 @@
+options:
+    # Relative to this configuration file
+    workingpath: "test/working"
+    # Management specific configuration
+    management:
+        # DB Configuration
+        db:
+            username: root
+            password: test
+            ip:       127.0.0.1
+            port:     3400
+            database: managment
+
+# Project Definition
+project:
+    # Project name - used to identify the project by the cli flags
+    # and configure the table's namespace
+    name: "animals"
+    db:
+        username: root
+        password: test
+        ip:       127.0.0.1
+        port:     3500
+        database: test
+    # The Project schema configuration
+    schema:
+        # Schema name.  Not currently used
+        name: "remotetest"
+        # Git Repo
+        url:  "http://localhost:3000/sporter/remotetestlocal.git"
+        # Default Version of the Schema
+        version: ""
+        # Subfolders within the Git repo to checkout which contain db schema
+        folders:
+            - "test"
