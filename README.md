@@ -34,6 +34,8 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [ ] Initialise Target Database
 - [ ] Initialise Management Database
 - [ ] Setup from existing target database
+- [ ] Provide detailed Schema Validation Errors
+- [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 
 # TODO Management
 - [ ] Implement tables:
