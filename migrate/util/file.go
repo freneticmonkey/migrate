@@ -5,7 +5,26 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/freneticmonkey/migrate/migrate/config"
 )
+
+// WorkingPathAbs This is determined using the current working directory and
+// the value of Config.Options.WorkingPath
+var WorkingPathAbs string
+
+func Config(conf config.Config) {
+
+	// Make path absolute
+	cwd, err := os.Getwd()
+	ErrorCheck(err)
+
+	WorkingPathAbs = filepath.Join(cwd, conf.Options.WorkingPath)
+}
+
+func WorkingSubDir(subDir string) string {
+	return filepath.Join(WorkingPathAbs, subDir)
+}
 
 // Recursively check the path for typetype files and add them to the
 // schema list as we're going
@@ -43,6 +62,11 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 			}
 		}
 	}
+
+	return err
+}
+
+func RecreateFolder(path string) (err error) {
 
 	return err
 }

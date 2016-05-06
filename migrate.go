@@ -25,6 +25,9 @@ func readConfig() {
 	err := yaml.ReadFile(flags.config, &conf)
 	util.ErrorCheck(err)
 	util.LogInfo("Configuration Read Success: " + flags.config)
+
+	// Initialise any utility configuration
+	util.Config(conf)
 }
 
 func main() {

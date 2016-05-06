@@ -7,3 +7,9 @@ func ErrorCheck(err error) {
 		log.Fatalf("Error: %v", err)
 	}
 }
+
+func ErrorCheckf(err error, context string) {
+	if err != nil {
+		log.Fatalf("Error: %v Context: %s", err, context)
+	}
+}
