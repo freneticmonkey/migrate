@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
+	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
@@ -37,8 +38,8 @@ func main() {
 
 	readConfig()
 
-	//   LogInfo("Running Git functions")
-	//   git.Clone(config.Project.Schema)
+	util.LogInfo("Running Git functions")
+	git.Clone(conf.Project)
 
 	// yaml.ReadTables(config.Options.WorkingPath)
 	//

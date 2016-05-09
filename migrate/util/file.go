@@ -1,6 +1,8 @@
 package util
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -62,6 +64,24 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 			}
 		}
 	}
+
+	return err
+}
+
+// cleanUp is a helper function which empties the target folder
+func CleanPath(path string) (err error) {
+
+	// Ensure that the path is within the working folder
+	var rel string
+	rel, err = filepath.Rel(WorkingPathAbs, path)
+	if strings.HasPrefix(rel, "..") {
+		return errors.New("Cannot clean paths outside of the working directory: Path: " + rel)
+	}
+
+	wp := fmt.Sprintf("%s/*", path)
+
+	LogWarn("Cleaning Path: " + wp)
+	os.RemoveAll(wp)
 
 	return err
 }

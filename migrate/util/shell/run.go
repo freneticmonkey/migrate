@@ -23,6 +23,7 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 	cmd := exec.Command(command, args...)
 
 	cmdReader, err = cmd.StdoutPipe()
+	errReader, err = cmd.StderrPipe()
 
 	if err != nil {
 		util.LogFatal(os.Stderr, "Error creating StdoutPipe for Cmd", err)
@@ -44,7 +45,7 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 
 	errScanner := bufio.NewScanner(errReader)
 	go func() {
-		wg.Done()
+		defer wg.Done()
 		for errScanner.Scan() {
 			text := fmt.Sprintf(shellPrefix+" %s", scanner.Text())
 			util.LogInfof(text)

@@ -48,23 +48,20 @@ func GetVersionDetails(project string, version string) (details string, err erro
 // Clone performs a check out into a new (project) sub folder underneath WorkingPath
 // If the project configuration specifies sub folders within the project
 // repository, then a sparse checkout is performed for only the specified folders
-func Clone(project string, schemaConf config.Schema) (err error) {
-	path := util.WorkingSubDir(project)
+func Clone(project config.Project) (err error) {
+	path := util.WorkingSubDir(project.Name)
 
 	// Cleanup the working path before doing any work
-	cleanUp(path)
+	util.CleanPath(path)
 
 	// The steps to checkout
 
 	// mkdir <working_dir>
 	if _, err = os.Stat(path); os.IsNotExist(err) {
-		err = os.Mkdir(path, 644)
-		util.ErrorCheck(err)
+		util.LogInfof("Creating Path %s", path)
+		err = os.Mkdir(path, 0755)
+		util.ErrorCheckf(err, "Could not create git working folder: "+path)
 	}
-
-	// cd <working_dir>
-	err = os.Chdir(path)
-	util.ErrorCheck(err)
 
 	// git init
 	gitCmd(path, []string{"init"})
@@ -75,11 +72,11 @@ func Clone(project string, schemaConf config.Schema) (err error) {
 		"add",
 		"-f",
 		"origin",
-		schemaConf.Url,
+		project.Schema.Url,
 	})
 
 	// If folders have been specified for the repo
-	if len(schemaConf.Folders) > 0 {
+	if len(project.Schema.Folders) > 0 {
 
 		// git config core.sparseCheckout true
 		gitCmd(path, []string{
@@ -91,7 +88,7 @@ func Clone(project string, schemaConf config.Schema) (err error) {
 		var repoFolders []string
 
 		// for each of the configured folders
-		for _, folder := range schemaConf.Folders {
+		for _, folder := range project.Schema.Folders {
 			// echo <repo_path>/*> .git/info/sparse-checkout
 			repoFolders = append(repoFolders, folder+"/*")
 
@@ -109,9 +106,11 @@ func Clone(project string, schemaConf config.Schema) (err error) {
 	}
 
 	// If a version was specified append it to the checkout command
-	if len(schemaConf.Version) > 0 {
+	if len(project.Schema.Version) > 0 {
 		// git checkout <version>
-		params = append(params, schemaConf.Version)
+		params = append(params, project.Schema.Version)
+	} else {
+		params = append(params, "master")
 	}
 
 	// run the checkout
@@ -126,27 +125,13 @@ func gitCmd(path string, cmd []string) (out string, err error) {
 	params := []string{
 		"-C",
 		path,
-		"init",
 	}
 
 	for _, piece := range cmd {
 		params = append(params, piece)
 	}
+	util.LogInfof("Running git command: git %s", strings.Join(params, " "))
 	out, err = shell.Run("git", "git:", params)
 	util.ErrorCheckf(err, out)
 	return out, err
-}
-
-// cleanUp is a helper function which empties the target folder
-func cleanUp(path string) (err error) {
-	// Build a path to the working folder
-	// wd, err := os.Getwd()
-	//
-	// wp := fmt.Sprintf("%s/*", filepath.Join(wd, path) )
-	//
-	// LogWarn(wp)
-	// os.RemoveAll(fmt.Sprintf("%s/*", wp))
-
-	return err
-
 }

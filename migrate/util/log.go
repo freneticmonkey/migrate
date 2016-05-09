@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/fatih/color"
 )
@@ -44,6 +45,7 @@ func LogErrorf(format string, err ...interface{}) {
 }
 
 func LogFatal(err ...interface{}) {
-	color.Set(color.FgHiRed)
-	log.Fatalf("FATAL: %s", fmt.Sprintln(err...))
+	LogErrorf("FATAL: %s", fmt.Sprintln(err...))
+	os.Exit(1)
+
 }
