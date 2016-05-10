@@ -2,7 +2,6 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -77,11 +76,8 @@ func CleanPath(path string) (err error) {
 	if strings.HasPrefix(rel, "..") {
 		return errors.New("Cannot clean paths outside of the working directory: Path: " + rel)
 	}
-
-	wp := fmt.Sprintf("%s/*", path)
-
-	LogWarn("Cleaning Path: " + wp)
-	os.RemoveAll(wp)
+	LogWarn("Cleaning Path: " + path)
+	os.RemoveAll(path)
 
 	return err
 }
