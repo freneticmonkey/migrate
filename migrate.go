@@ -41,9 +41,10 @@ func main() {
 	util.LogInfo("Running Git functions")
 	git.Clone(conf.Project)
 
-	// yaml.ReadTables(config.Options.WorkingPath)
+	yaml.ReadTables(conf.Options.WorkingPath)
+
 	//
-	// mysql.ReadTables(config.DB)
+	// mysql.ReadTables(conf.Project.DB)
 	//
 	// differences := migrate.DiffTables(yaml.Schema, mysql.Schema)
 	//

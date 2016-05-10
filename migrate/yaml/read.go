@@ -30,7 +30,7 @@ func ReadTables(path string) (err error) {
 
 		// If the table has an Id, then it can be used.
 		// Otherwise ignore it.
-		if len(tbl.Id) > 0 {
+		if len(tbl.PropertyID) > 0 {
 			// Set the Primary Index to true if it exists
 			// FIXME: This is a clunky way of doing this.
 			if len(tbl.PrimaryIndex.Columns) > 0 {

@@ -5,42 +5,50 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
 type Tables []Table
 
 type Column struct {
-	Id       string
-	Name     string
-	Type     string
-	Size     int
-	Nullable bool
+	PropertyID string `yaml:"id"`
+	Name       string
+	Type       string
+	Size       int
+	Nullable   bool
+	AutoInc    bool
 
 	// Binary      bool
-	// AutoInc     bool
 	// Unique      bool
 	// Unsigned    bool
 	// ZeroFilled  bool
 }
 
 func (c Column) ToSQL() string {
-	isNull := ""
+
+	var params util.Params
 
 	if !c.Nullable {
-		isNull = "NOT NULL"
+		params.Add("NOT NULL")
 	}
-	return fmt.Sprintf("%s %s(%d) %s COMMENT='%s'", c.Name, c.Type, c.Size, isNull, c.Id)
+
+	if c.AutoInc {
+		params.Add("AUTO_INCREMENT")
+	}
+	return fmt.Sprintf("%s %s(%d) %s", c.Name, c.Type, c.Size, params.String())
 }
 
 type Index struct {
-	Id        string
-	Name      string
-	Columns   []string
-	IsPrimary bool
-	IsUnique  bool
+	PropertyID string `yaml:"id"`
+	Name       string
+	Columns    []string
+	IsPrimary  bool
+	IsUnique   bool
 }
 
 func (i Index) ToSQL() string {
+
 	name := ""
 	columns := ""
 
@@ -49,34 +57,34 @@ func (i Index) ToSQL() string {
 	} else {
 		isUnique := ""
 		if i.IsUnique {
-			isUnique = "UNIQUE "
+			isUnique = "UNIQUE"
 		}
-		name = fmt.Sprintf("%sKEY `%s` ", isUnique, i.Name)
+		name = fmt.Sprintf("%s KEY `%s` ", isUnique, i.Name)
 	}
 
 	columns = strings.Join(i.Columns, ", ")
 
-	return fmt.Sprintf("%s (%s) COMMENT='%s'", name, columns, i.Id)
+	return fmt.Sprintf("%s (%s)", name, columns)
 }
 
 type Table struct {
-	hasId            bool
-	Id               string
+	PropertyID       string `yaml:"id"`
 	Name             string
 	Engine           string
-	hasAutoInc       bool
 	AutoInc          int64
-	hasCharSet       bool
 	CharSet          string
 	Columns          []Column
 	PrimaryIndex     Index
 	SecondaryIndexes []Index
 
 	namespace []string
+	file      string
 }
 
 func (t *Table) SetNamespace(path string, filename string) (err error) {
 	wd, err := os.Getwd()
+
+	t.file = filepath.Join(path, filename)
 
 	relativePath, err := filepath.Rel(filepath.Join(wd, path), filename)
 

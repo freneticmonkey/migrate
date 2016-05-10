@@ -136,12 +136,12 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	// Check for new fields
 	for _, to := range toProperties {
 		found := false
-		toId := reflect.ValueOf(to).FieldByName("Id").String()
+		toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
 
 		// If an Id is defined
 		if len(toId) > 0 {
 			for _, from := range fromProperties {
-				fromId := reflect.ValueOf(from).FieldByName("Id").String()
+				fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
 				if toId == fromId {
 					existingProperties = append(existingProperties, DiffPair{from, to})
 					found = true
@@ -165,9 +165,9 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	// Check for deleted fields
 	for _, from := range fromProperties {
 		found := false
-		fromId := reflect.ValueOf(from).FieldByName("Id").String()
+		fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
 		for _, to := range toProperties {
-			toId := reflect.ValueOf(to).FieldByName("Id").String()
+			toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
 			if toId == fromId {
 				found = true
 				continue
@@ -236,7 +236,7 @@ func diffIndexes(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	fromIndexes[0] = fromTable.PrimaryIndex
 
 	// Primary Index Properties
-	fieldNames := []string{"Columns", "IsPrimary", "Id"}
+	fieldNames := []string{"Columns", "IsPrimary", "PropertyID"}
 
 	if primaryIndex := diffProperties(toTable.Name, "PrimaryIndex", fieldNames, toIndexes, fromIndexes); len(primaryIndex.Slice) > 0 {
 		hasDiff = true
@@ -307,7 +307,7 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		// match against mysql tables
 		for _, fromTable := range fromTables {
 
-			if toTable.Id == fromTable.Id {
+			if toTable.PropertyID == fromTable.PropertyID {
 				found = true
 				if hasDiff, diff := diffTable(toTable, fromTable); hasDiff {
 					tableDiffs.Merge(diff)
@@ -326,7 +326,7 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		found := false
 		// match against the new tables
 		for _, toTable := range toTables {
-			if toTable.Id == fromTable.Id {
+			if toTable.PropertyID == fromTable.PropertyID {
 				found = true
 				break
 			}
