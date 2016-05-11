@@ -1,15 +1,19 @@
 package util
 
-import "log"
+import "fmt"
 
-func ErrorCheck(err error) {
+func ErrorCheck(err error) bool {
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		LogError("Details: %v", err)
+		return true
 	}
+	return false
 }
 
-func ErrorCheckf(err error, context string) {
+func ErrorCheckf(err error, context ...interface{}) bool {
 	if err != nil {
-		log.Fatalf("Error: %v Context: %s", err, context)
+		LogError("Error: %v Context: %s", err, fmt.Sprintln(context...))
+		return true
 	}
+	return false
 }

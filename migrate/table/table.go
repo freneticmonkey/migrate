@@ -78,13 +78,13 @@ type Table struct {
 	SecondaryIndexes []Index
 
 	namespace []string
-	file      string
+	Filename  string `yaml:"-"`
 }
 
 func (t *Table) SetNamespace(path string, filename string) (err error) {
 	wd, err := os.Getwd()
 
-	t.file = filepath.Join(path, filename)
+	t.Filename = filepath.Join(path, filename)
 
 	relativePath, err := filepath.Rel(filepath.Join(wd, path), filename)
 

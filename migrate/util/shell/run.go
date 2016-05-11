@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"sync"
 
@@ -27,15 +26,13 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 
 	cmdReader, err = cmd.StdoutPipe()
 	if err != nil {
-		util.LogFatal(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		os.Exit(1)
+		util.LogFatal(1, "Error creating StdoutPipe for Cmd", err)
 	}
 
 	errReader, err = cmd.StderrPipe()
 
 	if err != nil {
-		util.LogFatal(os.Stderr, "Error creating StdoutError for Cmd", err)
-		os.Exit(1)
+		util.LogFatal(1, "Error creating StdoutError for Cmd", err)
 	}
 
 	var wg sync.WaitGroup
@@ -64,15 +61,13 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 	err = cmd.Start()
 	if err != nil {
 		util.LogErrorf("Error starting for Cmd: [%s] Error: [%s]", command, errout)
-		util.LogFatal(err)
-		os.Exit(1)
+		util.LogFatal(1, err)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
 		util.LogErrorf("Error waiting for Cmd: [%s] Error: [%s]", command, errout)
-		util.LogFatal(err)
-		os.Exit(1)
+		util.LogFatal(1, err)
 	}
 
 	wg.Wait()

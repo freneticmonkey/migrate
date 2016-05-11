@@ -44,8 +44,7 @@ func LogErrorf(format string, err ...interface{}) {
 	color.Unset()
 }
 
-func LogFatal(err ...interface{}) {
+func LogFatal(code int, err ...interface{}) {
 	LogErrorf("FATAL: %s", fmt.Sprintln(err...))
-	os.Exit(1)
-
+	os.Exit(code)
 }
