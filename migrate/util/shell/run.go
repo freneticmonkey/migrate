@@ -17,16 +17,24 @@ import (
 // the shell command is complete.
 func Run(command string, shellPrefix string, args []string) (out string, err error) {
 
+	var cmdout string
+	var errout string
+
 	var cmdReader io.ReadCloser
 	var errReader io.ReadCloser
 
 	cmd := exec.Command(command, args...)
 
 	cmdReader, err = cmd.StdoutPipe()
+	if err != nil {
+		util.LogFatal(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		os.Exit(1)
+	}
+
 	errReader, err = cmd.StderrPipe()
 
 	if err != nil {
-		util.LogFatal(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		util.LogFatal(os.Stderr, "Error creating StdoutError for Cmd", err)
 		os.Exit(1)
 	}
 
@@ -37,9 +45,9 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 	go func() {
 		defer wg.Done()
 		for scanner.Scan() {
-			text := fmt.Sprintf(shellPrefix+" %s", scanner.Text())
+			text := fmt.Sprintf(shellPrefix+" %s ", scanner.Text())
 			util.LogInfof(text)
-			out += text
+			cmdout += text
 		}
 	}()
 
@@ -47,25 +55,27 @@ func Run(command string, shellPrefix string, args []string) (out string, err err
 	go func() {
 		defer wg.Done()
 		for errScanner.Scan() {
-			text := fmt.Sprintf(shellPrefix+" %s", scanner.Text())
+			text := fmt.Sprintf(shellPrefix+" %s ", errScanner.Text())
 			util.LogInfof(text)
-			out += text
+			errout += text
 		}
 	}()
 
 	err = cmd.Start()
 	if err != nil {
-		util.LogFatal(os.Stderr, fmt.Sprintf("Error starting Cmd: [%s]", command), err)
+		util.LogErrorf("Error starting for Cmd: [%s] Error: [%s]", command, errout)
+		util.LogFatal(err)
 		os.Exit(1)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		util.LogFatal(os.Stderr, fmt.Sprintf("Error waiting for Cmd: [%s]", command), err)
+		util.LogErrorf("Error waiting for Cmd: [%s] Error: [%s]", command, errout)
+		util.LogFatal(err)
 		os.Exit(1)
 	}
 
 	wg.Wait()
 
-	return out, err
+	return cmdout, err
 }
