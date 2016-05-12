@@ -16,7 +16,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] Simple YAML Config
 - [x] Reads YAML Table definitions
 - [x] Reads MySQL show create table output
-- [ ] Management DB
+- [X] Management DB
 - [ ] Migration Sign Off
 
 
@@ -29,20 +29,20 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Namespace support
 - [ ] AUTO_INC support
 - [ ] Metadata for ids
-- [ ] Git repo/path/version/time support
+- [X] Git repo/path/version/time support
 - [ ] Human readable migration output - 'Git diff'
 - [ ] Initialise Target Database
 - [ ] Initialise Management Database
 - [ ] Setup from existing target database
-- [ ] Provide detailed Schema Validation Errors
+- [X] Provide detailed Schema Validation Errors
 - [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 
 # TODO Management
 - [ ] Implement tables:
     - [ ] Database
-    - [ ] Migration
-    - [ ] MigrationStep
-    - [ ] Metadata
+    - [X] Migration
+    - [X] MigrationStep
+    - [X] Metadata
 
 # TODO Migration
 - [ ] Standard Go MySQL Driver Migrations
@@ -60,4 +60,4 @@ The tool uses the built in Go MySQL database driver for simple operations such a
         - [ ] Update status
 
 # TODO TOOLING
-- [ ] Hash generation for embedded identifiers
+- [X] Hash generation for embedded identifiers
