@@ -9,7 +9,7 @@ options:
             password: test
             ip:       127.0.0.1
             port:     3400
-            database: managment
+            database: management
 
 # Project Definition
 project:
