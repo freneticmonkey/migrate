@@ -67,18 +67,21 @@ func (p Properties) Exists(pid string, name string, filename string) bool {
 }
 
 // validate Generic validation function which returns 1 for an error and 0 for no error.
-func validate(propertyID string, ptype string, name string, filename string, ids *Properties) int {
+func validate(propertyID string, ptype string, name string, tname string, filename string, ids *Properties) (result int) {
+	result = 0
 
 	if len(propertyID) == 0 {
-		util.LogError(fmt.Sprintf("Invalid Id Found for Property: Name: [%s] Type: [%s] File: [%s]", name, ptype, filename))
+		util.LogError(fmt.Sprintf("Missing Id for Property: Name: [%s] Type: [%s] Table: [%s] File: [%s]", name, ptype, tname, filename))
+		result = 1
+	} else {
+		if ids.Exists(propertyID, name, filename) {
+			result = 1
+		} else {
+			ids.Add(propertyID, ptype, name, filename)
+		}
 	}
 
-	if ids.Exists(propertyID, name, filename) {
-		return 1
-	}
-
-	ids.Add(propertyID, ptype, name, filename)
-	return 0
+	return result
 }
 
 // ValidateSchema checks the tables parameter for duplicate names and ids.
@@ -90,20 +93,20 @@ func ValidateSchema(tables table.Tables) (result int) {
 
 	// Check each table for unique table ids
 	for _, table := range tables {
-		result += validate(table.PropertyID, "Table", table.Name, table.Filename, &tableIds)
+		result += validate(table.PropertyID, "Table", table.Name, table.Name, table.Filename, &tableIds)
 
 		var tablePropertyIds Properties
 
 		// Check Primary Key
-		result += validate(table.PrimaryIndex.PropertyID, "Primary Key", "Primary Key", table.Filename, &tablePropertyIds)
+		result += validate(table.PrimaryIndex.PropertyID, "Primary Key", "Primary Key", table.Name, table.Filename, &tablePropertyIds)
 
 		for _, column := range table.Columns {
-			result += validate(column.PropertyID, "Column", column.Name, table.Filename, &tablePropertyIds)
+			result += validate(column.PropertyID, "Column", column.Name, table.Name, table.Filename, &tablePropertyIds)
 		}
 
 		// Check indexes
 		for _, index := range table.SecondaryIndexes {
-			result += validate(index.PropertyID, "Index", index.Name, table.Filename, &tablePropertyIds)
+			result += validate(index.PropertyID, "Index", index.Name, table.Name, table.Filename, &tablePropertyIds)
 		}
 	}
 	return result

@@ -5,6 +5,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/git"
+	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
@@ -41,10 +42,11 @@ func main() {
 	util.LogInfo("Running Git functions")
 	git.Clone(conf.Project)
 
+	// Read the YAML files cloned from the repo
 	yaml.ReadTables(conf.Options.WorkingPath)
 
-	//
-	// mysql.ReadTables(conf.Project.DB)
+	// Read the MySQL tables from the target database
+	mysql.ReadTables(conf.Project)
 	//
 	// differences := migrate.DiffTables(yaml.Schema, mysql.Schema)
 	//
