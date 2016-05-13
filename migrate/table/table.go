@@ -6,23 +6,26 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
 type Tables []Table
 
 type Column struct {
-	PropertyID string `yaml:"id"`
-	Name       string
-	Type       string
-	Size       int
-	Nullable   bool
-	AutoInc    bool
+	ID       string `yaml:"id"`
+	Name     string
+	Type     string
+	Size     int
+	Nullable bool
+	AutoInc  bool
 
 	// Binary      bool
 	// Unique      bool
 	// Unsigned    bool
 	// ZeroFilled  bool
+
+	Metadata metadata.Metadata `yaml:"-"`
 }
 
 func (c Column) ToSQL() string {
@@ -40,11 +43,12 @@ func (c Column) ToSQL() string {
 }
 
 type Index struct {
-	PropertyID string `yaml:"id"`
-	Name       string
-	Columns    []string
-	IsPrimary  bool
-	IsUnique   bool
+	ID        string `yaml:"id"`
+	Name      string
+	Columns   []string
+	IsPrimary bool
+	IsUnique  bool
+	Metadata  metadata.Metadata `yaml:"-"`
 }
 
 func (i Index) ToSQL() string {
@@ -68,7 +72,7 @@ func (i Index) ToSQL() string {
 }
 
 type Table struct {
-	PropertyID       string `yaml:"id"`
+	ID               string `yaml:"id"`
 	Name             string
 	Engine           string
 	AutoInc          int64
@@ -78,7 +82,8 @@ type Table struct {
 	SecondaryIndexes []Index
 
 	namespace []string
-	Filename  string `yaml:"-"`
+	Filename  string            `yaml:"-"`
+	Metadata  metadata.Metadata `yaml:"-"`
 }
 
 func (t *Table) SetNamespace(path string, filename string) (err error) {

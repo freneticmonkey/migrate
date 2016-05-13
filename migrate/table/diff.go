@@ -6,9 +6,11 @@ import (
 	"reflect"
 
 	"github.com/fatih/color"
+	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
+// Difference Opertaions
 const (
 	Add = iota
 	Del = iota
@@ -108,7 +110,7 @@ func compare(tableName string, fieldName string, toContainer interface{}, fromCo
 			hasDiff = true
 		} else {
 			// strings must be in the same order - important for indexes!
-			for i := 0; i < toField.Len(); i += 1 {
+			for i := 0; i < toField.Len(); i++ {
 				if toField.Index(i).String() != fromField.Index(i).String() {
 					hasDiff = true
 					break
@@ -136,13 +138,15 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	// Check for new fields
 	for _, to := range toProperties {
 		found := false
-		toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
+		toMD := reflect.ValueOf(to).FieldByName("Metadata").Interface().(metadata.Metadata)
+		// toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
 
 		// If an Id is defined
-		if len(toId) > 0 {
+		if len(toMD.PropertyID) > 0 {
 			for _, from := range fromProperties {
-				fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
-				if toId == fromId {
+				fromMD := reflect.ValueOf(from).FieldByName("Metadata").Interface().(metadata.Metadata)
+				// fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
+				if toMD.PropertyID == fromMD.PropertyID {
 					existingProperties = append(existingProperties, DiffPair{from, to})
 					found = true
 					continue
@@ -165,10 +169,12 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	// Check for deleted fields
 	for _, from := range fromProperties {
 		found := false
-		fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
+		fromMD := reflect.ValueOf(from).FieldByName("Metadata").Interface().(metadata.Metadata)
+		// fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
 		for _, to := range toProperties {
-			toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
-			if toId == fromId {
+			toMD := reflect.ValueOf(to).FieldByName("Metadata").Interface().(metadata.Metadata)
+			// toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
+			if toMD.PropertyID == fromMD.PropertyID {
 				found = true
 				continue
 			}
@@ -307,7 +313,7 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		// match against mysql tables
 		for _, fromTable := range fromTables {
 
-			if toTable.PropertyID == fromTable.PropertyID {
+			if toTable.Metadata.PropertyID == fromTable.Metadata.PropertyID {
 				found = true
 				if hasDiff, diff := diffTable(toTable, fromTable); hasDiff {
 					tableDiffs.Merge(diff)
@@ -326,7 +332,7 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		found := false
 		// match against the new tables
 		for _, toTable := range toTables {
-			if toTable.PropertyID == fromTable.PropertyID {
+			if toTable.Metadata.PropertyID == fromTable.Metadata.PropertyID {
 				found = true
 				break
 			}

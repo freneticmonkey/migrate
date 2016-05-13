@@ -10,6 +10,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/id"
+	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
 	// This is apparently how this is included
@@ -27,6 +28,19 @@ CREATE TABLE `dogs` (
   PRIMARY KEY (`id`),
   KEY `idx_id_name` (`id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+// Dogs Metadata
+INSERT INTO metadata
+(mdid,property_id,parent_id,type,name)
+VALUES
+(1,"tbl1","","Table","dogs"),
+(2,"col1","tbl1","Column","id"),
+(3,"col2","tbl1","Column","name"),
+(4,"col3","tbl1","Column","age"),
+(5,"col4","tbl1","Column","address"),
+(6,"pi","tbl1","PrimaryKey","PrimaryKey"),
+(7,"sc1","tbl1","Index","idx_id_name")
 
 CREATE TABLE `cats` (
   `id` int(11) NOT NULL,
@@ -73,7 +87,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	var engine string
 	var autoinc int64
 	var charset string
-	var id string
 
 	// extract the name from the first line
 	firstLine := lines[0]
@@ -101,6 +114,13 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	if hasParameter(lastLine, "DEFAULT CHARSET") {
 		// extract DEFAULT CHARSET and value
 		charset = extractParameter(lastLine, "DEFAULT CHARSET")
+	}
+
+	// Get Metadata for the table
+	md := metadata.Metadata{}
+	md, err = metadata.GetTableByName(name)
+	if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
+		tbl.Metadata = md
 	}
 
 	tbl.Name = name
@@ -133,7 +153,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	// process table column and keys
 	for _, line := range column {
 		// process each column entry
-
 		line = strings.TrimRight(line, ",")
 
 		// extract NOT NULL
@@ -158,7 +177,7 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		lineSplit := strings.Split(strings.TrimSpace(line), " ")
 
 		// extract item[0] = name using ``
-		name := strings.Trim(lineSplit[0], "`")
+		name = strings.Trim(lineSplit[0], "`")
 
 		// split on (
 		dt := strings.Split(lineSplit[1], "(")
@@ -172,11 +191,17 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		util.ErrorCheckf(err, "Error Parsing Column Size parameter")
 
 		var column table.Column
-		column.PropertyID = id
 		column.Name = name
 		column.Type = datatype
 		column.Size = colSize
 		column.Nullable = nullable
+
+		// Retrieve Metadata for column
+		md = metadata.Metadata{}
+		md, err = metadata.GetByName(name, tbl.Metadata.PropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
+			column.Metadata = md
+		}
 
 		tbl.Columns = append(tbl.Columns, column)
 	}
@@ -188,6 +213,12 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	values := strings.Split(pk, ",")
 	primaryKey.IsPrimary = true
 
+	// Retrieve Metadata for Primary Key
+	md = metadata.Metadata{}
+	md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
+	if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
+		primaryKey.Metadata = md
+	}
 	for _, column := range values {
 		// strip ` and add to primary key array
 		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
@@ -198,8 +229,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	// extract any KEY values
 	for _, key := range secondaryKeys {
 		var index table.Index
-
-		index.PropertyID = id
 
 		// Format: KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
 
@@ -215,6 +244,14 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		for _, column := range cvalues {
 			index.Columns = append(index.Columns, strings.Trim(column, "`"))
 		}
+
+		// Retrieve Metadata for index
+		md = metadata.Metadata{}
+		md, err = metadata.GetByName(index.Name, tbl.Metadata.PropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
+			index.Metadata = md
+		}
+
 		tbl.SecondaryIndexes = append(tbl.SecondaryIndexes, index)
 
 	}
@@ -263,7 +300,6 @@ func ReadTables(project config.Project) (err error) {
 				Schema = append(Schema, tbl)
 			}
 		}
-
 		problems := id.ValidateSchema(Schema)
 		if problems != 0 {
 			err = fmt.Errorf("Reading tables from target database failed. %d problems found during validation", problems)

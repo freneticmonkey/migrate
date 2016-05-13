@@ -8,12 +8,13 @@ import (
 )
 
 var idConflictTemplate = `
-Duplicate id found for:
+Duplicate ID: >> [%s] found for:
+Table: [%s]
 Name: [%s]
-ID: [%s]
 File: [%s]
 -------------
 ID already assigned to:
+Table:[%s]
 Name: [%s]
 Type: [%s]
 File: [%s]
@@ -21,12 +22,13 @@ File: [%s]
 `
 
 var nameConflictTemplate = `
-Duplicate name found for:
-Name: [%s]
+Duplicate Name: >> [%s] found for:
+Table: [%s]
 ID: [%s]
 File: [%s]
 -------------
 Name already assigned to:
+Table: [%s]
 Name: [%s]
 Type: [%s]
 File: [%s]
@@ -38,27 +40,29 @@ type Properties struct {
 	PropertyIds []string
 	Type        []string
 	Name        []string
+	Table       []string
 	Filename    []string
 }
 
 // Add Adds the parameters to the list of known properties
-func (p *Properties) Add(id string, ptype string, name string, filename string) {
+func (p *Properties) Add(id string, ptype string, name string, tname string, filename string) {
 	p.PropertyIds = append(p.PropertyIds, id)
 	p.Type = append(p.Type, ptype)
 	p.Name = append(p.Name, name)
+	p.Table = append(p.Table, tname)
 	p.Filename = append(p.Filename, filename)
 }
 
 // Exists Checks if the pid and name parameters exist
-func (p Properties) Exists(pid string, name string, filename string) bool {
+func (p Properties) Exists(pid string, name string, tname string, filename string) bool {
 	for i, id := range p.PropertyIds {
 		if pid == id {
-			util.LogErrorf(idConflictTemplate, name, pid, filename, p.Name[i], p.Type[i], p.Filename[i])
+			util.LogErrorf(idConflictTemplate, pid, tname, name, filename, p.Table[i], p.Name[i], p.Type[i], p.Filename[i])
 			return true
 		}
 
 		if name == p.Name[i] {
-			util.LogErrorf(nameConflictTemplate, name, pid, filename, p.Name[i], p.Type[i], p.Filename[i])
+			util.LogErrorf(nameConflictTemplate, name, tname, pid, filename, p.Table[i], p.Name[i], p.Type[i], p.Filename[i])
 			return true
 		}
 	}
@@ -74,10 +78,10 @@ func validate(propertyID string, ptype string, name string, tname string, filena
 		util.LogError(fmt.Sprintf("Missing Id for Property: Name: [%s] Type: [%s] Table: [%s] File: [%s]", name, ptype, tname, filename))
 		result = 1
 	} else {
-		if ids.Exists(propertyID, name, filename) {
+		if ids.Exists(propertyID, name, tname, filename) {
 			result = 1
 		} else {
-			ids.Add(propertyID, ptype, name, filename)
+			ids.Add(propertyID, ptype, name, tname, filename)
 		}
 	}
 
@@ -92,21 +96,21 @@ func ValidateSchema(tables table.Tables) (result int) {
 	var tableIds Properties
 
 	// Check each table for unique table ids
-	for _, table := range tables {
-		result += validate(table.PropertyID, "Table", table.Name, table.Name, table.Filename, &tableIds)
+	for _, tbl := range tables {
+		result += validate(tbl.Metadata.PropertyID, "Table", tbl.Name, tbl.Name, tbl.Filename, &tableIds)
 
 		var tablePropertyIds Properties
 
 		// Check Primary Key
-		result += validate(table.PrimaryIndex.PropertyID, "Primary Key", "Primary Key", table.Name, table.Filename, &tablePropertyIds)
+		result += validate(tbl.PrimaryIndex.Metadata.PropertyID, "Primary Key", "Primary Key", tbl.Name, tbl.Filename, &tablePropertyIds)
 
-		for _, column := range table.Columns {
-			result += validate(column.PropertyID, "Column", column.Name, table.Name, table.Filename, &tablePropertyIds)
+		for _, column := range tbl.Columns {
+			result += validate(column.Metadata.PropertyID, "Column", column.Name, tbl.Name, tbl.Filename, &tablePropertyIds)
 		}
 
 		// Check indexes
-		for _, index := range table.SecondaryIndexes {
-			result += validate(index.PropertyID, "Index", index.Name, table.Name, table.Filename, &tablePropertyIds)
+		for _, index := range tbl.SecondaryIndexes {
+			result += validate(index.Metadata.PropertyID, "Index", index.Name, tbl.Name, tbl.Filename, &tablePropertyIds)
 		}
 	}
 	return result
