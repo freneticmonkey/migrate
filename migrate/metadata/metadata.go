@@ -1,12 +1,17 @@
 package metadata
 
-import "github.com/freneticmonkey/migrate/migrate/util"
+import (
+	"fmt"
+
+	"github.com/freneticmonkey/migrate/migrate/util"
+)
 
 // Metadata This struct stores the identification information for each table
 // and table field in the target database.  This data is used to match the
 // schema of the target database to the YAML schema
 type Metadata struct {
 	MDID       int64  `db:"mdid, autoincrement, primarykey"`
+	DB         int    `db:"db"`
 	PropertyID string `db:"property_id"`
 	ParentID   string `db:"parent_id"`
 	Type       string `db:"type"`
@@ -14,13 +19,15 @@ type Metadata struct {
 }
 
 // Insert Insert the Metadata into the Management DB
-func (m *Metadata) Insert() {
-	mgmtDb.Insert(m)
+func (m *Metadata) Insert() error {
+	m.DB = targetDBID
+	return mgmtDb.Insert(m)
 }
 
 // Update Update the Metadata in the Management DB
-func (m *Metadata) Update() {
-	mgmtDb.Update(m)
+func (m *Metadata) Update() (err error) {
+	_, err = mgmtDb.Update(m)
+	return err
 }
 
 // GetTableByName Get a Table metadata object from the database by name
@@ -32,8 +39,16 @@ func GetTableByName(name string) (md Metadata, err error) {
 
 // GetByName Get a metadata object from the database with name
 func GetByName(name string, parentID string) (md Metadata, err error) {
-	err = mgmtDb.SelectOne(&md, "SELECT * FROM metadata WHERE name=? AND parent_id=?", name, parentID)
-	util.ErrorCheckf(err, "Failed to find Property with name: [%s] in ParentID: [%s]", name, parentID)
+	errString := fmt.Sprintf("Failed to find Property with name: [%s]", name)
+	query := fmt.Sprintf("SELECT * FROM metadata WHERE name=\"%s\"", name)
+
+	if len(parentID) > 0 {
+		query += fmt.Sprintf(" AND parent_id=\"%s\"", parentID)
+		errString += fmt.Sprintf(" in ParentID: [%s]", parentID)
+	}
+
+	err = mgmtDb.SelectOne(&md, query)
+	util.ErrorCheckf(err, errString)
 
 	return md, err
 }

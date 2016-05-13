@@ -40,6 +40,7 @@ type Diff struct {
 	Op       int
 	Property string
 	Value    interface{}
+	Metadata metadata.Metadata
 }
 
 func (d Diff) Print() {
@@ -161,7 +162,14 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 				// call it
 				// fields := reflect.ValueOf(to).MethodByName("AsDiff").Interface().(func(bool) PropertyDiff)(true)
 				name := reflect.ValueOf(to).FieldByName("Name").String()
-				diff.Add(Diff{tableName, fieldName, Add, name, reflect.ValueOf(to).Interface()})
+				diff.Add(Diff{
+					Table:    tableName,
+					Field:    fieldName,
+					Op:       Add,
+					Property: name,
+					Value:    reflect.ValueOf(to).Interface(),
+					Metadata: toMD,
+				})
 			}
 		}
 	}
@@ -187,7 +195,14 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 			// turn that into a function that has the expected signature,
 			// call it
 			name := reflect.ValueOf(from).FieldByName("Name").String()
-			diff.Add(Diff{tableName, fieldName, Del, name, reflect.ValueOf(from).Interface()})
+			diff.Add(Diff{
+				Table:    tableName,
+				Field:    fieldName,
+				Op:       Del,
+				Property: name,
+				Value:    reflect.ValueOf(from).Interface(),
+				Metadata: fromMD,
+			})
 		}
 	}
 
@@ -323,7 +338,14 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		}
 		if !found {
 			// The table is a new table
-			tableDiffs.Add(Diff{toTable.Name, "*", Add, "*", toTable})
+			tableDiffs.Add(Diff{
+				Table:    toTable.Name,
+				Field:    "*",
+				Op:       Add,
+				Property: "*",
+				Value:    toTable,
+				Metadata: toTable.Metadata,
+			})
 		}
 	}
 
@@ -339,12 +361,15 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		}
 		if !found {
 			// The table doesn't exist in the set of new tables and so it needs to be deleted
-			tableDiffs.Add(Diff{fromTable.Name, "*", Del, "*", fromTable})
+			tableDiffs.Add(Diff{
+				Table:    fromTable.Name,
+				Field:    "*",
+				Op:       Del,
+				Property: "*",
+				Value:    fromTable,
+				Metadata: fromTable.Metadata,
+			})
 		}
-	}
-
-	for _, diff := range tableDiffs.Slice {
-		diff.Print()
 	}
 
 	return tableDiffs

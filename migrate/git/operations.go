@@ -21,7 +21,7 @@ func GetVersionTime(project string, version string) (timestamp string, err error
 	timestamp, err = gitCmd(path, []string{
 		"show",
 		"-s",
-		"format=%cI",
+		"--format=%cI",
 	})
 
 	// 2016-05-06T08:28:17+10:00 - Example Git Time
@@ -30,6 +30,19 @@ func GetVersionTime(project string, version string) (timestamp string, err error
 	formattedTime := tm.UTC().Format(time.RFC3339)
 
 	return formattedTime, err
+}
+
+// GetVersion Reads the Git repository in the working sub directory (project)
+// and returns current commit version
+func GetVersion(project string) (version string, err error) {
+	path := util.WorkingSubDir(project)
+	version, err = gitCmd(path, []string{
+		"show",
+		"-s",
+		"--format=%H",
+	})
+
+	return version, err
 }
 
 // GetVersionDetails Reads the Git repository in the working sub directory (project)

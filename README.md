@@ -27,19 +27,22 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Serialize Table structs to YAML
 - [X] Serialize Table structs to MySQL
 - [X] Namespace support
-- [ ] AUTO_INC support
-- [ ] Metadata for ids
+- [X] Metadata for ids
 - [X] Git repo/path/version/time support
-- [ ] Human readable migration output - 'Git diff'
-- [ ] Initialise Target Database
-- [ ] Initialise Management Database
-- [ ] Setup from existing target database
+- [X] Human readable migration output - 'Git diff'
+- [X] Initialise Management Database
 - [X] Provide detailed Schema Validation Errors
+- [ ] AUTO_INC support
+- [ ] Implement migrations
+- [ ] Implement migration approval
+- [ ] Implement migration validation checks
+- [ ] Initialise Target Database
+- [ ] Setup from existing target database
 - [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 
 # TODO Management
-- [ ] Implement tables:
-    - [ ] Database
+- [X] Implement tables:
+    - [X] TargetDatabase
     - [X] Migration
     - [X] MigrationStep
     - [X] Metadata

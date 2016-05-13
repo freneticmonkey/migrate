@@ -31,16 +31,16 @@ CREATE TABLE `dogs` (
 
 
 // Dogs Metadata
-INSERT INTO metadata
-(mdid,property_id,parent_id,type,name)
+INSERT INTO management.metadata
+(mdid,db,property_id,parent_id,type,name)
 VALUES
-(1,"tbl1","","Table","dogs"),
-(2,"col1","tbl1","Column","id"),
-(3,"col2","tbl1","Column","name"),
-(4,"col3","tbl1","Column","age"),
-(5,"col4","tbl1","Column","address"),
-(6,"pi","tbl1","PrimaryKey","PrimaryKey"),
-(7,"sc1","tbl1","Index","idx_id_name")
+(1,1,"tbl1","","Table","dogs"),
+(2,1,"col1","tbl1","Column","id"),
+(3,1,"col2","tbl1","Column","name"),
+(4,1,"col3","tbl1","Column","age"),
+(5,1,"col4","tbl1","Column","address"),
+(6,1,"pi","tbl1","PrimaryKey","PrimaryKey"),
+(7,1,"sc1","tbl1","Index","idx_id_name");
 
 CREATE TABLE `cats` (
   `id` int(11) NOT NULL,
