@@ -66,7 +66,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	addTemplate := "ALTER  TABLE `%s` ADD %s `%s` %s;"
 	addColumnTemplate := "%s(%d) %s"
 
-	modTemplate := "ALTER  TABLE     `%s` %s;"
+	modTemplate := "ALTER  TABLE `%s` %s;"
 
 	switch diff.Op {
 
@@ -101,6 +101,8 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 		name := fromColumn.Name
 		colType := fmt.Sprintf(" %s(%d) ", fromColumn.Type, fromColumn.Size)
 		isNull := ""
+		autoinc := ""
+
 		if !fromColumn.Nullable {
 			isNull = "NOT NULL"
 		}
@@ -121,9 +123,15 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 			if !toColumn.Nullable {
 				isNull = "NOT NULL"
 			}
+
+		case "AutoInc":
+			// if AutoInc is T or F
+			if toColumn.AutoInc {
+				autoinc = "AUTO_INCREMENT"
+			}
 		}
 
-		modStatement = fmt.Sprintf("%s %s %s %s", columnOperation, name, colType, isNull)
+		modStatement = fmt.Sprintf("%s %s %s %s %s", columnOperation, name, colType, isNull, autoinc)
 
 		operation.Statement = fmt.Sprintf(modTemplate, diff.Table, modStatement)
 

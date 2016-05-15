@@ -238,7 +238,7 @@ func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	}
 
 	// Column Properties
-	fieldNames := []string{"Name", "Type", "Size", "Nullable"}
+	fieldNames := []string{"Name", "Type", "Size", "Nullable", "AutoInc"}
 
 	if differentColumns := diffProperties(toTable.Name, "Columns", fieldNames, toColumns, fromColumns); len(differentColumns.Slice) > 0 {
 		hasDiff = true
@@ -371,6 +371,8 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 			})
 		}
 	}
+
+	// util.DebugDump(tableDiffs)
 
 	return tableDiffs
 }

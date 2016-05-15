@@ -162,14 +162,17 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 
 		// NOT NULL by default
 		nullable := false
+		autoinc := false
 
 		// If NOT NULL is not present
 		if strings.Index(parameters, "NOT NULL") == -1 {
 			nullable = true
 		}
 
-		// id, err := extractCommentId(parameters)
-		// ErrorCheck(err)
+		// If AUTO_INCREMENT is not present
+		if strings.Index(parameters, "AUTO_INCREMENT") == -1 {
+			autoinc = false
+		}
 
 		line = line[:strings.LastIndex(line, ")")]
 
@@ -195,6 +198,7 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		column.Type = datatype
 		column.Size = colSize
 		column.Nullable = nullable
+		column.AutoInc = autoinc
 
 		// Retrieve Metadata for column
 		md = metadata.Metadata{}
@@ -296,8 +300,9 @@ func ReadTables(project config.Project) (err error) {
 				util.ErrorCheck(err)
 
 				tbl, err = parseCreateTable(create)
-				util.ErrorCheck(err)
-				Schema = append(Schema, tbl)
+				if !util.ErrorCheck(err) {
+					Schema = append(Schema, tbl)
+				}
 			}
 		}
 		problems := id.ValidateSchema(Schema)
