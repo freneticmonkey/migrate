@@ -18,6 +18,15 @@ type Metadata struct {
 	Name       string `db:"name"`
 }
 
+// Load Uses the valud of MDID to load from the Management DB
+func Load(mdid int64) (m *Metadata, err error) {
+	md, err := mgmtDb.Get(Metadata{}, mdid)
+	if md != nil {
+		m = md.(*Metadata)
+	}
+	return m, err
+}
+
 // Insert Insert the Metadata into the Management DB
 func (m *Metadata) Insert() error {
 	m.DB = targetDBID
@@ -28,6 +37,11 @@ func (m *Metadata) Insert() error {
 func (m *Metadata) Update() (err error) {
 	_, err = mgmtDb.Update(m)
 	return err
+}
+
+// IsTable Returns if there is a value for ParentID. If empty the property is a table.
+func (m *Metadata) IsTable() bool {
+	return len(m.ParentID) == 0
 }
 
 // GetTableByName Get a Table metadata object from the database by name

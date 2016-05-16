@@ -4,6 +4,8 @@ package migration
 type Step struct {
 	SID      int64  `db:"sid,autoincrement,primarykey"`
 	MID      int64  `db:"mid"`
+	Op       int    `db:"op"`
+	MDID     int64  `db:"mdid"`
 	Forward  string `db:"forward"`
 	Backward string `db:"backward"`
 	Output   string `db:"output,size:1024"`

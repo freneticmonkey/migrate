@@ -80,6 +80,8 @@ func New(p Param) Migration {
 			Forward:  p.Forwards[i].Statement,
 			Backward: p.Backwards[i].Statement,
 			Status:   Pending,
+			Op:       p.Forwards[i].Op,
+			MDID:     p.Forwards[i].Metadata.MDID,
 		}
 		m.AddStep(step)
 	}

@@ -32,13 +32,15 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Human readable migration output - 'Git diff'
 - [X] Initialise Management Database
 - [X] Provide detailed Schema Validation Errors
-- [ ] AUTO_INC support
+- [X] AUTO_INC support
 - [ ] Implement migrations
 - [ ] Implement migration approval
 - [ ] Implement migration validation checks
 - [ ] Initialise Target Database
 - [ ] Setup from existing target database
 - [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
+- [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
+- [ ] Add additional metadata validation where in a rename will fail up update the metadata table.  Repair using best guess from the YAML schema?
 
 # TODO Management
 - [X] Implement tables:
