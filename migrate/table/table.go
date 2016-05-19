@@ -10,8 +10,10 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
+// Tables Helper type for a slice of Table structs
 type Tables []Table
 
+// Column Stores the properties for a Column field
 type Column struct {
 	ID       string `yaml:"id"`
 	Name     string
@@ -28,6 +30,7 @@ type Column struct {
 	Metadata metadata.Metadata `yaml:"-"`
 }
 
+// ToSQL Formats the column into its SQL representation
 func (c Column) ToSQL() string {
 
 	var params util.Params
@@ -42,6 +45,7 @@ func (c Column) ToSQL() string {
 	return fmt.Sprintf("%s %s(%d) %s", c.Name, c.Type, c.Size, params.String())
 }
 
+// Index Stores the properties for a Index field
 type Index struct {
 	ID        string `yaml:"id"`
 	Name      string
@@ -51,6 +55,7 @@ type Index struct {
 	Metadata  metadata.Metadata `yaml:"-"`
 }
 
+// ToSQL Formats the index into its SQL representation
 func (i Index) ToSQL() string {
 
 	name := ""
@@ -71,6 +76,8 @@ func (i Index) ToSQL() string {
 	return fmt.Sprintf("%s (%s)", name, columns)
 }
 
+// Table Stores the fields and properties representing a Table parsed from YAML
+// or from a MySQL CREATE TABLE statement
 type Table struct {
 	ID               string `yaml:"id"`
 	Name             string
@@ -144,56 +151,6 @@ func (t *Table) SyncDBMetadata() (err error) {
 	for i := 0; i < len(t.SecondaryIndexes); i++ {
 		syncMetadata(&t.SecondaryIndexes[i].Metadata)
 	}
-
-	// var md metadata.Metadata
-	// md, err = metadata.GetTableByName(t.Name)
-	//
-	// // If the Table isn't known to the Metadata table then everything needs to be added
-	// if err != nil {
-	// 	err = t.Metadata.Insert()
-	// 	util.ErrorCheckf(err, "Problem inserting Table Metdata for Table: [%s] with PropertyID: [%s]", t.Name, t.Metadata.PropertyID)
-	//
-	// 	err = t.PrimaryIndex.Metadata.Insert()
-	// 	util.ErrorCheckf(err, "Problem inserting PrimaryKey Metdata for PK for with PropertyID: [%s]", t.Metadata.PropertyID)
-	//
-	// 	for _, col := range t.Columns {
-	// 		err = col.Metadata.Insert()
-	// 		util.ErrorCheckf(err, "Problem inserting Table Metdata for Column: [%s] with PropertyID: [%s]", col.Name, t.Metadata.PropertyID)
-	// 	}
-	//
-	// 	for _, index := range t.SecondaryIndexes {
-	// 		err = index.Metadata.Insert()
-	// 		util.ErrorCheckf(err, "Problem inserting Table Metdata for Index: [%s] with PropertyID: [%s]", index.Name, t.Metadata.PropertyID)
-	// 	}
-	// } else {
-	// 	md, err = metadata.GetByName("PrimaryKey", t.Metadata.PropertyID)
-	// 	if err != nil {
-	// 		err = t.PrimaryIndex.Metadata.Insert()
-	// 		util.ErrorCheckf(err, "Problem inserting PrimaryKey Metdata for PK for with PropertyID: [%s]", t.Metadata.PropertyID)
-	// 	} else {
-	// 		t.PrimaryIndex.Metadata = md
-	// 	}
-	//
-	// 	for i, col := range t.Columns {
-	// 		md, err = metadata.GetByName(col.Name, t.Metadata.PropertyID)
-	// 		if err != nil {
-	// 			err = t.Columns[i].Metadata.Insert()
-	// 			util.ErrorCheckf(err, "Problem inserting Table Metdata for Column: [%s] with PropertyID: [%s]", col.Name, t.Metadata.PropertyID)
-	// 		} else {
-	// 			t.Columns[i].Metadata = md
-	// 		}
-	// 	}
-	//
-	// 	for i, index := range t.SecondaryIndexes {
-	// 		md, err = metadata.GetByName(index.Name, t.Metadata.PropertyID)
-	// 		if err != nil {
-	// 			err = t.SecondaryIndexes[i].Metadata.Insert()
-	// 			util.ErrorCheckf(err, "Problem inserting Table Metdata for Index: [%s] with PropertyID: [%s]", index.Name, t.Metadata.PropertyID)
-	// 		} else {
-	// 			t.SecondaryIndexes[i].Metadata = md
-	// 		}
-	// 	}
-	// }
 
 	return err
 }

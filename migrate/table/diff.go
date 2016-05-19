@@ -2,7 +2,6 @@ package table
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/fatih/color"
@@ -17,6 +16,7 @@ const (
 	Mod = iota
 )
 
+// FormatOperation Formats the difference in a human readable git style for console output
 func FormatOperation(input string, op int) {
 	var prefix string
 	switch op {
@@ -30,10 +30,11 @@ func FormatOperation(input string, op int) {
 		prefix = " M "
 		color.Set(color.FgYellow)
 	}
-	log.Printf("%s %s", prefix, input)
+	util.LogInfof("%s %s", prefix, input)
 	color.Unset()
 }
 
+// Diff A struct whcih stores the details for an individual difference
 type Diff struct {
 	Table    string
 	Field    string
@@ -43,19 +44,23 @@ type Diff struct {
 	Metadata metadata.Metadata
 }
 
+// Print Generate a human readable string representation of the Diff
 func (d Diff) Print() {
 	FormatOperation(fmt.Sprintf("Table: [%s] Field: [%s] Property: [%s] Value: [%#v]", d.Table, d.Field, d.Property, d.Value), d.Op)
 }
 
+// DiffPair Utility struct for grouping diffs
 type DiffPair struct {
 	From interface{}
 	To   interface{}
 }
 
+// Differences Utility struct for slices of Diffs
 type Differences struct {
 	Slice []Diff
 }
 
+// Add Add a Diff instance to a Differences slice
 func (d *Differences) Add(diff Diff) {
 	// Check to make sure that the difference is valid
 	// If table name is empty, then the object is most likely empty
@@ -64,6 +69,7 @@ func (d *Differences) Add(diff Diff) {
 	}
 }
 
+// Merge Merge a slice of Diffs packed as Differences
 func (d *Differences) Merge(diffs Differences) {
 	for _, slice := range diffs.Slice {
 		d.Add(slice)
