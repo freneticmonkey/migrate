@@ -16,6 +16,7 @@ type Metadata struct {
 	ParentID   string `db:"parent_id"`
 	Type       string `db:"type"`
 	Name       string `db:"name"`
+	Exists     bool   `db:"exists"`
 }
 
 // Load Uses the valud of MDID to load from the Management DB

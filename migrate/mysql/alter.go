@@ -31,9 +31,8 @@ func (s *SQLOperations) Merge(ops SQLOperations) {
 
 // generateCreateTable Generate a MySQL CREATE TABLE statement from a
 // Table struct
-func generateCreateTable(tbl table.Table) (ops SQLOperations) {
+func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 
-	var operation SQLOperation
 	operation.Op = table.Add
 
 	tableTemplate := "CREATE TABLE\t`%s` (\n\t%s,%s \n) ENGINE=%s DEFAULT CHARSET=%s;"
@@ -52,8 +51,7 @@ func generateCreateTable(tbl table.Table) (ops SQLOperations) {
 	}
 	operation.Statement = fmt.Sprintf(tableTemplate, tbl.Name, strings.Join(columns, ",\n\t"), strings.Join(indexes, ",\n\t"), tbl.Engine, tbl.CharSet)
 	operation.Metadata = tbl.Metadata
-	ops.Add(operation)
-	return ops
+	return operation
 }
 
 // generateAlterColumn Generate a MySQL ALTER COLUMN statement from a
@@ -225,7 +223,7 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 				// generate the create table
 				tbl, ok := diff.Value.(table.Table)
 				if ok {
-					alter = generateCreateTable(tbl)
+					alter.Add(generateCreateTable(tbl))
 				} else {
 					util.LogError("ISSUES obtaining table object: " + diff.Table)
 				}

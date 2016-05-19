@@ -16,14 +16,17 @@ func Exec(migration *Migration, dryrun bool, force bool, ptodisbled bool) (err e
 	if migration.Status == Approved || force {
 		// for each step in the migration
 		for _, step := range migration.Steps {
+			var md *metadata.Metadata
+
+			util.DebugDump(step)
 
 			// check if ptodisabled is true
 			usePTO := !ptodisbled
 
 			// Check if create or drop table.
-			md, e := metadata.Load(step.MDID)
+			md, err = metadata.Load(step.MDID)
 
-			if !util.ErrorCheckf(e, "The Metadata: [%d] for Step: [%d] couldn't be loaded from the Management DB", md.MDID, step.SID) {
+			if !util.ErrorCheckf(err, "The Metadata: [%d] for Step: [%d] couldn't be loaded from the Management DB", step.MDID, step.SID) {
 
 				// if PTO can be used, and this migration is changing a table and
 				// the modification is either a CREATE OR DROP TABLE.
@@ -39,8 +42,6 @@ func Exec(migration *Migration, dryrun bool, force bool, ptodisbled bool) (err e
 					// otherwise use the regular go sql driver
 					err = executeSQL(step, md, dryrun)
 				}
-			} else {
-				err = e
 			}
 		}
 	} else {
@@ -51,11 +52,12 @@ func Exec(migration *Migration, dryrun bool, force bool, ptodisbled bool) (err e
 }
 
 func executePTO(step Step, md *metadata.Metadata, dryrun bool) (err error) {
-	util.LogInfof("Executing the migration step: [%d] using pt-online-schema-change", step.SID)
+	util.LogInfof("Executing the with Metadata: [%d] migration step: [%d] using pt-online-schema-change", md.MDID, step.SID)
 	return err
 }
 
 func executeSQL(step Step, md *metadata.Metadata, dryrun bool) (err error) {
-	util.LogInfof("Executing the migration step: [%d] using go sql driver", step.SID)
+	util.DebugDump(md)
+	util.LogInfof("Executing the with Metadata: [%d] migration step: [%d] using go sql driver", md.MDID, step.SID)
 	return err
 }

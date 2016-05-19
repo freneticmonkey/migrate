@@ -213,9 +213,12 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 
 		// For each field
 		for _, field := range propertyNames {
+
 			if diffFound, difference := compare(tableName, field, existingProperty.To, existingProperty.From); diffFound {
+
 				difference.Field = fieldName
 				difference.Value = reflect.ValueOf(existingProperty).Interface()
+				difference.Metadata = reflect.ValueOf(existingProperty.To).FieldByName("Metadata").Interface().(metadata.Metadata)
 				diff.Add(difference)
 			}
 		}
@@ -283,9 +286,6 @@ func diffIndexes(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	if differentIndexes := diffProperties(toTable.Name, "SecondaryIndexes", fieldNames, toIndexes, fromIndexes); len(differentIndexes.Slice) > 0 {
 		hasDiff = true
 
-		util.DebugDump(toIndexes)
-		util.DebugDump(fromIndexes)
-
 		differences.Merge(differentIndexes)
 	}
 
@@ -301,6 +301,7 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 	for _, field := range fieldNames {
 		if diffFound, fieldsDiff := compare(fromTable.Name, field, toTable, fromTable); diffFound {
 			hasDiff = diffFound
+			fieldsDiff.Metadata = fromTable.Metadata
 			differences.Add(fieldsDiff)
 		}
 	}
@@ -320,11 +321,15 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 	return hasDiff, differences
 }
 
+// DiffTables Compare the toTables and fromTables Slices of Table structs and
+// return a Differences Slice containing all of the differences between the tables.
 func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 	util.LogInfo("Starting Diff")
+
 	// Search through the input tables
 	for _, toTable := range toTables {
 		found := false
+
 		// match against mysql tables
 		for _, fromTable := range fromTables {
 
@@ -347,6 +352,9 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 				Metadata: toTable.Metadata,
 			})
 		}
+		// Sync the metadata for the table and it's fields to the DB
+		err := toTable.SyncDBMetadata()
+		util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name)
 	}
 
 	// Search through the existing tables for dropped tables
@@ -371,8 +379,6 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 			})
 		}
 	}
-
-	// util.DebugDump(tableDiffs)
 
 	return tableDiffs
 }

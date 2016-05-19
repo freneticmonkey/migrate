@@ -78,6 +78,8 @@ func main() {
 
 	util.LogInfof("Created Migration with ID: %d", m.MID)
 
+	// migration.Exec(&m, true, true, true)
+
 	// yamlPath := filepath.Join(config.Options.WorkingPath, config.Project.Name)
 	//yaml.WriteTables(yamlPath, migrate.DBSchema.Tables)
 }

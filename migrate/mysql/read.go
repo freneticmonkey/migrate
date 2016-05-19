@@ -32,15 +32,15 @@ CREATE TABLE `dogs` (
 
 // Dogs Metadata
 INSERT INTO management.metadata
-(mdid,db,property_id,parent_id,type,name)
+(`mdid`,`db`,`property_id`,`parent_id`,`type`,`name`,`exists`)
 VALUES
-(1,1,"tbl1","","Table","dogs"),
-(2,1,"col1","tbl1","Column","id"),
-(3,1,"col2","tbl1","Column","name"),
-(4,1,"col3","tbl1","Column","age"),
-(5,1,"col4","tbl1","Column","address"),
-(6,1,"pi","tbl1","PrimaryKey","PrimaryKey"),
-(7,1,"sc1","tbl1","Index","idx_id_name");
+(1,1,"tbl1","","Table","dogs",1),
+(2,1,"col1","tbl1","Column","id",1),
+(3,1,"col2","tbl1","Column","name",1),
+(4,1,"col3","tbl1","Column","age",1),
+(5,1,"col4","tbl1","Column","address",1),
+(6,1,"pi","tbl1","PrimaryKey","PrimaryKey",1),
+(7,1,"sc1","tbl1","Index","idx_id_name",1);
 
 CREATE TABLE `cats` (
   `id` int(11) NOT NULL,
@@ -117,7 +117,7 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	}
 
 	// Get Metadata for the table
-	md := metadata.Metadata{}
+	var md metadata.Metadata
 	md, err = metadata.GetTableByName(name)
 	if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
 		tbl.Metadata = md
@@ -201,7 +201,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		column.AutoInc = autoinc
 
 		// Retrieve Metadata for column
-		md = metadata.Metadata{}
 		md, err = metadata.GetByName(name, tbl.Metadata.PropertyID)
 		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
 			column.Metadata = md
@@ -218,7 +217,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	primaryKey.IsPrimary = true
 
 	// Retrieve Metadata for Primary Key
-	md = metadata.Metadata{}
 	md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
 	if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
 		primaryKey.Metadata = md
@@ -250,7 +248,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		}
 
 		// Retrieve Metadata for index
-		md = metadata.Metadata{}
 		md, err = metadata.GetByName(index.Name, tbl.Metadata.PropertyID)
 		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
 			index.Metadata = md
