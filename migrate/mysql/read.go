@@ -88,6 +88,8 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	var autoinc int64
 	var charset string
 
+	var hasMetadata bool
+
 	// extract the name from the first line
 	firstLine := lines[0]
 
@@ -118,9 +120,13 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 
 	// Get Metadata for the table
 	var md metadata.Metadata
-	md, err = metadata.GetTableByName(name)
-	if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
-		tbl.Metadata = md
+	hasMetadata, err = metadata.TableRegistered(name)
+
+	if hasMetadata {
+		md, err = metadata.GetTableByName(name)
+		if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
+			tbl.Metadata = md
+		}
 	}
 
 	tbl.Name = name
@@ -200,10 +206,12 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		column.Nullable = nullable
 		column.AutoInc = autoinc
 
-		// Retrieve Metadata for column
-		md, err = metadata.GetByName(name, tbl.Metadata.PropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
-			column.Metadata = md
+		if hasMetadata {
+			// Retrieve Metadata for column
+			md, err = metadata.GetByName(name, tbl.Metadata.PropertyID)
+			if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
+				column.Metadata = md
+			}
 		}
 
 		tbl.Columns = append(tbl.Columns, column)
@@ -216,11 +224,14 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	values := strings.Split(pk, ",")
 	primaryKey.IsPrimary = true
 
-	// Retrieve Metadata for Primary Key
-	md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
-	if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
-		primaryKey.Metadata = md
+	if hasMetadata {
+		// Retrieve Metadata for Primary Key
+		md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
+			primaryKey.Metadata = md
+		}
 	}
+
 	for _, column := range values {
 		// strip ` and add to primary key array
 		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
@@ -247,10 +258,12 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 			index.Columns = append(index.Columns, strings.Trim(column, "`"))
 		}
 
-		// Retrieve Metadata for index
-		md, err = metadata.GetByName(index.Name, tbl.Metadata.PropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
-			index.Metadata = md
+		if hasMetadata {
+			// Retrieve Metadata for index
+			md, err = metadata.GetByName(index.Name, tbl.Metadata.PropertyID)
+			if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
+				index.Metadata = md
+			}
 		}
 
 		tbl.SecondaryIndexes = append(tbl.SecondaryIndexes, index)

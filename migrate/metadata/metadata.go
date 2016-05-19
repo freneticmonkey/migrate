@@ -45,6 +45,14 @@ func (m *Metadata) IsTable() bool {
 	return len(m.ParentID) == 0
 }
 
+// TableRegistered Returns a boolean indicating that the Table named 'name' is
+// registered in the Metadata table
+func TableRegistered(name string) (reg bool, err error) {
+	query := fmt.Sprintf("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", name)
+	count, err := mgmtDb.SelectInt(query)
+	return count > 0, err
+}
+
 // GetTableByName Get a Table metadata object from the database by name
 func GetTableByName(name string) (md Metadata, err error) {
 

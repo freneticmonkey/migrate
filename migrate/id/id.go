@@ -35,6 +35,14 @@ File: [%s]
 =============
 `
 
+var missingIdTemplate = `
+Missing ID: >> ID: [%s] for:
+Name: [%s]
+Table: [%s]
+Type: [%s]
+File: [%s]
+`
+
 // Properties A helper struct which allows for easy display of validation errors
 type Properties struct {
 	PropertyIds []string
@@ -75,7 +83,8 @@ func validate(propertyID string, ptype string, name string, tname string, filena
 	result = 0
 
 	if len(propertyID) == 0 {
-		util.LogError(fmt.Sprintf("Missing Id for Property: Name: [%s] Type: [%s] Table: [%s] File: [%s]", name, ptype, tname, filename))
+		// util.LogError(fmt.Sprintf("Missing Id for Property: Name: [%s] Type: [%s] Table: [%s] File: [%s]", name, ptype, tname, filename))
+		util.LogError(fmt.Sprintf(missingIdTemplate, propertyID, name, ptype, tname, filename))
 		result = 1
 	} else {
 		if ids.Exists(propertyID, name, tname, filename) {
