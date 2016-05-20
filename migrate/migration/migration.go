@@ -1,6 +1,8 @@
 package migration
 
 import (
+	"fmt"
+
 	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
@@ -51,6 +53,41 @@ func (m *Migration) Update() (err error) {
 		}
 	}
 	return err
+}
+
+// Load Load a migation from the DB using the Migration ID primary key
+func Load(mid int64) (m *Migration, err error) {
+	obj, err := mgmtDb.Get(Migration{}, mid)
+	if err == nil {
+		m = obj.(*Migration)
+	}
+	return m, err
+}
+
+// GetLatest Return the git timestamp latest Migration from the DB
+func GetLatest() (m Migration, err error) {
+	var migrations []Migration
+	_, err = mgmtDb.Select(&migrations, "select * from migration ORDER BY version_timestamp DESC LIMIT 1")
+	if !util.ErrorCheckf(err, "Unable to get latest Migration from Management DB") {
+		if len(migrations) > 0 {
+			m = migrations[0]
+		}
+	}
+	return m, err
+}
+
+// InProgressID Returns the ID of a migration in the DB whose current status
+// is InProgress.  If no Migration is running 0 is returned.
+func InProgressID() (inProgressID int64, err error) {
+	var migrations []Migration
+	query := fmt.Sprintf("select * from migration WHERE status = %d", InProgress)
+	_, err = mgmtDb.Select(&migrations, query)
+	if !util.ErrorCheckf(err, "Unable to get InProgress Migrations from Management DB") {
+		if len(migrations) > 0 {
+			inProgressID = migrations[0].MID
+		}
+	}
+	return inProgressID, err
 }
 
 // Param A struct used to define parameters for the Migration struct

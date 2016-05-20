@@ -6,6 +6,8 @@ const (
 	Unapproved = iota
 	// Has been denied
 	Denied
+	// Has been depreciated
+	Depreciated
 	// Has been approved
 	Approved
 	// Is complete
@@ -16,4 +18,6 @@ const (
 	InProgress
 	// Failed to apply
 	Failed
+	// Skipped application
+	Skipped
 )
