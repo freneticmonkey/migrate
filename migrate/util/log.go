@@ -20,6 +20,18 @@ func LogInfof(format string, info ...interface{}) {
 	color.Unset()
 }
 
+func LogAttention(info ...interface{}) {
+	color.Set(color.FgYellow)
+	log.Printf("INFO: %s", fmt.Sprintln(info...))
+	color.Unset()
+}
+
+func LogAttentionf(format string, info ...interface{}) {
+	color.Set(color.FgYellow)
+	log.Printf("INFO: %s", fmt.Sprintf(format, info...))
+	color.Unset()
+}
+
 func LogWarn(warn ...interface{}) {
 	color.Set(color.FgMagenta)
 	log.Printf("WARN: %s", fmt.Sprintln(warn...))
