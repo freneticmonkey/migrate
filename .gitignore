@@ -23,4 +23,8 @@ _testmain.go
 *.test
 *.prof
 
+# Ignoring Go debugging
 debug
+
+# Ignoring the working folder
+test/working/*
