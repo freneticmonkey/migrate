@@ -67,12 +67,12 @@ type Param struct {
 // to the database
 func New(p Param) Migration {
 	m := Migration{
-		DB:                 targetDBID,
+		DB:                 projectDBID,
 		Project:            p.Project,
 		Version:            p.Version,
 		VersionTimestamp:   p.Timestamp,
 		VersionDescription: p.Description,
-		Status:             Pending,
+		Status:             Unapproved,
 	}
 
 	for i := 0; i < len(p.Forwards); i++ {
@@ -81,7 +81,7 @@ func New(p Param) Migration {
 		step := Step{
 			Forward:  forward.Statement,
 			Backward: p.Backwards[i].Statement,
-			Status:   Pending,
+			Status:   Unapproved,
 			Op:       forward.Op,
 			MDID:     forward.Metadata.MDID,
 		}

@@ -1,11 +1,19 @@
 package migration
 
-// The status states of the Migration
+// The status states of the Migration or Migration Step
 const (
-	Approved = iota
+	// Is waiting to be approved
+	Unapproved = iota
+	// Has been denied
 	Denied
-	Pending
-	InProgress
+	// Has been approved
+	Approved
+	// Is complete
 	Complete
+	// Is complete and was forced
 	Forced
+	// Is currently being applied
+	InProgress
+	// Failed to apply
+	Failed
 )

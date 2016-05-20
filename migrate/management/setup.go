@@ -16,6 +16,7 @@ var mgmtDb *gorp.DbMap
 // Setup Setup the database access to the Management DB
 func Setup(conf config.Config) (err error) {
 	mgmt := conf.Management
+
 	var db *sql.DB
 	db, err = sql.Open("mysql", mgmt.DB.ConnectString())
 	util.ErrorCheckf(err, "Failed to connect to the management DB")
@@ -45,7 +46,7 @@ func Setup(conf config.Config) (err error) {
 
 	if !util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database) {
 		metadata.Setup(mgmtDb, tdb.DBID)
-		migration.Setup(mgmtDb, tdb.DBID)
+		migration.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())
 
 		// If the Tables haven't been created, create them now.
 		err = mgmtDb.CreateTablesIfNotExists()
