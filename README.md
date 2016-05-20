@@ -41,6 +41,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 - [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
 - [ ] Add additional metadata validation where in a rename will fail up update the metadata table.  Repair using best guess from the YAML schema?
+- [ ] Add flag to allow for destructive migrations (drop table, rename column)
 
 # TODO Management
 - [X] Implement tables:
