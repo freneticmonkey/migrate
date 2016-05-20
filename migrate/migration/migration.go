@@ -1,9 +1,7 @@
 package migration
 
 import (
-	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/mysql"
-	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
@@ -80,34 +78,17 @@ func New(p Param) Migration {
 	for i := 0; i < len(p.Forwards); i++ {
 		forward := p.Forwards[i]
 
-		mdid := forward.Metadata.MDID
-
-		// If the operation is inserting a new item, then insert the metadata
-		// into the Management DB so that it can have an ID
-		if forward.Op == table.Add {
-			// Check if the metadata already exists
-			md, err := metadata.GetByName(forward.Metadata.Name, forward.Metadata.ParentID)
-			if err != nil {
-				forward.Metadata.Insert()
-				mdid = forward.Metadata.MDID
-			} else {
-				mdid = md.MDID
-			}
-		}
-
 		step := Step{
 			Forward:  forward.Statement,
 			Backward: p.Backwards[i].Statement,
 			Status:   Pending,
 			Op:       forward.Op,
-			MDID:     mdid,
+			MDID:     forward.Metadata.MDID,
 		}
 		m.AddStep(step)
 	}
 	util.LogWarn("Before insert")
 	m.Insert()
-
-	util.DebugDump(m)
 
 	// for _, s := range m.Steps {
 	// 	util.DebugDump(s)

@@ -18,8 +18,6 @@ func Exec(migration *Migration, dryrun bool, force bool, ptodisbled bool) (err e
 		for _, step := range migration.Steps {
 			var md *metadata.Metadata
 
-			util.DebugDump(step)
-
 			// check if ptodisabled is true
 			usePTO := !ptodisbled
 
@@ -52,12 +50,12 @@ func Exec(migration *Migration, dryrun bool, force bool, ptodisbled bool) (err e
 }
 
 func executePTO(step Step, md *metadata.Metadata, dryrun bool) (err error) {
-	util.LogInfof("Executing the with Metadata: [%d] migration step: [%d] using pt-online-schema-change", md.MDID, step.SID)
+	util.LogInfof("Executing the step with Metadata: [%d] migration step: [%d] using pt-online-schema-change", md.MDID, step.SID)
 	return err
 }
 
 func executeSQL(step Step, md *metadata.Metadata, dryrun bool) (err error) {
-	util.DebugDump(md)
-	util.LogInfof("Executing the with Metadata: [%d] migration step: [%d] using go sql driver", md.MDID, step.SID)
+	util.LogInfof("Executing Migration Step: [%d] using go sql driver", step.SID)
+	util.LogInfof("Executing Migration Step with Metadata: [%d]", md.MDID)
 	return err
 }

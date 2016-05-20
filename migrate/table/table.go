@@ -133,7 +133,8 @@ func syncMetadata(md *metadata.Metadata) {
 		err = md.Insert()
 		util.ErrorCheckf(err, "Problem inserting %s Metdata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID)
 	} else {
-		md = &dbmd
+		md.MDID = dbmd.MDID
+		md.DB = dbmd.DB
 	}
 }
 

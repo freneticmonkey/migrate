@@ -31,6 +31,9 @@ func Load(mdid int64) (m *Metadata, err error) {
 // Insert Insert the Metadata into the Management DB
 func (m *Metadata) Insert() error {
 	m.DB = targetDBID
+	if len(m.PropertyID) == 0 {
+		util.LogError("Inserting empty Metadata")
+	}
 	return mgmtDb.Insert(m)
 }
 

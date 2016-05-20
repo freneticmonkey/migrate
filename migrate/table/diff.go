@@ -2,6 +2,7 @@ package table
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/fatih/color"
@@ -30,7 +31,7 @@ func FormatOperation(input string, op int) {
 		prefix = " M "
 		color.Set(color.FgYellow)
 	}
-	util.LogInfof("%s %s", prefix, input)
+	log.Printf("%s %s", prefix, input)
 	color.Unset()
 }
 
@@ -336,6 +337,10 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 	for _, toTable := range toTables {
 		found := false
 
+		// Sync the metadata for the table and it's fields to the DB
+		err := toTable.SyncDBMetadata()
+		util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name)
+
 		// match against mysql tables
 		for _, fromTable := range fromTables {
 
@@ -358,9 +363,6 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 				Metadata: toTable.Metadata,
 			})
 		}
-		// Sync the metadata for the table and it's fields to the DB
-		err := toTable.SyncDBMetadata()
-		util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name)
 	}
 
 	// Search through the existing tables for dropped tables

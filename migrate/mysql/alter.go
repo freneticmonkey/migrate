@@ -59,6 +59,7 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	var operation SQLOperation
 	operation.Op = diff.Op
+	operation.Metadata = diff.Metadata
 
 	dropTemplate := "ALTER  TABLE `%s` DROP %s;"
 	addTemplate := "ALTER  TABLE `%s` ADD %s `%s` %s;"
