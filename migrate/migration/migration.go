@@ -55,13 +55,41 @@ func (m *Migration) Update() (err error) {
 	return err
 }
 
+// VersionExists Check if the Git version has already been registered for migration
+func VersionExists(hash string) (exists bool, err error) {
+	var count int64
+	query := fmt.Sprintf("select count(*) from migration WHERE version = \"%s\"", hash)
+	count, err = mgmtDb.SelectInt(query)
+	if err == nil {
+		exists = (count > 0)
+	}
+	return exists, err
+}
+
 // Load Load a migation from the DB using the Migration ID primary key
 func Load(mid int64) (m *Migration, err error) {
 	obj, err := mgmtDb.Get(Migration{}, mid)
 	if err == nil {
 		m = obj.(*Migration)
+
+		var steps []Step
+		query := fmt.Sprintf("select * from migration_steps WHERE mid = %d", mid)
+		_, err = mgmtDb.Select(&steps, query)
+		if err == nil {
+			m.Steps = steps
+		}
 	}
 	return m, err
+}
+
+// IsLatest Return if the timestamp is newer than the newest migration in the DB
+func IsLatest(time string) (isLatest bool, err error) {
+	// latest, err := GetLatest()
+
+	// TODO: isLatest = time > latest.VersionTimestamp
+	isLatest = true
+
+	return isLatest, err
 }
 
 // GetLatest Return the git timestamp latest Migration from the DB
@@ -102,34 +130,56 @@ type Param struct {
 
 // New Migration constructor which also creates Steps and add everything
 // to the database
-func New(p Param) Migration {
-	m := Migration{
-		DB:                 projectDBID,
-		Project:            p.Project,
-		Version:            p.Version,
-		VersionTimestamp:   p.Timestamp,
-		VersionDescription: p.Description,
-		Status:             Unapproved,
+func New(p Param) (m Migration, err error) {
+
+	// Validate
+	var alreadyExists bool
+	var isLatest bool
+	var valid bool
+
+	valid = true
+
+	// Migration already created
+	alreadyExists, err = VersionExists(p.Version)
+	if alreadyExists && err == nil {
+		err = fmt.Errorf("Migration with version: [%s] already exists.", p.Version)
+		valid = false
 	}
 
-	for i := 0; i < len(p.Forwards); i++ {
-		forward := p.Forwards[i]
-
-		step := Step{
-			Forward:  forward.Statement,
-			Backward: p.Backwards[i].Statement,
-			Status:   Unapproved,
-			Op:       forward.Op,
-			MDID:     forward.Metadata.MDID,
+	if valid {
+		isLatest, err = IsLatest(p.Version)
+		if !isLatest && err == nil {
+			err = fmt.Errorf("Migration with version: [%s] cannot be created as a newer version already exists.", p.Version)
+			valid = false
 		}
-		m.AddStep(step)
 	}
-	util.LogWarn("Before insert")
-	m.Insert()
 
-	// for _, s := range m.Steps {
-	// 	util.DebugDump(s)
-	// }
+	if valid {
 
-	return m
+		m = Migration{
+			DB:                 projectDBID,
+			Project:            p.Project,
+			Version:            p.Version,
+			VersionTimestamp:   p.Timestamp,
+			VersionDescription: p.Description,
+			Status:             Unapproved,
+		}
+
+		for i := 0; i < len(p.Forwards); i++ {
+			forward := p.Forwards[i]
+
+			step := Step{
+				Forward:  forward.Statement,
+				Backward: p.Backwards[i].Statement,
+				Status:   Unapproved,
+				Op:       forward.Op,
+				MDID:     forward.Metadata.MDID,
+			}
+			m.AddStep(step)
+		}
+		util.LogWarn("Before insert")
+		m.Insert()
+	}
+
+	return m, err
 }

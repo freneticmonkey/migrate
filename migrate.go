@@ -67,7 +67,7 @@ func main() {
 	ts, _ := git.GetVersionTime(conf.Project.Name, version)
 	info, _ := git.GetVersionDetails(conf.Project.Name, version)
 
-	m := migration.New(migration.Param{
+	m, err := migration.New(migration.Param{
 		Project:     conf.Project.Name,
 		Version:     version,
 		Timestamp:   ts,
@@ -76,17 +76,21 @@ func main() {
 		Backwards:   backwardOps,
 	})
 
-	util.LogInfof("Created Migration with ID: %d", m.MID)
+	if !util.ErrorCheckf(err, "Unable to create Migration with ID: %d", m.MID) {
 
-	migration.Exec(migration.ExecOptions{
-		MID:              m.MID,
-		Dryrun:           false,
-		Force:            true,
-		Rollback:         false,
-		PTODisabled:      true,
-		AllowDestructive: true,
-	})
+		util.LogInfof("Created Migration with ID: %d", m.MID)
 
-	// yamlPath := filepath.Join(config.Options.WorkingPath, config.Project.Name)
-	//yaml.WriteTables(yamlPath, migrate.DBSchema.Tables)
+		migration.Exec(migration.ExecOptions{
+			MID:              m.MID,
+			Dryrun:           false,
+			Force:            true,
+			Rollback:         false,
+			PTODisabled:      true,
+			AllowDestructive: true,
+		})
+
+		// yamlPath := filepath.Join(config.Options.WorkingPath, config.Project.Name)
+		//yaml.WriteTables(yamlPath, migrate.DBSchema.Tables)
+	}
+
 }
