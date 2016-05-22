@@ -7,42 +7,6 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
-var idConflictTemplate = `
-Duplicate ID: >> [%s] found for:
-Table: [%s]
-Name: [%s]
-File: [%s]
--------------
-ID already assigned to:
-Table:[%s]
-Name: [%s]
-Type: [%s]
-File: [%s]
-=============
-`
-
-var nameConflictTemplate = `
-Duplicate Name: >> [%s] found for:
-Table: [%s]
-ID: [%s]
-File: [%s]
--------------
-Name already assigned to:
-Table: [%s]
-Name: [%s]
-Type: [%s]
-File: [%s]
-=============
-`
-
-var missingIdTemplate = `
-Missing ID: >> ID: [%s] for:
-Name: [%s]
-Table: [%s]
-Type: [%s]
-File: [%s]
-`
-
 // Properties A helper struct which allows for easy display of validation errors
 type Properties struct {
 	PropertyIds []string
@@ -84,7 +48,7 @@ func validate(propertyID string, ptype string, name string, tname string, filena
 
 	if len(propertyID) == 0 {
 		// util.LogError(fmt.Sprintf("Missing Id for Property: Name: [%s] Type: [%s] Table: [%s] File: [%s]", name, ptype, tname, filename))
-		util.LogError(fmt.Sprintf(missingIdTemplate, propertyID, name, ptype, tname, filename))
+		util.LogError(fmt.Sprintf(missingIDTemplate, propertyID, name, ptype, tname, filename))
 		result = 1
 	} else {
 		if ids.Exists(propertyID, name, tname, filename) {
