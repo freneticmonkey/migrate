@@ -32,6 +32,7 @@ func New(p Param) (m Migration, err error) {
 
 	// If there are existing Migrations, validate this migration
 	if existing, err = HasMigrations(); existing {
+
 		// Migration already created
 		alreadyExists, err = VersionExists(p.Version)
 		if alreadyExists && err == nil {
@@ -39,6 +40,7 @@ func New(p Param) (m Migration, err error) {
 			valid = false
 		}
 
+		// Migration too old
 		if valid {
 			if !p.Rollback {
 				isLatest, err = IsLatest(p.Timestamp)
@@ -50,6 +52,15 @@ func New(p Param) (m Migration, err error) {
 				util.LogWarnf("Creation of Rollback Migration Detected! Be sure you want to apply these changes. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
 			}
 		}
+
+		// Migration doesn't do anything
+		if valid {
+			if len(p.Forwards) == 0 {
+				valid = false
+				err = fmt.Errorf("Empty Migration detected. Cannot continue. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
+			}
+		}
+
 	} else if err != nil {
 		valid = false
 	}
