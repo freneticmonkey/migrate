@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
+	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/management"
 	"github.com/freneticmonkey/migrate/migrate/migration"
@@ -76,11 +77,11 @@ func main() {
 		Backwards:   backwardOps,
 	})
 
-	if !util.ErrorCheckf(err, "Unable to create Migration with ID: %d", m.MID) {
+	if !util.ErrorCheckf(err, "Unable to create Migration for Project: [%s] Version: [%s]", conf.Project.Name, version) {
 
 		util.LogInfof("Created Migration with ID: %d", m.MID)
 
-		migration.Exec(migration.ExecOptions{
+		exec.Exec(exec.ExecOptions{
 			MID:              m.MID,
 			Dryrun:           false,
 			Force:            true,

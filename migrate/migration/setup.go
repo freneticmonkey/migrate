@@ -1,47 +1,57 @@
 package migration
 
 import (
-	"database/sql"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/go-gorp/gorp"
 )
 
 var mgmtDb *gorp.DbMap
-var projectDB *gorp.DbMap
-var projectConnectionDetails string
 var projectDBID int
 
 // Setup Setup the migration tables in the management DB
-func Setup(db *gorp.DbMap, projectDatabaseID int, projectConnDetails string) {
+func Setup(db *gorp.DbMap, projectDatabaseID int) {
 	mgmtDb = db
 	projectDBID = projectDatabaseID
-	projectConnectionDetails = projectConnDetails
 
 	// Configure the Metadata table
-	mgmtDb.AddTableWithName(Migration{}, "migration").SetKeys(true, "MID")
+	table := mgmtDb.AddTableWithName(Migration{}, "migration").SetKeys(true, "MID")
+	table.ColMap("Timestamp").SetTransient(true)
 	mgmtDb.AddTableWithName(Step{}, "migration_steps").SetKeys(true, "SID")
 
 }
 
-func connectProjectDB() (result bool, err error) {
-	// The connection is already open
-	if projectDB != nil {
-		result = true
-	} else {
-		// Open the connection to the project DB
-		var db *sql.DB
-		db, err = sql.Open("mysql", projectConnectionDetails)
-		if !util.ErrorCheckf(err, "Failed to connect to the management DB") {
-			projectDB = &gorp.DbMap{
-				Db: db,
-				Dialect: gorp.MySQLDialect{
-					Engine:   "InnoDB",
-					Encoding: "UTF8",
-				},
-			}
-			result = true
-		}
+// CreateTables If tables need to be created, management.Setup will call here
+// first
+func CreateTables() {
+
+	CreateMigrationTable()
+}
+
+// CreateMigrationTable Create the table for the Migration table as it needs some
+// specific handling for the time related columns than go-gorp can current handle.
+func CreateMigrationTable() (result bool, err error) {
+
+	createTable := []string{
+		"CREATE TABLE IF NOT EXISTS `migration` (",
+		"`mid` bigint(20) NOT NULL AUTO_INCREMENT,",
+		"`db` int(11) NOT NULL,",
+		"`project` varchar(255) NOT NULL,",
+		"`version` varchar(255) NOT NULL,",
+		"`version_timestamp` DATETIME NOT NULL,",
+		"`version_description` text,",
+		"`status` int(11) NOT NULL,",
+		"`timestamp` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+		"PRIMARY KEY (`mid`)",
+		") ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8",
 	}
+	statement := strings.Join(createTable, "\n")
+
+	// Execute the migration
+	_, err = mgmtDb.Exec(statement)
+
+	result = util.ErrorCheckf(err, "Problem creating Migrations table in the management DB")
+
 	return result, err
 }

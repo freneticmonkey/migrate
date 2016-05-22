@@ -1,14 +1,12 @@
-package migration
+package exec
 
 import (
-	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/freneticmonkey/migrate/migrate/metadata"
+	"github.com/freneticmonkey/migrate/migrate/migration"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
-	"github.com/freneticmonkey/migrate/migrate/util/shell"
 )
 
 // ExecOptions A helper struct for parameters when executing a Migration
@@ -35,20 +33,20 @@ func Exec(options ExecOptions) (err error) {
 	var statement string
 	var output string
 	var success bool
-	var m *Migration
+	var m *migration.Migration
 
-	m, err = Load(mid)
+	m, err = migration.Load(mid)
 
 	if !util.ErrorCheckf(err, "Couldn't load Migration: [%d] from the Management DB", mid) {
 
 		// has the migration been approved for migration or if it is being forced
 		// Assumes that this migration hasn't already been applied since the Load statement above
-		if m.Status == Approved || force {
+		if m.Status == migration.Approved || force {
 
 			// Validate the migration
 			var isLatest bool
 			var migrationRunning bool
-			var lm Migration
+			var lm migration.Migration
 			var inProgressID int64
 			var failReason string
 
@@ -62,7 +60,7 @@ func Exec(options ExecOptions) (err error) {
 			// If we aren't knowingly applying an older state (rollback)
 			if !rollback {
 				// Ensure that this migration is the latest migration known to the DB
-				lm, err = GetLatest()
+				lm, err = migration.GetLatest()
 				if err != nil {
 					failReason = fmt.Sprintf("Couldn't get latest Migration from DB: ERROR: %v", err)
 				} else {
@@ -72,7 +70,7 @@ func Exec(options ExecOptions) (err error) {
 						failReason = fmt.Sprintf("Migration: [%d] has been automatically depreciated by a Migration request with a newer schema from Git", mid)
 
 						// Mark the migration as depreciated so that it won't be run again.
-						m.Status = Depreciated
+						m.Status = migration.Depreciated
 						m.Update()
 					}
 				}
@@ -113,7 +111,7 @@ func Exec(options ExecOptions) (err error) {
 						}
 
 						// If the Step has been approved to be applied
-						if step.Status == Approved {
+						if step.Status == migration.Approved {
 
 							success = false
 							statement = step.Forward
@@ -140,12 +138,12 @@ func Exec(options ExecOptions) (err error) {
 								// If the change is destructive and it hasn't been approved, skip it
 								if !allowDestructive && isDestructive {
 									step.Output = fmt.Sprintf("Skipping Destructive Migration Step: [%d]: Unapproved destructive change", step.SID)
-									step.Status = Skipped
+									step.Status = migration.Skipped
 
 								} else {
 
 									// Indicate that the step is going to be applied
-									step.Status = InProgress
+									step.Status = migration.InProgress
 									step.Update()
 
 									// execute the migration
@@ -161,9 +159,9 @@ func Exec(options ExecOptions) (err error) {
 										step.Output = output
 
 										if force {
-											step.Status = Forced
+											step.Status = migration.Forced
 										} else {
-											step.Status = Complete
+											step.Status = migration.Complete
 										}
 
 										// Message that the migration step was successful
@@ -173,7 +171,7 @@ func Exec(options ExecOptions) (err error) {
 
 										// Record the failure into the DB
 										step.Output = fmt.Sprintf("Failed with Error: %v", err)
-										step.Status = Failed
+										step.Status = migration.Failed
 									}
 								}
 
@@ -203,55 +201,4 @@ func Exec(options ExecOptions) (err error) {
 	}
 
 	return err
-}
-
-func executePTO(statement string, dryrun bool) (output string, err error) {
-
-	params := []string{
-		fmt.Sprintf("D=%s", "test"),
-		fmt.Sprintf("t=%s", "test"),
-		fmt.Sprintf("--alter \"%s\"", statement),
-		"--critical-load \"Threads_running=500\"",
-		"--execute",
-	}
-
-	if dryrun {
-		output = fmt.Sprintf("PTO: [pt-online-schema-change %s]", strings.Join(params, " "))
-	} else {
-		output, err = shell.Run("pt-online-schema-change", "pto: ", params)
-	}
-
-	return output, err
-}
-
-func executeSQL(statement string, dryrun bool) (output string, err error) {
-	var ready bool
-	var result sql.Result
-	var rowsAffected int64
-
-	// Ensure that the project DB connection is open
-	ready, err = connectProjectDB()
-
-	if dryrun {
-		output = fmt.Sprintf("SQL: [%s]", statement)
-
-	} else {
-		// If the connection is ok
-		if ready && !util.ErrorCheckf(err, "Migration Failed to open Project DB") {
-
-			// Execute the migration
-			result, err = projectDB.Exec(statement)
-			if !util.ErrorCheckf(err, "Migration Step: ALTER TABLE Failed: [%v]", err) {
-
-				// Record the result into the step table
-				rowsAffected, err = result.RowsAffected()
-				output = fmt.Sprintf("Row(s) Affected: %d", rowsAffected)
-
-			} else {
-				output = fmt.Sprintf("Failed with Error: %v", err)
-			}
-		}
-	}
-
-	return output, err
 }

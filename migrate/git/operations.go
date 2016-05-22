@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
+	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/freneticmonkey/migrate/migrate/util/shell"
 )
@@ -24,10 +25,12 @@ func GetVersionTime(project string, version string) (timestamp string, err error
 		"--format=%cI",
 	})
 
-	// 2016-05-06T08:28:17+10:00 - Example Git Time
+	// 2006-01-02T15:04:05-07:00 		 - Example Git Time
 	// Mon Jan 2 15:04:05 -0700 MST 2006 - Go Time format baseline
+	// 2006-01-02T15:04:05Z07:00 		 - RFC339 Format (DB Format)
+	// RFC3339 Format is used to store and compare DB version timestamps
 	tm, err = time.Parse("2006-01-02T15:04:05-07:00", timestamp)
-	formattedTime := tm.UTC().Format(time.RFC3339)
+	formattedTime := tm.UTC().Format(mysql.TimeFormat)
 
 	return formattedTime, err
 }

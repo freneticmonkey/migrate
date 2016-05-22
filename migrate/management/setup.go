@@ -5,6 +5,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/migrate/Database"
 	"github.com/freneticmonkey/migrate/migrate/config"
+	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/migration"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -46,9 +47,13 @@ func Setup(conf config.Config) (err error) {
 
 	if !util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database) {
 		metadata.Setup(mgmtDb, tdb.DBID)
-		migration.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())
+		migration.Setup(mgmtDb, tdb.DBID)
+		exec.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())
 
 		// If the Tables haven't been created, create them now.
+		metadata.CreateTables()
+		migration.CreateTables()
+
 		err = mgmtDb.CreateTablesIfNotExists()
 		util.ErrorCheckf(err, "Failed to create tables in the management DB")
 	}

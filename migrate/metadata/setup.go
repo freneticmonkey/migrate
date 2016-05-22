@@ -14,3 +14,9 @@ func Setup(db *gorp.DbMap, targetDatabaseID int) {
 	mgmtDb.AddTableWithName(Metadata{}, "metadata").SetKeys(true, "MDID")
 
 }
+
+// CreateTables If tables need to be created, management.Setup will call here
+// first
+func CreateTables() {
+
+}
