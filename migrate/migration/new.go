@@ -7,7 +7,7 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
-// Param A struct used to define parameters for the Migration struct
+// Param A struct used to define parameters for the setup and creation of the Migration struct
 type Param struct {
 	Project     string
 	Version     string
@@ -15,6 +15,7 @@ type Param struct {
 	Description string
 	Forwards    mysql.SQLOperations
 	Backwards   mysql.SQLOperations
+	Rollback    bool
 }
 
 // New Migration constructor which also creates Steps and add everything
@@ -39,10 +40,14 @@ func New(p Param) (m Migration, err error) {
 		}
 
 		if valid {
-			isLatest, err = IsLatest(p.Timestamp)
-			if !isLatest && err == nil {
-				err = fmt.Errorf("Migration with version: [%s] cannot be created as a newer version already exists.", p.Version)
-				valid = false
+			if !p.Rollback {
+				isLatest, err = IsLatest(p.Timestamp)
+				if !isLatest && err == nil {
+					err = fmt.Errorf("Migration with version: [%s] cannot be created as a newer version already exists.", p.Version)
+					valid = false
+				}
+			} else {
+				util.LogWarnf("Creation of Rollback Migration Detected! Be sure you want to apply these changes. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
 			}
 		}
 	} else if err != nil {
