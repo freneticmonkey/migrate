@@ -34,7 +34,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Provide detailed Schema Validation Errors
 - [X] AUTO_INC support
 - [ ] Implement migrations (Partial)
-- [ ] Implement migration validation checks
+- [X] Implement migration validation checks
 - [ ] Add flag to allow for destructive migrations (drop table, rename column)
 - [ ] Initialise Target Database
 - [ ] Setup from existing target database
@@ -52,9 +52,10 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 # TODO Migration
 - [X] Standard Go MySQL Driver Migrations
 - [x] pt-online-schema-change Migrations (not tested)
-- [ ] Validation
-    - [ ] Creating old Migrations
-    - [ ] Creating empty Migrations
+- [X] Validation
+    - [X] Creating old Migrations
+    - [X] Creating duplicate Migrations
+    - [X] Creating empty Migrations
     - [X] Executing old Migrations
     - [X] Executing cancelled/denied Migrations
 
