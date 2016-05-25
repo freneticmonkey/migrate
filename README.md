@@ -33,14 +33,15 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Initialise Management Database
 - [X] Provide detailed Schema Validation Errors
 - [X] AUTO_INC support
-- [ ] Implement migrations (Partial)
+- [X] Implement migrations
 - [X] Implement migration validation checks
 - [ ] Add flag to allow for destructive migrations (drop table, rename column)
 - [ ] Initialise Target Database
 - [ ] Setup from existing target database
 - [ ] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 - [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
-- [ ] Add additional metadata validation where in a rename will fail up update the metadata table.  Repair using best guess from the YAML schema?
+- [ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?
+- [ ] Load Config via URL
 
 # TODO Management
 - [X] Implement tables:
@@ -48,6 +49,16 @@ The tool uses the built in Go MySQL database driver for simple operations such a
     - [X] Migration
     - [X] MigrationStep
     - [X] Metadata
+
+# TODO Utilities
+- [ ] Init management database
+- [ ] Init target DB
+    - [ ] Existing
+        - [ ] Generate Ids
+        - [ ] YAML Schema
+        - [ ] Register Metadata to Mgmt DB
+    - [ ] New
+        - [ ] ?
 
 # TODO Migration
 - [X] Standard Go MySQL Driver Migrations

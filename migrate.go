@@ -2,14 +2,12 @@ package main
 
 import (
 	"flag"
+	"os"
 
+	"github.com/urfave/cli"
+
+	"github.com/freneticmonkey/migrate/migrate/cmd"
 	"github.com/freneticmonkey/migrate/migrate/config"
-	"github.com/freneticmonkey/migrate/migrate/exec"
-	"github.com/freneticmonkey/migrate/migrate/git"
-	"github.com/freneticmonkey/migrate/migrate/management"
-	"github.com/freneticmonkey/migrate/migrate/migration"
-	"github.com/freneticmonkey/migrate/migrate/mysql"
-	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
@@ -37,61 +35,83 @@ func readConfig() {
 }
 
 func main() {
-	processFlags()
 
-	util.LogInfo("Migrations!")
+	app := cli.NewApp()
+	app.Name = "migrate"
+	app.Usage = "Migrate MySQL databases using a YAML defined target schema"
+	app.Author = "Scott Porter"
+	app.Copyright = "MIT"
+	app.Email = "scottporter@neuroticstudios.com"
+	app.Version = "0.0.1"
 
-	readConfig()
+	// Configure the app
 
-	management.Setup(conf)
-
-	util.LogInfo("Running Git functions")
-	git.Clone(conf.Project)
-
-	// Read the YAML files cloned from the repo
-	yaml.ReadTables(conf.Options.WorkingPath)
-
-	// Read the MySQL tables from the target database
-	mysql.ReadTables(conf.Project)
-
-	forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
-	forwardOps := mysql.GenerateAlters(forwardDiff)
-
-	backwardDiff := table.DiffTables(mysql.Schema, yaml.Schema)
-	backwardOps := mysql.GenerateAlters(backwardDiff)
-
-	version := conf.Project.Version
-	if len(version) == 0 {
-		version, _ = git.GetVersion(conf.Project.Name)
+	app.Flags = cmd.GetGlobalFlags()
+	app.Commands = []cli.Command{
+		cmd.GetSetupCommand(),
+		cmd.GetDiffCommand(),
+		cmd.GetValidateCommand(),
+		cmd.GetCreateCommand(),
+		cmd.GetExecCommand(),
 	}
 
-	ts, _ := git.GetVersionTime(conf.Project.Name, version)
-	info, _ := git.GetVersionDetails(conf.Project.Name, version)
+	app.Run(os.Args)
+	/*
+		processFlags()
 
-	m, err := migration.New(migration.Param{
-		Project:     conf.Project.Name,
-		Version:     version,
-		Timestamp:   ts,
-		Description: info,
-		Forwards:    forwardOps,
-		Backwards:   backwardOps,
-	})
+		util.LogInfo("Migrations!")
 
-	if !util.ErrorCheckf(err, "Unable to create Migration for Project: [%s] Version: [%s]", conf.Project.Name, version) {
+		readConfig()
 
-		util.LogInfof("Created Migration with ID: %d", m.MID)
+		management.Setup(conf)
 
-		exec.Exec(exec.ExecOptions{
-			MID:              m.MID,
-			Dryrun:           false,
-			Force:            true,
-			Rollback:         false,
-			PTODisabled:      true,
-			AllowDestructive: true,
+		util.LogInfo("Running Git functions")
+		git.Clone(conf.Project)
+
+		// Read the YAML files cloned from the repo
+		yaml.ReadTables(conf.Options.WorkingPath)
+
+		// Read the MySQL tables from the target database
+		mysql.ReadTables(conf.Project)
+
+		forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
+		forwardOps := mysql.GenerateAlters(forwardDiff)
+
+		backwardDiff := table.DiffTables(mysql.Schema, yaml.Schema)
+		backwardOps := mysql.GenerateAlters(backwardDiff)
+
+		version := conf.Project.Version
+		if len(version) == 0 {
+			version, _ = git.GetVersion(conf.Project.Name)
+		}
+
+		ts, _ := git.GetVersionTime(conf.Project.Name, version)
+		info, _ := git.GetVersionDetails(conf.Project.Name, version)
+
+		m, err := migration.New(migration.Param{
+			Project:     conf.Project.Name,
+			Version:     version,
+			Timestamp:   ts,
+			Description: info,
+			Forwards:    forwardOps,
+			Backwards:   backwardOps,
 		})
 
-		// yamlPath := filepath.Join(config.Options.WorkingPath, config.Project.Name)
-		//yaml.WriteTables(yamlPath, migrate.DBSchema.Tables)
-	}
+		if !util.ErrorCheckf(err, "Unable to create Migration for Project: [%s] Version: [%s]", conf.Project.Name, version) {
 
+			util.LogInfof("Created Migration with ID: %d", m.MID)
+
+			exec.Exec(exec.ExecOptions{
+				MID:              m.MID,
+				Dryrun:           false,
+				Force:            true,
+				Rollback:         false,
+				PTODisabled:      true,
+				AllowDestructive: true,
+			})
+
+			// yamlPath := filepath.Join(config.Options.WorkingPath, config.Project.Name)
+			//yaml.WriteTables(yamlPath, migrate.DBSchema.Tables)
+		}
+	*/
 }
