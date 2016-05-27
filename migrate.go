@@ -53,7 +53,7 @@ func main() {
 		cmd.GetSetupCommand(),
 		cmd.GetDiffCommand(&conf),
 		cmd.GetValidateCommand(&conf),
-		cmd.GetCreateCommand(),
+		cmd.GetCreateCommand(&conf),
 		cmd.GetExecCommand(),
 	}
 	app.Before = func(ctx *cli.Context) error {
