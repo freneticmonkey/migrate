@@ -98,7 +98,7 @@ type Table struct {
 func (t *Table) SetNamespace(path string, filename string) (err error) {
 	wd, err := os.Getwd()
 
-	t.Filename = filepath.Join(path, filename)
+	t.Filename = filename
 
 	relativePath, err := filepath.Rel(filepath.Join(wd, path), filename)
 
