@@ -52,7 +52,7 @@ func main() {
 	app.Commands = []cli.Command{
 		cmd.GetSetupCommand(),
 		cmd.GetDiffCommand(&conf),
-		cmd.GetValidateCommand(),
+		cmd.GetValidateCommand(&conf),
 		cmd.GetCreateCommand(),
 		cmd.GetExecCommand(),
 	}

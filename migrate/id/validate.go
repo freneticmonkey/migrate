@@ -64,7 +64,7 @@ func validate(propertyID string, ptype string, name string, tname string, filena
 // ValidateSchema checks the tables parameter for duplicate names and ids.
 // Ids and names cannot be shared between tables and the properties of
 // individual tables
-func ValidateSchema(tables table.Tables) (result int) {
+func ValidateSchema(tables table.Tables, schemaName string) (result int, err error) {
 
 	var tableIds Properties
 
@@ -86,5 +86,13 @@ func ValidateSchema(tables table.Tables) (result int) {
 			result += validate(index.Metadata.PropertyID, "Index", index.Name, tbl.Name, tbl.Filename, &tablePropertyIds)
 		}
 	}
-	return result
+
+	// Display validation output
+	if result != 0 {
+		err = fmt.Errorf("Reading tables from %s failed. %d problems found", schemaName, result)
+	} else {
+		util.LogInfof("Successfully read %d tables from %s", len(tables), schemaName)
+	}
+
+	return result, err
 }

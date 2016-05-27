@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/fatih/color"
-	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -100,14 +99,6 @@ func ReadTables(path string) (err error) {
 					color.Unset()
 				}
 			}
-		}
-
-		// Validate Schema Ids
-		problems := id.ValidateSchema(Schema)
-		if problems != 0 {
-			err = fmt.Errorf("YAML import of path: [%s] failed. %d problems found", path, problems)
-		} else {
-			util.LogInfof("Successfully read %d tables from path: [%s]", len(Schema), path)
 		}
 	}
 

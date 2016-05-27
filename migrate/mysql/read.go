@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -9,7 +8,6 @@ import (
 	"database/sql"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
-	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -315,11 +313,6 @@ func ReadTables(project config.Project) (err error) {
 				}
 			}
 		}
-		problems := id.ValidateSchema(Schema)
-		if problems != 0 {
-			err = fmt.Errorf("Reading tables from target database failed. %d problems found during validation", problems)
-		}
-		util.LogInfof("Successfully read %d tables from target database", len(Schema))
 	}
 
 	util.LogInfo("DB Processing Finished")
