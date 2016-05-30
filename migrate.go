@@ -51,6 +51,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		cmd.GetSetupCommand(),
+		cmd.GetSandboxCommand(&conf),
 		cmd.GetDiffCommand(&conf),
 		cmd.GetValidateCommand(&conf),
 		cmd.GetCreateCommand(&conf),

@@ -9,20 +9,15 @@ func GetSetupCommand() (setup cli.Command) {
 		Usage: "Setup the migration environment",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "sandbox",
-				Usage: "Recreate the target database from the YAML Schema and insert the metadata",
-			},
-			cli.BoolFlag{
-				Name:  "init-management",
+				Name:  "management",
 				Usage: "Create the management tables in the management database",
 			},
 			cli.BoolFlag{
-				Name:  "init-existing",
+				Name:  "existing",
 				Usage: "Read the target database and generate a YAML schema including PropertyIds",
 			},
 		},
-		Action: func(c *cli.Context) error {
-
+		Action: func(ctx *cli.Context) error {
 			return cli.NewExitError("Setup completed successfully.", 0)
 		},
 	}
