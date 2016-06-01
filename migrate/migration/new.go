@@ -16,6 +16,7 @@ type Param struct {
 	Forwards    mysql.SQLOperations
 	Backwards   mysql.SQLOperations
 	Rollback    bool
+	Sandbox     bool
 }
 
 // New Migration constructor which also creates Steps and add everything
@@ -33,32 +34,39 @@ func New(p Param) (m Migration, err error) {
 	// If there are existing Migrations, validate this migration
 	if existing, err = HasMigrations(); existing {
 
-		// Migration already created
-		alreadyExists, err = VersionExists(p.Version)
-		if alreadyExists && err == nil {
-			err = fmt.Errorf("Migration with version: [%s] already exists.", p.Version)
-			valid = false
-		}
+		// If the migration isn't flagged as a sandbox migration
+		if !p.Sandbox {
 
-		// Migration too old
-		if valid {
-			if !p.Rollback {
-				isLatest, err = IsLatest(p.Timestamp)
-				if !isLatest && err == nil {
-					err = fmt.Errorf("Migration with version: [%s] cannot be created as a newer version already exists.", p.Version)
-					valid = false
-				}
-			} else {
-				util.LogWarnf("Creation of Rollback Migration Detected! Be sure you want to apply these changes. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
-			}
-		}
-
-		// Migration doesn't do anything
-		if valid {
-			if len(p.Forwards) == 0 {
+			// Migration already created
+			alreadyExists, err = VersionExists(p.Version)
+			if alreadyExists && err == nil {
+				err = fmt.Errorf("Migration with version: [%s] already exists.", p.Version)
 				valid = false
-				err = fmt.Errorf("Empty Migration detected. Cannot continue. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
 			}
+
+			// Migration too old
+			if valid {
+				if !p.Rollback {
+					isLatest, err = IsLatest(p.Timestamp)
+					if !isLatest && err == nil {
+						err = fmt.Errorf("Migration with version: [%s] cannot be created as a newer version already exists.", p.Version)
+						valid = false
+					}
+				} else {
+					util.LogWarnf("Creation of Rollback Migration Detected! Be sure you want to apply these changes. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
+				}
+			}
+
+			// Migration doesn't do anything
+			if valid {
+				if len(p.Forwards) == 0 {
+					valid = false
+					err = fmt.Errorf("Empty Migration detected. Cannot continue. Project: [%s] Version: [%s] Time (UTC): [%s]", p.Project, p.Version, p.Timestamp)
+				}
+			}
+
+		} else {
+			util.LogWarnf("Sandbox Migration Detected. Skipping validation")
 		}
 
 	} else if err != nil {
@@ -75,6 +83,7 @@ func New(p Param) (m Migration, err error) {
 			VersionTimestamp:   p.Timestamp,
 			VersionDescription: p.Description,
 			Status:             Unapproved,
+			Sandbox:            p.Sandbox,
 		}
 
 		for i := 0; i < len(p.Forwards); i++ {
@@ -90,7 +99,12 @@ func New(p Param) (m Migration, err error) {
 			m.AddStep(step)
 		}
 		util.LogWarn("Before insert")
-		m.Insert()
+
+		if !p.Sandbox {
+			m.Insert()
+		} else {
+			util.LogWarnf("Sandbox Migration Detected. NOT adding to the database")
+		}
 	}
 
 	return m, err

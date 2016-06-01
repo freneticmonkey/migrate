@@ -50,7 +50,7 @@ func GetExecCommand() (setup cli.Command) {
 			PTODisabled := ctx.Bool("pto-disabled")
 			allowDestructive := ctx.Bool("allow-destructive")
 
-			err := exec.Exec(exec.ExecOptions{
+			err := exec.Exec(exec.Options{
 				MID:              mid,
 				Dryrun:           dryrun,
 				Rollback:         rollback,

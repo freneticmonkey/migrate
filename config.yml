@@ -33,3 +33,9 @@ project:
         # Subfolders within the Git repo to checkout which contain db schema
         folders:
             - "test"
+
+    # local project settings used for sandbox development
+    localschema:
+        # This is the working folder, however it is intended to be a path to
+        # schema within a cloned repo
+        path: "test/working"

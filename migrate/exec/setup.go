@@ -19,7 +19,13 @@ func Setup(db *gorp.DbMap, projectDatabaseID int, projectConnDetails string) {
 	projectConnectionDetails = projectConnDetails
 }
 
-func connectProjectDB() (result bool, err error) {
+func ConnectProjectDB(reconnect bool) (result bool, err error) {
+
+	if reconnect && projectDB != nil {
+		projectDB.Db.Close()
+		projectDB = nil
+	}
+
 	// The connection is already open
 	if projectDB != nil {
 		result = true

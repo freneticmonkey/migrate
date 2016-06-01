@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
-	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/migration"
@@ -32,31 +31,15 @@ func GetCreateCommand(conf *config.Config) (setup cli.Command) {
 				Usage: "The target git version",
 			},
 			cli.BoolFlag{
-				Name:  "force-sandbox",
-				Usage: "Immediately apply the new migration to the target database. Will only function in the sandbox environment.",
-			},
-			cli.BoolFlag{
 				Name:  "rollback",
 				Usage: "Allows for a rollback to be created",
-			},
-			cli.BoolFlag{
-				Name:  "pto-disabled",
-				Usage: "Execute the migration without using pt-online-schema-change.",
-			},
-			cli.BoolFlag{
-				Name:  "allow-destructive",
-				Usage: "Explictly allow rename and delete migration actions",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
 			var problems int
 			var ts string
 			var info string
-			dryrun := false
-			force := true
 			rollback := false
-			PTODisabled := true
-			allowDestructive := true
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("project") {
@@ -118,38 +101,14 @@ func GetCreateCommand(conf *config.Config) (setup cli.Command) {
 				Description: info,
 				Forwards:    forwardOps,
 				Backwards:   backwardOps,
+				Rollback:    rollback,
 			})
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Create failed. Unable to create new Migration in the management database", 1)
 			}
 
-			util.LogInfof("Created Migration with ID: %d", m.MID)
+			success := fmt.Sprintf("Created Migration successfully with ID: [%d]", m.MID)
 
-			// Process command line flags
-			if ctx.IsSet("force-sandbox") {
-
-				dryrun = ctx.Bool("dryrun")
-				force = ctx.Bool("force")
-				rollback = ctx.Bool("rollback")
-				PTODisabled = ctx.Bool("pto-disabled")
-				allowDestructive = ctx.Bool("allow-destructive")
-
-				exec.Exec(exec.ExecOptions{
-					MID:              m.MID,
-					Dryrun:           dryrun,
-					Force:            force,
-					Rollback:         rollback,
-					PTODisabled:      PTODisabled,
-					AllowDestructive: allowDestructive,
-				})
-				if util.ErrorCheck(err) {
-					errmsg := fmt.Sprintf("Create and Execute failed. Unable to execute new Migration with ID: [%d]", m.MID)
-					return cli.NewExitError(errmsg, 1)
-				}
-				util.LogInfof("Successfully executed Migration with ID: %d", m.MID)
-			}
-
-			success := fmt.Sprintf("Migration successfully with ID: %d", m.MID)
 			return cli.NewExitError(success, 0)
 		},
 	}

@@ -10,12 +10,24 @@ Global Flags are common across all subcommands.
 > ### verbose
   Enable all log output
 
+## sandbox
+Apply a migration to the database within the sandbox.  Optionally fully recreate the sandbox.  If this is used in production your database is at risk.
+
+### flags
+
+>  ### migrate
+   Apply any changes to the local YAML schema to the target project database
+
+>  ### recreate
+   Recreate the target database from the YAML Schema in the working folder and insert the metadata into the management database
+
+>  ### force
+   Skip the confirmation check before wiping the database and rebuilding the schema
+
 ## setup
 The setup subcommand is used for configuring the migration environment.  The flags to this command determine which environment is being configured.
 
 ### flags
->  ### sandbox
-   Recreate the target database from the YAML Schema in the working folder and insert the metadata into the target database
 
 >  ### init-management
    Create the management tables in the management database
@@ -59,9 +71,6 @@ This subcommand is used to create a migration and register it with the managemen
 
 > ### rollback
   Allows for a rollback migration to be created
-
-> ### force-sandbox
-  Immediately apply the new migration to the target database.  Will only function in the sandbox environment.
 
 ## exec
 Migrations created by the **create** are executed by this subcommand.  Migrations are identified by an id.  The *dryrun* flag ensures that the migration is only tested and not applied to the target database.

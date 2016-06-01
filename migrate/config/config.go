@@ -20,6 +20,7 @@ type Project struct {
 	Name string
 	DB
 	Schema
+	LocalSchema
 }
 
 type Schema struct {
@@ -27,6 +28,10 @@ type Schema struct {
 	Url     string
 	Version string
 	Folders []string
+}
+
+type LocalSchema struct {
+	Path string
 }
 
 type DB struct {
