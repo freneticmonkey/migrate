@@ -15,6 +15,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+// TODO: Need to reinsert metadata when inserting new tables.  This is not being done at all presently
+
 // GetSandboxCommand Configure the sandbox command
 func GetSandboxCommand(conf *config.Config) (setup cli.Command) {
 	setup = cli.Command{
@@ -102,7 +104,7 @@ func sandboxAction(conf *config.Config, dryrun bool, recreate bool, actionTitle 
 	// Kick off a migration to recreate the db
 
 	// Check that a local schema exists
-	forwardOps, backwardOps, err := diffSchema(conf, actionTitle)
+	forwardOps, backwardOps, err := diffSchema(conf, actionTitle, recreate)
 
 	if util.ErrorCheck(err) {
 		return successmsg, err
@@ -151,7 +153,7 @@ func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (er
 	return err
 }
 
-func diffSchema(conf *config.Config, actionTitle string) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
+func diffSchema(conf *config.Config, actionTitle string, recreate bool) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
 
 	// Read the YAML schema
 	err = yaml.ReadTables(conf.Project.LocalSchema.Path)
@@ -173,10 +175,13 @@ func diffSchema(conf *config.Config, actionTitle string) (forwardOps mysql.SQLOp
 			err = fmt.Errorf("%s failed. Unable to read MySQL Tables", actionTitle)
 		}
 
-		// Validate the MySQL Schema
-		_, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
-		if util.ErrorCheck(err) {
-			err = fmt.Errorf("%s failed. Target Database Validation Errors Detected", actionTitle)
+		// Don't bother validating the database if we're going to wipe it.
+		if !recreate {
+			// Validate the MySQL Schema
+			_, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
+			if util.ErrorCheck(err) {
+				err = fmt.Errorf("%s failed. Target Database Validation Errors Detected", actionTitle)
+			}
 		}
 
 		// Generate Diffs
