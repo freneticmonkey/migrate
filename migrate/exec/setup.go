@@ -19,6 +19,9 @@ func Setup(db *gorp.DbMap, projectDatabaseID int, projectConnDetails string) {
 	projectConnectionDetails = projectConnDetails
 }
 
+// ConnectProjectDB Setup the Database connection to the project database.
+// If the reconnect parameter is true, then a reconnect will be forced.
+// This is used when recreating the project database.
 func ConnectProjectDB(reconnect bool) (result bool, err error) {
 
 	if reconnect && projectDB != nil {

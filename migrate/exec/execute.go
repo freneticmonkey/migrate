@@ -211,6 +211,9 @@ func Exec(options Options) (err error) {
 							// Record the result of the migration
 							step.Update()
 
+							// If necessary, update the Metadata in the database
+							step.UpdateMetadata()
+
 						}
 					} else {
 						util.LogWarnf("Migration Step: [%d] isn't approved to be applied. Skipping.", step.SID)

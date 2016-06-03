@@ -43,9 +43,23 @@ func (m *Metadata) Update() (err error) {
 	return err
 }
 
+// Delete Remove the Metadata from the database
+func (m *Metadata) Delete() (err error) {
+	_, err = mgmtDb.Delete(m)
+	return err
+}
+
 // IsTable Returns if there is a value for ParentID. If empty the property is a table.
 func (m *Metadata) IsTable() bool {
 	return len(m.ParentID) == 0
+}
+
+// OnCreate Check if the Metadata is known to the database yet.  Depends on MDID being set != 0
+func (m *Metadata) OnCreate() {
+	// If this Metadata hasn't been inserted into the database yet, insert it
+	if m.MDID == 0 {
+		m.Insert()
+	}
 }
 
 // TableRegistered Returns a boolean indicating that the Table named 'name' is

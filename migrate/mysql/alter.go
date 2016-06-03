@@ -9,18 +9,23 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
+// SQLOperation Stores the data associated with an alter operation for each migration step
 type SQLOperation struct {
 	Statement string
 	Op        int
+	Name      string
 	Metadata  metadata.Metadata
 }
 
+// SQLOperations Slice helper type
 type SQLOperations []SQLOperation
 
+// Add Add an SQLOperation to the slice
 func (s *SQLOperations) Add(op SQLOperation) {
 	*s = append(*s, op)
 }
 
+// Merge Merge SQLOperations slices
 func (s *SQLOperations) Merge(ops SQLOperations) {
 	for _, slice := range ops {
 		if len(slice.Statement) > 0 {
@@ -60,6 +65,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	var operation SQLOperation
 	operation.Op = diff.Op
 	operation.Metadata = diff.Metadata
+	operation.Name = diff.Metadata.Name
 
 	dropTemplate := "ALTER  TABLE `%s` DROP %s;"
 	addTemplate := "ALTER  TABLE `%s` ADD %s `%s` %s;"
@@ -110,6 +116,8 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 		case "Name":
 			// if rename
 			name = fmt.Sprintf("%s %s", name, toColumn.Name)
+			// Ensure that a rename is captured by the SQLOperation
+			operation.Name = toColumn.Name
 			// Use the correct MySQL Operation when renaming
 			columnOperation = "CHANGE COLUMN"
 
@@ -233,6 +241,7 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 				alter.Add(SQLOperation{
 					Statement: fmt.Sprintf("DROP TABLE `%s`;", diff.Table),
 					Op:        table.Del,
+					Name:      diff.Table,
 					Metadata:  diff.Metadata,
 				})
 			}
@@ -243,6 +252,7 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 				alter.Add(SQLOperation{
 					Statement: fmt.Sprintf("ALTER  TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
 					Op:        table.Mod,
+					Name:      tableName,
 					Metadata:  diff.Metadata,
 				})
 			} else {

@@ -89,12 +89,16 @@ func New(p Param) (m Migration, err error) {
 		for i := 0; i < len(p.Forwards); i++ {
 			forward := p.Forwards[i]
 
+			// Insert the metadata
+			forward.Metadata.OnCreate()
+
 			step := Step{
 				Forward:  forward.Statement,
 				Backward: p.Backwards[i].Statement,
 				Status:   Unapproved,
 				Op:       forward.Op,
 				MDID:     forward.Metadata.MDID,
+				Name:     forward.Name,
 			}
 			m.AddStep(step)
 		}
