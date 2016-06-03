@@ -30,8 +30,17 @@ func GetDiffCommand(conf *config.Config) (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
-			if ctx.IsSet("project") && ctx.IsSet("version") {
+
+			// Override the project settings with the command line flags
+			if ctx.IsSet("version") {
+				conf.Project.Version = ctx.String("version")
+			}
+
+			if ctx.IsSet("project") {
+				conf.Project.Name = ctx.String("project")
 				git.Clone(conf.Project)
+			} else {
+				util.LogInfo("No project specified.  Comparing the current state of the YAML schema in working path.")
 			}
 
 			// Read the YAML files cloned from the repo
