@@ -128,15 +128,18 @@ func sandboxAction(conf *config.Config, dryrun bool, recreate bool, actionTitle 
 	if util.ErrorCheck(err) {
 		return successmsg, err
 	}
-
-	successmsg = fmt.Sprintf(actionTitle+": Migration successfully with ID: %d", m.MID)
+	dr := ""
+	if dryrun {
+		dr = "(DRYRUN)"
+	}
+	successmsg = fmt.Sprintf("%s %s: Migration successfully with ID: %d", dr, actionTitle, m.MID)
 	util.LogInfo(successmsg)
 
 	return successmsg, err
 }
 
 func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (err error) {
-	util.LogInfof("%s: Applying Schema", actionTitle)
+	util.LogInfof(formatMessage(dryrun, actionTitle, "Applying Schema"))
 	exec.Exec(exec.Options{
 		Dryrun:           dryrun,
 		Force:            true,
@@ -218,7 +221,7 @@ func createMigration(conf *config.Config, actionTitle string, dryrun bool, forwa
 		util.LogInfof("%s: Created Migration with ID: %d", actionTitle, m.MID)
 
 	} else {
-		util.LogInfo("(DRYRUN) Skipping %s", actionTitle)
+		util.LogInfof("(DRYRUN) Skipping Creating Migration")
 	}
 
 	return m, err
@@ -230,7 +233,7 @@ func recreateProjectDatabase(conf *config.Config, dryrun bool) (err error) {
 	dropCommand := fmt.Sprintf("DROP DATABASE `%s`", conf.Project.DB.Database)
 	createCommand := fmt.Sprintf("CREATE DATABASE `%s`", conf.Project.DB.Database)
 
-	util.LogInfo("Sandbox Recreation: Recreating Database")
+	util.LogInfo(formatMessage(dryrun, "Sandbox Recreation", "Recreating Database"))
 	if !dryrun {
 		output, err = exec.ExecuteSQL(dropCommand, false)
 		if util.ErrorCheckf(err, "Problem dropping DATABASE for Project: [%s] SQL: [%s] Output: [%s]", conf.Project.Name, dropCommand, output) {
@@ -251,4 +254,12 @@ func recreateProjectDatabase(conf *config.Config, dryrun bool) (err error) {
 	}
 
 	return err
+}
+
+func formatMessage(dryrun bool, context string, message string, info ...interface{}) string {
+	message = fmt.Sprintf("%s: %s", context, fmt.Sprintf(message, info...))
+	if dryrun {
+		message = "(DRYRUN) " + message
+	}
+	return message
 }
