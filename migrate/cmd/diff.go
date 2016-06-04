@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/freneticmonkey/migrate/migrate/config"
+	"fmt"
+
 	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/mysql"
@@ -12,7 +13,7 @@ import (
 )
 
 // GetDiffCommand Configure the validate command
-func GetDiffCommand(conf *config.Config) (setup cli.Command) {
+func GetDiffCommand() (setup cli.Command) {
 	problems := 0
 	setup = cli.Command{
 		Name:  "diff",
@@ -30,6 +31,9 @@ func GetDiffCommand(conf *config.Config) (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+
+			// Setup the management database and configuration settings
+			configureManagement(ctx)
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("version") {
@@ -66,7 +70,15 @@ func GetDiffCommand(conf *config.Config) (setup cli.Command) {
 			forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
 			mysql.GenerateAlters(forwardDiff)
 
-			return cli.NewExitError("Diff completed successfully.", 0)
+			completeMessage := "Diff completed successfully."
+
+			if len(forwardDiff.Slice) > 0 {
+				completeMessage += fmt.Sprintf(" %d differences found.", len(forwardDiff.Slice))
+			} else {
+				completeMessage += " No differences found."
+			}
+
+			return cli.NewExitError(completeMessage, 0)
 		},
 	}
 	return setup

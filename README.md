@@ -44,6 +44,8 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [ ] Load Config via URL
 - [ ] Add environment setting support
 
+TODO: Fix index migration to use correct SQL
+
 # TODO Management
 - [X] Implement tables:
     - [X] TargetDatabase
@@ -52,14 +54,14 @@ The tool uses the built in Go MySQL database driver for simple operations such a
     - [X] Metadata
 
 # TODO Utilities
-- [ ] Init management database
+- [X] Init management database
 - [ ] Init project DB
     - [ ] Existing
         - [ ] Generate Ids
         - [ ] YAML Schema
         - [ ] Register Metadata to Mgmt DB
     - [X] New
-        - [ ] Sandbox
+        - [X] Sandbox
 
 # TODO Migration
 - [X] Standard Go MySQL Driver Migrations

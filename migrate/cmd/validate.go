@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/mysql"
@@ -11,7 +10,7 @@ import (
 )
 
 // GetValidateCommand Configure the validate command
-func GetValidateCommand(conf *config.Config) (setup cli.Command) {
+func GetValidateCommand() (setup cli.Command) {
 	problems := 0
 	bothType := "both"
 	setup = cli.Command{
@@ -35,6 +34,10 @@ func GetValidateCommand(conf *config.Config) (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+
+			// Setup the management database and configuration settings
+			configureManagement(ctx)
+
 			if ctx.IsSet("project") && ctx.IsSet("version") {
 				git.Clone(conf.Project)
 			}

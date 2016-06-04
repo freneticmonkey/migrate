@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/git"
 	"github.com/freneticmonkey/migrate/migrate/id"
 	"github.com/freneticmonkey/migrate/migrate/migration"
@@ -15,7 +14,7 @@ import (
 )
 
 // GetCreateCommand Create a new migration for the target project at the version indicated by hash
-func GetCreateCommand(conf *config.Config) (setup cli.Command) {
+func GetCreateCommand() (setup cli.Command) {
 	setup = cli.Command{
 		Name:  "create",
 		Usage: "This subcommand is used to create a migration and register it with the management database.",
@@ -40,6 +39,9 @@ func GetCreateCommand(conf *config.Config) (setup cli.Command) {
 			var ts string
 			var info string
 			rollback := false
+
+			// Setup the management database and configuration settings
+			configureManagement(ctx)
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("project") {

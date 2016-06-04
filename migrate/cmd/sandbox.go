@@ -18,7 +18,7 @@ import (
 // TODO: Need to reinsert metadata when inserting new tables.  This is not being done at all presently
 
 // GetSandboxCommand Configure the sandbox command
-func GetSandboxCommand(conf *config.Config) (setup cli.Command) {
+func GetSandboxCommand() (setup cli.Command) {
 	setup = cli.Command{
 		Name:  "sandbox",
 		Usage: "Recreate the target database from the YAML Schema and insert the metadata",
@@ -51,16 +51,21 @@ func GetSandboxCommand(conf *config.Config) (setup cli.Command) {
 			const YES, NO = "yes", "no"
 			action := NO
 
-			if migrate {
-				// If performing a migration
+			if migrate || recreate {
+				// Setup the management database and configuration settings
+				configureManagement(ctx)
 
-				successmsg, err = sandboxAction(conf, dryrun, false, "Sandbox Migration")
-				if util.ErrorCheck(err) {
-					return cli.NewExitError(err.Error(), 1)
+				if migrate {
+					// If performing a migration
+
+					successmsg, err = sandboxAction(&conf, dryrun, false, "Sandbox Migration")
+					if util.ErrorCheck(err) {
+						return cli.NewExitError(err.Error(), 1)
+					}
+					return cli.NewExitError(successmsg, 0)
+
 				}
-				return cli.NewExitError(successmsg, 0)
 
-			} else if recreate {
 				// If recreating the sandbox database from scratch
 
 				// If a dryrun, or being forced, don't prompt
@@ -78,21 +83,17 @@ func GetSandboxCommand(conf *config.Config) (setup cli.Command) {
 				switch action {
 				case YES:
 					{
-						successmsg, err = sandboxAction(conf, dryrun, true, "Sandbox Recreation")
+						successmsg, err = sandboxAction(&conf, dryrun, true, "Sandbox Recreation")
 						if util.ErrorCheck(err) {
 							return cli.NewExitError(err.Error(), 1)
 						}
 						return cli.NewExitError(successmsg, 0)
 					}
-
-				default:
-					{
-						return cli.NewExitError("Sandbox Recreation cancelled.", 0)
-					}
 				}
-			} else {
-				return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
+				return cli.NewExitError("Sandbox Recreation cancelled.", 0)
+
 			}
+			return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
 		},
 	}
 	return setup

@@ -215,27 +215,30 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		tbl.Columns = append(tbl.Columns, column)
 	}
 
-	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`) COMMENT='M_ID=<id>'
-	// extract substring between brackets
-	pk = pk[strings.Index(pk, "(")+1 : strings.Index(pk, ")")]
-	// split on ,
-	values := strings.Split(pk, ",")
-	primaryKey.IsPrimary = true
+	// If the table has a Primary Key
+	if len(pk) > 0 {
+		// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`) COMMENT='M_ID=<id>'
+		// extract substring between brackets
+		pk = pk[strings.Index(pk, "(")+1 : strings.Index(pk, ")")]
+		// split on ,
+		values := strings.Split(pk, ",")
+		primaryKey.IsPrimary = true
 
-	if hasMetadata {
-		// Retrieve Metadata for Primary Key
-		md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
-			primaryKey.Metadata = md
+		if hasMetadata {
+			// Retrieve Metadata for Primary Key
+			md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
+			if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
+				primaryKey.Metadata = md
+			}
 		}
-	}
 
-	for _, column := range values {
-		// strip ` and add to primary key array
-		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
-	}
+		for _, column := range values {
+			// strip ` and add to primary key array
+			primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
+		}
 
-	tbl.PrimaryIndex = primaryKey
+		tbl.PrimaryIndex = primaryKey
+	}
 
 	// extract any KEY values
 	for _, key := range secondaryKeys {
