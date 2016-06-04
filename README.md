@@ -39,7 +39,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Initialise Project Database
 - [X] Setup from existing project database
 - [X] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
-- [ ] Load Config via URL
+- [X] Load Config via URL
 - [ ] Add environment setting support
 
 

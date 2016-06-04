@@ -23,6 +23,16 @@ func ReadFile(file string, out interface{}) (err error) {
 
 }
 
+func ReadData(data []byte, out interface{}) (err error) {
+
+	err = yaml.Unmarshal(data, out)
+
+	util.ErrorCheck(err)
+
+	return err
+
+}
+
 func WriteFile(file string, tbl table.Table) (err error) {
 
 	tbl.RemoveNamespace()
