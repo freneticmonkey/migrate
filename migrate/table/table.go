@@ -19,8 +19,8 @@ type Column struct {
 	Name     string
 	Type     string
 	Size     int
-	Nullable bool
-	AutoInc  bool
+	Nullable bool `yaml:",omitempty"`
+	AutoInc  bool `yaml:",omitempty"`
 
 	// Binary      bool
 	// Unique      bool
@@ -50,8 +50,8 @@ type Index struct {
 	ID        string `yaml:"id"`
 	Name      string
 	Columns   []string
-	IsPrimary bool
-	IsUnique  bool
+	IsPrimary bool              `yaml:",omitempty"`
+	IsUnique  bool              `yaml:",omitempty"`
 	Metadata  metadata.Metadata `yaml:"-"`
 }
 
@@ -82,7 +82,7 @@ type Table struct {
 	ID               string `yaml:"id"`
 	Name             string
 	Engine           string
-	AutoInc          int64
+	AutoInc          int64 `yaml:",omitempty"`
 	CharSet          string
 	Columns          []Column
 	PrimaryIndex     Index
@@ -160,28 +160,34 @@ func (t *Table) SyncDBMetadata() (err error) {
 func (t *Table) GeneratePropertyIDs() error {
 	// Table
 	if t.Metadata.PropertyID == "" {
-		t.Metadata.PropertyID = util.PropertyIDGen(t.Metadata.Name)
+		t.ID = util.PropertyIDGen(t.Metadata.Name)
+		t.Metadata.PropertyID = t.ID
 	}
 
 	// Columns
-	for i, col := range t.Columns {
+	for i := 0; i < len(t.Columns); i++ {
+		col := &t.Columns[i]
 		if col.Metadata.PropertyID == "" {
-			t.Columns[i].Metadata.PropertyID = util.PropertyIDGen(t.Columns[i].Metadata.Name)
-			t.Columns[i].Metadata.ParentID = t.Metadata.PropertyID
+			col.ID = util.PropertyIDGen(col.Name)
+			col.Metadata.PropertyID = col.ID
+			col.Metadata.ParentID = t.ID
 		}
 	}
 
 	// Primary Key
 	if t.PrimaryIndex.Metadata.PropertyID == "" {
-		t.PrimaryIndex.Metadata.PropertyID = util.PropertyIDGen(t.PrimaryIndex.Metadata.Name)
-		t.PrimaryIndex.Metadata.ParentID = t.Metadata.PropertyID
+		t.PrimaryIndex.ID = util.PropertyIDGen(t.PrimaryIndex.Name)
+		t.PrimaryIndex.Metadata.PropertyID = t.PrimaryIndex.ID
+		t.PrimaryIndex.Metadata.ParentID = t.ID
 	}
 
 	// Indexes
-	for i, ind := range t.SecondaryIndexes {
+	for i := 0; i < len(t.SecondaryIndexes); i++ {
+		ind := &t.SecondaryIndexes[i]
 		if ind.Metadata.PropertyID == "" {
-			t.SecondaryIndexes[i].Metadata.PropertyID = util.PropertyIDGen(t.SecondaryIndexes[i].Metadata.Name)
-			t.SecondaryIndexes[i].Metadata.ParentID = t.Metadata.PropertyID
+			ind.ID = util.PropertyIDGen(ind.Name)
+			ind.Metadata.PropertyID = ind.ID
+			ind.Metadata.ParentID = t.ID
 		}
 	}
 

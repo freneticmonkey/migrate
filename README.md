@@ -37,12 +37,14 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Implement migration validation checks
 - [x] Add flag to allow for destructive migrations (drop table, rename column)
 - [X] Initialise Project Database
-- [ ] Setup from existing project database
+- [X] Setup from existing project database
 - [X] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
-- [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
-- [ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?
 - [ ] Load Config via URL
 - [ ] Add environment setting support
+
+
+- [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
+- [ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?
 
 TODO: Fix index migration to use correct SQL
 
@@ -55,11 +57,11 @@ TODO: Fix index migration to use correct SQL
 
 # TODO Utilities
 - [X] Init management database
-- [ ] Init project DB
-    - [ ] Existing
-        - [ ] Generate Ids
-        - [ ] YAML Schema
-        - [ ] Register Metadata to Mgmt DB
+- [X] Init project DB
+    - [X] Existing
+        - [X] Generate Ids
+        - [X] YAML Schema
+        - [X] Register Metadata to Mgmt DB
     - [X] New
         - [X] Sandbox
 

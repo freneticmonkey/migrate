@@ -234,6 +234,7 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		// split on ,
 		values := strings.Split(pk, ",")
 		primaryKey.IsPrimary = true
+		primaryKey.Name = "PrimaryKey"
 
 		if hasMetadata {
 			// Retrieve Metadata for Primary Key

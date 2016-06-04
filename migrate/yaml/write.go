@@ -23,7 +23,7 @@ func WriteTable(path string, tbl table.Table) (err error) {
 	filepath := filepath.Join(path, filename)
 
 	util.LogErrorf("Writing Table YAML to file: %s", filepath)
-	// WriteFile(filepath, tbl)
+	WriteFile(filepath, tbl)
 
 	return err
 }

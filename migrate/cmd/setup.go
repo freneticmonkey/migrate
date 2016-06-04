@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/freneticmonkey/migrate/migrate/management"
 	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -65,11 +62,12 @@ func GetSetupCommand() (setup cli.Command) {
 					}
 				}
 
-				actionMsg := "Found the following unmanaged tables in the project database:\n"
-				actionMsg += strings.Join(tables, "\n")
-				actionMsg += fmt.Sprintf("\nDo you want to register these tables for migrations?")
+				// actionMsg := "Found the following unmanaged tables in the project database:\n"
+				// actionMsg += strings.Join(tables, "\n")
+				// actionMsg += fmt.Sprintf("\nDo you want to register these tables for migrations?")
 
-				action, err = util.SelectAction(actionMsg, []string{YES, NO})
+				// action, err = util.SelectAction(actionMsg, []string{YES, NO})
+				action = YES
 
 				if !util.ErrorCheckf(err, "There was a determining how to proceed. Cancelling setup.") {
 					if action == YES {
@@ -78,12 +76,13 @@ func GetSetupCommand() (setup cli.Command) {
 
 						// Generate PropertyIds for all Database properties
 						for i := 0; i < len(mysql.Schema); i++ {
-							mysql.Schema[i].GeneratePropertyIDs()
+							tbl := &mysql.Schema[i]
+							tbl.GeneratePropertyIDs()
 
 							// Generate YAML from the Tables and write to the working folder
-							yaml.WriteTable(path, mysql.Schema[i])
+							yaml.WriteTable(path, *tbl)
 
-							mysql.Schema[i].InsertMetadata()
+							tbl.InsertMetadata()
 							util.LogInfof("Registering Table for migrations: %s", mysql.Schema[i].Name)
 						}
 					}
