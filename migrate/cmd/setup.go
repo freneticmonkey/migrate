@@ -1,8 +1,13 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/freneticmonkey/migrate/migrate/management"
+	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/util"
+	"github.com/freneticmonkey/migrate/migrate/yaml"
 	"github.com/urfave/cli"
 )
 
@@ -40,12 +45,49 @@ func GetSetupCommand() (setup cli.Command) {
 			}
 
 			if ctx.IsSet("existing") {
-				// TODO:
+
+				const YES, NO = "yes", "no"
+				action := NO
+
+				// Read configuration and access the management database
+				configureManagement(ctx)
+
 				// Read the MySQL Database and generate Tables
-				// Generate PropertyIds for all Database properties
-				// Generate YAML from the Tables
-				// Insert Metadata into Management metadata table
-				// Write YAML to working folder
+				err := mysql.ReadTables(conf.Project)
+				if util.ErrorCheck(err) {
+					return cli.NewExitError("Setup Existing failed. Unable to read MySQL Tables", 1)
+				}
+
+				tables := []string{}
+				for _, tbl := range mysql.Schema {
+					if tbl.Metadata.MDID == 0 {
+						tables = append(tables, tbl.Name)
+					}
+				}
+
+				actionMsg := "Found the following unmanaged tables in the project database:\n"
+				actionMsg += strings.Join(tables, "\n")
+				actionMsg += fmt.Sprintf("\nDo you want to register these tables for migrations?")
+
+				action, err = util.SelectAction(actionMsg, []string{YES, NO})
+
+				if !util.ErrorCheckf(err, "There was a determining how to proceed. Cancelling setup.") {
+					if action == YES {
+
+						path := util.WorkingSubDir(conf.Project.Name)
+
+						// Generate PropertyIds for all Database properties
+						for i := 0; i < len(mysql.Schema); i++ {
+							mysql.Schema[i].GeneratePropertyIDs()
+
+							// Generate YAML from the Tables and write to the working folder
+							yaml.WriteTable(path, mysql.Schema[i])
+
+							mysql.Schema[i].InsertMetadata()
+							util.LogInfof("Registering Table for migrations: %s", mysql.Schema[i].Name)
+						}
+					}
+				}
 			}
 
 			return cli.NewExitError("Setup completed successfully.", 0)

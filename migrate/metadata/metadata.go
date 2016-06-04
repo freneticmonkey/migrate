@@ -55,11 +55,12 @@ func (m *Metadata) IsTable() bool {
 }
 
 // OnCreate Check if the Metadata is known to the database yet.  Depends on MDID being set != 0
-func (m *Metadata) OnCreate() {
+func (m *Metadata) OnCreate() error {
 	// If this Metadata hasn't been inserted into the database yet, insert it
 	if m.MDID == 0 {
-		m.Insert()
+		return m.Insert()
 	}
+	return nil
 }
 
 // TableRegistered Returns a boolean indicating that the Table named 'name' is

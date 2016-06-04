@@ -125,6 +125,12 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 		if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
 			tbl.Metadata = md
 		}
+	} else {
+		// New Table so fill out the Metadata
+		md.Name = name
+		md.Type = "Table"
+		md.Exists = true
+		tbl.Metadata = md
 	}
 
 	tbl.Name = name
@@ -210,6 +216,11 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 			if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
 				column.Metadata = md
 			}
+		} else {
+			md.Name = column.Name
+			md.Type = "Column"
+			md.Exists = true
+			column.Metadata = md
 		}
 
 		tbl.Columns = append(tbl.Columns, column)
@@ -230,6 +241,11 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 			if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
 				primaryKey.Metadata = md
 			}
+		} else {
+			md.Name = "PrimaryKey"
+			md.Type = "PrimaryKey"
+			md.Exists = true
+			primaryKey.Metadata = md
 		}
 
 		for _, column := range values {
@@ -265,6 +281,11 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 			if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
 				index.Metadata = md
 			}
+		} else {
+			md.Name = index.Name
+			md.Type = "Index"
+			md.Exists = true
+			index.Metadata = md
 		}
 
 		tbl.SecondaryIndexes = append(tbl.SecondaryIndexes, index)

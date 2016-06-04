@@ -155,3 +155,68 @@ func (t *Table) SyncDBMetadata() (err error) {
 
 	return err
 }
+
+// GeneratePropertyIDs Generate PropertyIds for all Table Properties that don't have a PropertyID set.
+func (t *Table) GeneratePropertyIDs() error {
+	// Table
+	if t.Metadata.PropertyID == "" {
+		t.Metadata.PropertyID = util.PropertyIDGen(t.Metadata.Name)
+	}
+
+	// Columns
+	for i, col := range t.Columns {
+		if col.Metadata.PropertyID == "" {
+			t.Columns[i].Metadata.PropertyID = util.PropertyIDGen(t.Columns[i].Metadata.Name)
+			t.Columns[i].Metadata.ParentID = t.Metadata.PropertyID
+		}
+	}
+
+	// Primary Key
+	if t.PrimaryIndex.Metadata.PropertyID == "" {
+		t.PrimaryIndex.Metadata.PropertyID = util.PropertyIDGen(t.PrimaryIndex.Metadata.Name)
+		t.PrimaryIndex.Metadata.ParentID = t.Metadata.PropertyID
+	}
+
+	// Indexes
+	for i, ind := range t.SecondaryIndexes {
+		if ind.Metadata.PropertyID == "" {
+			t.SecondaryIndexes[i].Metadata.PropertyID = util.PropertyIDGen(t.SecondaryIndexes[i].Metadata.Name)
+			t.SecondaryIndexes[i].Metadata.ParentID = t.Metadata.PropertyID
+		}
+	}
+
+	return nil
+}
+
+// InsertMetadata Insert all missing Metadata into the Managment Metadata table
+func (t *Table) InsertMetadata() (err error) {
+	// Table
+	err = t.Metadata.OnCreate()
+	if util.ErrorCheck(err) {
+		return err
+	}
+
+	// Columns
+	for _, col := range t.Columns {
+		err = col.Metadata.OnCreate()
+		if util.ErrorCheck(err) {
+			return err
+		}
+	}
+
+	// Primary Key
+	err = t.PrimaryIndex.Metadata.OnCreate()
+	if util.ErrorCheck(err) {
+		return err
+	}
+
+	// Indexes
+	for _, ind := range t.SecondaryIndexes {
+		err = ind.Metadata.OnCreate()
+		if util.ErrorCheck(err) {
+			return err
+		}
+	}
+
+	return nil
+}
