@@ -17,11 +17,12 @@ project:
     # and configure the table's namespace
     name: "animals"
     db:
-        username: root
-        password: test
-        ip:       127.0.0.1
-        port:     3500
-        database: test
+        username:    root
+        password:    test
+        ip:          127.0.0.1
+        port:        3500
+        database:    test
+        environment: PROD
     # The Project schema configuration
     schema:
         # Schema name.  Not currently used

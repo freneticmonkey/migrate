@@ -37,7 +37,7 @@ func GetSandboxCommand() (setup cli.Command) {
 			},
 			cli.BoolFlag{
 				Name:  "force",
-				Usage: "Force the recreation of schema.",
+				Usage: "Extremely Dangerous!!! Force the recreation of schema.",
 			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
@@ -54,6 +54,10 @@ func GetSandboxCommand() (setup cli.Command) {
 			if migrate || recreate {
 				// Setup the management database and configuration settings
 				configureManagement(ctx)
+
+				if conf.Project.DB.Environment != "SANDBOX" && !force {
+					return cli.NewExitError("Configured database isn't SANDBOX. Halting. If required use the force option.", 1)
+				}
 
 				if migrate {
 					// If performing a migration

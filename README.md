@@ -40,7 +40,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [X] Setup from existing project database
 - [X] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 - [X] Load Config via URL
-- [ ] Add environment setting support
+- [X] Add environment setting support
 
 
 - [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.

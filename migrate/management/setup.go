@@ -30,8 +30,6 @@ func tablesExist() bool {
 	if util.ErrorCheck(err) {
 		return false
 	}
-
-	util.LogInfof("Tables: %v", dbTables)
 	return len(dbTables) == len(tables)
 }
 
@@ -60,11 +58,13 @@ func Setup(conf config.Config) (err error) {
 
 	// Check if the target database exists, and if it doesn't, create an entry for it.
 	var tdb database.TargetDatabase
-	tdb, err = database.GetbyProject(conf.Project.Name, conf.Project.DB.Database)
+	projDB := conf.Project.DB
+	tdb, err = database.GetbyProject(conf.Project.Name, projDB.Database, projDB.Environment)
 	if util.ErrorCheckf(err, "Target Database entry doesn't exist for Project: [%s]. Creating it", conf.Project.Name) {
 		tdb = database.TargetDatabase{
 			Project: conf.Project.Name,
-			Name:    conf.Project.DB.Database,
+			Name:    projDB.Database,
+			Env:     projDB.Environment,
 		}
 		err = tdb.Insert()
 	}

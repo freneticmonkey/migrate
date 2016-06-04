@@ -10,7 +10,7 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
-// Difference Opertaions
+// Difference Operations
 const (
 	Add = iota
 	Del = iota

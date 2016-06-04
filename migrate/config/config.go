@@ -35,11 +35,12 @@ type LocalSchema struct {
 }
 
 type DB struct {
-	Username string
-	Password string
-	Ip       string
-	Port     int
-	Database string
+	Username    string
+	Password    string
+	Ip          string
+	Port        int
+	Database    string
+	Environment string
 }
 
 func (db DB) ConnectString() string {
