@@ -1,6 +1,10 @@
 package migration
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -8,15 +12,15 @@ import (
 
 // Step This struct stores the state for a step in a migration
 type Step struct {
-	SID      int64  `db:"sid,autoincrement,primarykey"`
-	MID      int64  `db:"mid"`
-	Op       int    `db:"op"`
-	MDID     int64  `db:"mdid"`
-	Name     string `db:"name"`
-	Forward  string `db:"forward"`
-	Backward string `db:"backward"`
-	Output   string `db:"output,size:1024"`
-	Status   int    `db:"status"`
+	SID      int64  `db:"sid,autoincrement,primarykey" json:"sid"`
+	MID      int64  `db:"mid" json:"mid"`
+	Op       int    `db:"op" json:"op"`
+	MDID     int64  `db:"mdid" json:"mdid"`
+	Name     string `db:"name" json:"name"`
+	Forward  string `db:"forward" json:"forward"`
+	Backward string `db:"backward" json:"backward"`
+	Output   string `db:"output,size:1024" json:"output"`
+	Status   int    `db:"status" json:"status"`
 }
 
 // Insert Insert the Step into the Management DB
@@ -28,6 +32,24 @@ func (s *Step) Insert() error {
 func (s *Step) Update() (err error) {
 	_, err = mgmtDb.Update(s)
 	return err
+}
+
+// LoadStepsList Populate a slice of Steps using the Step Ids contained within sids
+func LoadStepsList(sids []int64) (s []Step, err error) {
+	var strIds []string
+	for _, sid := range sids {
+		strIds = append(strIds, strconv.FormatInt(sid, 10))
+	}
+	jstrIds := strings.Join(strIds, ",")
+
+	query := fmt.Sprintf("select * from migration_steps WHERE sid IN (%s)", jstrIds)
+	_, err = mgmtDb.Select(&s, query)
+
+	if util.ErrorCheckf(err, "There was a problem retrieving Steps with Ids: [%s]", jstrIds) {
+		return s, err
+	}
+
+	return s, err
 }
 
 // UpdateMetadata Use the Step info to update the database

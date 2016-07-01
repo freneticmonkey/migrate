@@ -2,23 +2,25 @@ package migration
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
 // Migration This struct stores the top migration properties.
 type Migration struct {
-	MID                int64  `db:"mid,autoincrement,primarykey"`
-	DB                 int    `db:"db"`
-	Project            string `db:"project"`
-	Version            string `db:"version"`
-	VersionTimestamp   string `db:"version_timestamp"`
-	VersionDescription string `db:"version_description,size:512"`
-	Status             int    `db:"status"`
-	Timestamp          string `db:"timestamp"`
+	MID                int64  `db:"mid,autoincrement,primarykey" json:"mid"`
+	DB                 int    `db:"db" json:"db"`
+	Project            string `db:"project" json:"project"`
+	Version            string `db:"version" json:"version"`
+	VersionTimestamp   string `db:"version_timestamp" json:"version_timestamp"`
+	VersionDescription string `db:"version_description,size:512" json:"version_description"`
+	Status             int    `db:"status" json:"status"`
+	Timestamp          string `db:"timestamp" json:"timestamp"`
 
-	Steps   []Step `db:"-"`
-	Sandbox bool   `db:"-"`
+	Steps   []Step `db:"-" json:"steps"`
+	Sandbox bool   `db:"-" json:"-"`
 }
 
 // AddStep Add a Step to the migration
@@ -83,5 +85,54 @@ func Load(mid int64) (m *Migration, err error) {
 			m.Steps = steps
 		}
 	}
+	return m, err
+}
+
+// LoadList Build a slice of Migrations.  count has a maximum size of 50
+func LoadList(start int64, count int64) (migrations []Migration, end int64, total int64, err error) {
+
+	// Restrict count to 50
+	if count > 50 {
+		count = 50
+	}
+
+	// Retrieve the number of migrations listed
+	total, err = mgmtDb.SelectInt("select count(*) from migration")
+
+	if !util.ErrorCheck(err) {
+
+		// Retrive the slice of migrations
+		query := fmt.Sprintf("select * from migration WHERE mid >= %d LIMIT %d", start, count)
+		_, err = mgmtDb.Select(&migrations, query)
+
+		if !util.ErrorCheck(err) {
+			// If there wasn't any issues retrieving the Migrations, calculate the Migration Id of the end of the slice
+			util.DebugDump(migrations)
+			end = migrations[len(migrations)-1].MID
+		}
+	}
+
+	return migrations, end, total, err
+}
+
+// LoadMigrationsList Populate a slice of Migrations using the Migration Ids contained within mids
+func LoadMigrationsList(mids []int64) (m []Migration, err error) {
+	var strIds []string
+	for _, mid := range mids {
+		strIds = append(strIds, strconv.FormatInt(mid, 10))
+	}
+	jstrIds := strings.Join(strIds, ",")
+
+	if len(strIds) > 0 {
+		query := fmt.Sprintf("select * from migration WHERE mid IN (%s)", jstrIds)
+		_, err = mgmtDb.Select(&m, query)
+
+		if util.ErrorCheckf(err, "There was a problem retrieving Migrations with Ids: [%s]", jstrIds) {
+			return m, err
+		}
+	} else {
+		err = fmt.Errorf("No Migration IDs detected. IDs: [%s]", jstrIds)
+	}
+
 	return m, err
 }

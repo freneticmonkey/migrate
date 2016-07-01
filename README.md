@@ -16,31 +16,33 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] Simple YAML Config
 - [x] Reads YAML Table definitions
 - [x] Reads MySQL show create table output
-- [X] Management DB
+- [x] Management DB
 - [ ] Migration Sign Off
 
 
 # TODO ESSENTIAL
-- [X] Compare Table structs
-- [X] Generate MySQL (ALTER TABLE/CREATE TABLE, DROP TABLE) statements from diff
-- [X] Verify unique ids after deserialisation
-- [X] Serialize Table structs to YAML
-- [X] Serialize Table structs to MySQL
-- [X] Namespace support
-- [X] Metadata for ids
-- [X] Git repo/path/version/time support
-- [X] Human readable migration output - 'Git diff'
-- [X] Initialise Management Database
-- [X] Provide detailed Schema Validation Errors
-- [X] AUTO_INC support
-- [X] Implement migrations
-- [X] Implement migration validation checks
+- [x] Compare Table structs
+- [x] Generate MySQL (ALTER TABLE/CREATE TABLE, DROP TABLE) statements from diff
+- [x] Verify unique ids after deserialisation
+- [x] Serialize Table structs to YAML
+- [x] Serialize Table structs to MySQL
+- [x] Namespace support
+- [x] Metadata for ids
+- [x] Git repo/path/version/time support
+- [x] Human readable migration output - 'Git diff'
+- [x] Initialise Management Database
+- [x] Provide detailed Schema Validation Errors
+- [x] AUTO_INC support
+- [x] Implement migrations
+- [x] Implement migration validation checks
 - [x] Add flag to allow for destructive migrations (drop table, rename column)
-- [X] Initialise Project Database
-- [X] Setup from existing project database
-- [X] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
-- [X] Load Config via URL
-- [X] Add environment setting support
+- [x] Initialise Project Database
+- [x] Setup from existing project database
+- [x] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
+- [x] Load Config via URL
+- [x] Add environment setting support
+
+- [ ] Tests, tests, tests!!!!
 
 
 - [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
@@ -49,37 +51,44 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 TODO: Fix index migration to use correct SQL
 
 # TODO Management
-- [X] Implement tables:
-    - [X] TargetDatabase
-    - [X] Migration
-    - [X] MigrationStep
-    - [X] Metadata
+- [x] Implement tables:
+    - [x] TargetDatabase
+    - [x] Migration
+    - [x] MigrationStep
+    - [x] Metadata
 
 # TODO Utilities
-- [X] Init management database
-- [X] Init project DB
-    - [X] Existing
-        - [X] Generate Ids
-        - [X] YAML Schema
-        - [X] Register Metadata to Mgmt DB
-    - [X] New
-        - [X] Sandbox
+- [x] Init management database
+- [x] Init project DB
+    - [x] Existing
+        - [x] Generate Ids
+        - [x] YAML Schema
+        - [x] Register Metadata to Mgmt DB
+    - [x] New
+        - [x] Sandbox
 
 # TODO Migration
-- [X] Standard Go MySQL Driver Migrations
+- [x] Standard Go MySQL Driver Migrations
 - [x] pt-online-schema-change Migrations (not tested)
-- [X] Validation
-    - [X] Creating old Migrations
-    - [X] Creating duplicate Migrations
-    - [X] Creating empty Migrations
-    - [X] Executing old Migrations
-    - [X] Executing cancelled/denied Migrations
+- [x] Validation
+    - [x] Creating old Migrations
+    - [x] Creating duplicate Migrations
+    - [x] Creating empty Migrations
+    - [x] Executing old Migrations
+    - [x] Executing cancelled/denied Migrations
 
-# TODO Web Server
-- [ ] REST API
-    - [ ] Migration
-        - [ ] View
-        - [ ] Change status
+# TODO REST API Web Server
+- [x] REST API
+    - [x] Database
+        - [x] View
+    - [x] Migration
+        - [x] View
+        - [x] Change status
+    - [x] Migration Step
+        - [x] View
+        - [x] Change status
+- [x] Static Serving
+- [ ] REST API Front end - TODO => github.com/freneticmonkey/migrate-ui
 
 # TODO TOOLING
-- [X] Hash generation for embedded identifiers
+- [x] Hash generation for embedded identifiers

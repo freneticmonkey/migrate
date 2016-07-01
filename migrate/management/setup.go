@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/freneticmonkey/migrate/migrate/Database"
 	"github.com/freneticmonkey/migrate/migrate/config"
+	"github.com/freneticmonkey/migrate/migrate/database"
 	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/migration"

@@ -84,3 +84,13 @@ Migrations created by the **create** are executed by this subcommand.  Migration
 
 > ### rollback
   Allows for a rollback migration to be executed
+
+## serve
+Starts a REST API Server which provides access to the management database.  Optionally, if the --frontend flag is used, the contents of a subfolder named 'static' will also be served.  The REST API provides endpoints for listing Migrations and Migration Steps, and allows for the status of Migration and Migration Steps to be updated.
+
+## flags
+> ### frontend
+      If defined, the server will serve the web frontend in addition to the REST API from a subfolder named 'static'
+
+> ### port
+      Allows for an alternative port to be used.

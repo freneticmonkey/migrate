@@ -29,6 +29,7 @@ func main() {
 		cmd.GetValidateCommand(),
 		cmd.GetCreateCommand(),
 		cmd.GetExecCommand(),
+		cmd.GetServeCommand(),
 	}
 
 	app.Run(os.Args)

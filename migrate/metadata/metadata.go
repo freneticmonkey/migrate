@@ -10,13 +10,13 @@ import (
 // and table field in the target database.  This data is used to match the
 // schema of the target database to the YAML schema
 type Metadata struct {
-	MDID       int64  `db:"mdid, autoincrement, primarykey"`
-	DB         int    `db:"db"`
-	PropertyID string `db:"property_id"`
-	ParentID   string `db:"parent_id"`
-	Type       string `db:"type"`
-	Name       string `db:"name"`
-	Exists     bool   `db:"exists"`
+	MDID       int64  `db:"mdid, autoincrement, primarykey" json:"mdid"`
+	DB         int    `db:"db" json:"db"`
+	PropertyID string `db:"property_id" json:"property_id"`
+	ParentID   string `db:"parent_id" json:"parent_id"`
+	Type       string `db:"type" json:"type"`
+	Name       string `db:"name" json:"name"`
+	Exists     bool   `db:"exists" json:"exists"`
 }
 
 // Load Uses the valud of MDID to load from the Management DB
