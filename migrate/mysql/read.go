@@ -75,11 +75,7 @@ func extractParameter(s string, param string) (result string) {
 	return result
 }
 
-func parseCreateTable(createTable string) (tbl table.Table, err error) {
-
-	// Split by newlines
-	lines := strings.Split(createTable, "\n")
-
+func buildTable(lines []string, tbl *table.Table) (err error) {
 	// Process Engine and Charset
 	var name string
 	var engine string
@@ -87,6 +83,7 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	var charset string
 
 	var hasMetadata bool
+	var md metadata.Metadata
 
 	// extract the name from the first line
 	firstLine := lines[0]
@@ -117,7 +114,6 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	}
 
 	// Get Metadata for the table
-	var md metadata.Metadata
 	hasMetadata, err = metadata.TableRegistered(name)
 
 	if hasMetadata {
@@ -139,10 +135,161 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	tbl.CharSet = charset
 	tbl.Filename = "DB"
 
+	return err
+}
+
+func buildColumn(line string, tblPropertyID string, tblName string) (column table.Column, err error) {
+
+	var name string
+	var hasMetadata bool
+	var md metadata.Metadata
+
+	// extract NOT NULL
+
+	// trim whitespace from string after last )
+	parameters := strings.TrimSpace(line[strings.LastIndex(line, ")"):])
+
+	// NOT NULL by default
+	nullable := false
+	autoinc := false
+
+	// If NOT NULL is not present
+	if strings.Index(parameters, "NOT NULL") == -1 {
+		nullable = true
+	}
+
+	// If AUTO_INCREMENT is not present
+	if strings.Index(parameters, "AUTO_INCREMENT") == -1 {
+		autoinc = false
+	}
+
+	line = line[:strings.LastIndex(line, ")")]
+
+	// split on whitespace
+	lineSplit := strings.Split(strings.TrimSpace(line), " ")
+
+	// extract item[0] = name using ``
+	name = strings.Trim(lineSplit[0], "`")
+
+	// split on (
+	dt := strings.Split(lineSplit[1], "(")
+
+	// use dt[0] as type
+	datatype := dt[0]
+
+	// dt[1][:-1] as size
+	var colSize int
+	colSize, err = strconv.Atoi(dt[1][:len(dt[1])])
+	util.ErrorCheckf(err, "Error Parsing Column Size parameter")
+
+	column.Name = name
+	column.Type = datatype
+	column.Size = colSize
+	column.Nullable = nullable
+	column.AutoInc = autoinc
+
+	if hasMetadata {
+		// Retrieve Metadata for column
+		md, err = metadata.GetByName(name, tblPropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tblName) {
+			column.Metadata = md
+		}
+	} else {
+		md.Name = column.Name
+		md.Type = "Column"
+		md.Exists = true
+		column.Metadata = md
+	}
+
+	return column, err
+}
+
+func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKey table.Index, err error) {
+
+	var hasMetadata bool
+	var md metadata.Metadata
+
+	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`) COMMENT='M_ID=<id>'
+	// extract substring between brackets
+	pk = pk[strings.Index(pk, "(")+1 : strings.Index(pk, ")")]
+	// split on ,
+	values := strings.Split(pk, ",")
+	primaryKey.IsPrimary = true
+	primaryKey.Name = table.PrimaryKey
+
+	if hasMetadata {
+		// Retrieve Metadata for Primary Key
+		md, err = metadata.GetByName(table.PrimaryKey, tblPropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tblName) {
+			primaryKey.Metadata = md
+		}
+	} else {
+		md.Name = table.PrimaryKey
+		md.Type = table.PrimaryKey
+		md.Exists = true
+		primaryKey.Metadata = md
+	}
+
+	for _, column := range values {
+		// strip ` and add to primary key array
+		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
+	}
+
+	return primaryKey, err
+
+}
+
+func buildIndex(key string, tblPropertyID string, tblName string) (index table.Index, err error) {
+	// Format: KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
+
+	var hasMetadata bool
+	var md metadata.Metadata
+
+	// Remove KEY Prefix
+	key = strings.TrimLeft(key, "KEY ")
+
+	// Separate name from columns
+	nv := strings.Split(key, " ")
+	index.Name = strings.Trim(nv[0], "`")
+
+	// Process Index Columns
+	cvalues := strings.Split(strings.Trim(nv[1], "()"), ",")
+	for _, column := range cvalues {
+		index.Columns = append(index.Columns, strings.Trim(column, "`"))
+	}
+
+	if hasMetadata {
+		// Retrieve Metadata for index
+		md, err = metadata.GetByName(index.Name, tblPropertyID)
+		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", index.Name, tblName) {
+			index.Metadata = md
+		}
+	} else {
+		md.Name = index.Name
+		md.Type = "Index"
+		md.Exists = true
+		index.Metadata = md
+	}
+
+	return index, err
+}
+
+// ParseCreateTable Parses a MySQL Create Table statement into a table.Table struct
+func ParseCreateTable(createTable string) (tbl table.Table, err error) {
+
+	// Split by newlines
+	lines := strings.Split(createTable, "\n")
+
+	// Strip any trailing commas
+	for i := 0; i < len(lines); i++ {
+		lines[i] = strings.TrimRight(lines[i], ",")
+	}
+
+	err = buildTable(lines, &tbl)
+
 	// This code will make some assumptions regarding the create table
 	// It will most likely need cleanup at some point
 	var pk string
-	var primaryKey table.Index
 	var column []string
 	var secondaryKeys []string
 
@@ -161,135 +308,36 @@ func parseCreateTable(createTable string) (tbl table.Table, err error) {
 	}
 
 	// process table column and keys
+	var col table.Column
 	for _, line := range column {
-		// process each column entry
-		line = strings.TrimRight(line, ",")
-
-		// extract NOT NULL
-
-		// trim whitespace from string after last )
-		parameters := strings.TrimSpace(line[strings.LastIndex(line, ")"):])
-
-		// NOT NULL by default
-		nullable := false
-		autoinc := false
-
-		// If NOT NULL is not present
-		if strings.Index(parameters, "NOT NULL") == -1 {
-			nullable = true
-		}
-
-		// If AUTO_INCREMENT is not present
-		if strings.Index(parameters, "AUTO_INCREMENT") == -1 {
-			autoinc = false
-		}
-
-		line = line[:strings.LastIndex(line, ")")]
-
-		// split on whitespace
-		lineSplit := strings.Split(strings.TrimSpace(line), " ")
-
-		// extract item[0] = name using ``
-		name = strings.Trim(lineSplit[0], "`")
-
-		// split on (
-		dt := strings.Split(lineSplit[1], "(")
-
-		// use dt[0] as type
-		datatype := dt[0]
-
-		// dt[1][:-1] as size
-		var colSize int
-		colSize, err = strconv.Atoi(dt[1][:len(dt[1])])
-		util.ErrorCheckf(err, "Error Parsing Column Size parameter")
-
-		var column table.Column
-		column.Name = name
-		column.Type = datatype
-		column.Size = colSize
-		column.Nullable = nullable
-		column.AutoInc = autoinc
-
-		if hasMetadata {
-			// Retrieve Metadata for column
-			md, err = metadata.GetByName(name, tbl.Metadata.PropertyID)
-			if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tbl.Name) {
-				column.Metadata = md
-			}
+		col, err = buildColumn(line, tbl.Metadata.PropertyID, tbl.Name)
+		if !util.ErrorCheckf(err, "Failed to parse column from CREATE TABLE") {
+			tbl.Columns = append(tbl.Columns, col)
 		} else {
-			md.Name = column.Name
-			md.Type = "Column"
-			md.Exists = true
-			column.Metadata = md
+			return tbl, err
 		}
-
-		tbl.Columns = append(tbl.Columns, column)
 	}
 
 	// If the table has a Primary Key
+	var primaryKey table.Index
 	if len(pk) > 0 {
-		// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`) COMMENT='M_ID=<id>'
-		// extract substring between brackets
-		pk = pk[strings.Index(pk, "(")+1 : strings.Index(pk, ")")]
-		// split on ,
-		values := strings.Split(pk, ",")
-		primaryKey.IsPrimary = true
-		primaryKey.Name = "PrimaryKey"
-
-		if hasMetadata {
-			// Retrieve Metadata for Primary Key
-			md, err = metadata.GetByName("PrimaryKey", tbl.Metadata.PropertyID)
-			if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tbl.Name) {
-				primaryKey.Metadata = md
-			}
+		primaryKey, err = buildPrimaryKey(pk, tbl.Metadata.PropertyID, tbl.Name)
+		if !util.ErrorCheckf(err, "Failed to parse PrimaryKey from CREATE TABLE") {
+			tbl.PrimaryIndex = primaryKey
 		} else {
-			md.Name = "PrimaryKey"
-			md.Type = "PrimaryKey"
-			md.Exists = true
-			primaryKey.Metadata = md
+			return tbl, err
 		}
-
-		for _, column := range values {
-			// strip ` and add to primary key array
-			primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
-		}
-
-		tbl.PrimaryIndex = primaryKey
 	}
 
 	// extract any KEY values
+	var index table.Index
 	for _, key := range secondaryKeys {
-		var index table.Index
-
-		// Format: KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
-
-		// Remove KEY Prefix
-		key = strings.TrimLeft(key, "KEY ")
-
-		// Separate name from columns
-		nv := strings.Split(key, " ")
-		index.Name = strings.Trim(nv[0], "`")
-
-		// Process Index Columns
-		cvalues := strings.Split(strings.Trim(nv[1], "()"), ",")
-		for _, column := range cvalues {
-			index.Columns = append(index.Columns, strings.Trim(column, "`"))
-		}
-
-		if hasMetadata {
-			// Retrieve Metadata for index
-			md, err = metadata.GetByName(index.Name, tbl.Metadata.PropertyID)
-			if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", name, tbl.Name) {
-				index.Metadata = md
-			}
+		index, err = buildIndex(key, tbl.Metadata.PropertyID, tbl.Name)
+		if !util.ErrorCheckf(err, "Failed to parse PrimaryKey from CREATE TABLE") {
+			tbl.SecondaryIndexes = append(tbl.SecondaryIndexes, index)
 		} else {
-			md.Name = index.Name
-			md.Type = "Index"
-			md.Exists = true
-			index.Metadata = md
+			return tbl, err
 		}
-
-		tbl.SecondaryIndexes = append(tbl.SecondaryIndexes, index)
 
 	}
 
@@ -332,7 +380,7 @@ func ReadTables(project config.Project) (err error) {
 				err = row.Scan(&name, &create)
 				util.ErrorCheck(err)
 
-				tbl, err = parseCreateTable(create)
+				tbl, err = ParseCreateTable(create)
 				if !util.ErrorCheck(err) {
 					Schema = append(Schema, tbl)
 				}

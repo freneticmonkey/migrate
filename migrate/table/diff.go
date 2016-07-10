@@ -18,7 +18,7 @@ const (
 )
 
 // FormatOperation Formats the difference in a human readable git style for console output
-func FormatOperation(input string, op int) {
+func FormatOperation(input string, op int) string {
 	var prefix string
 	switch op {
 	case Add:
@@ -31,8 +31,11 @@ func FormatOperation(input string, op int) {
 		prefix = " M "
 		color.Set(color.FgYellow)
 	}
-	log.Printf("%s %s", prefix, input)
+	fmtStr := fmt.Sprintf("%s %s", prefix, input)
+	log.Println(fmtStr)
 	color.Unset()
+
+	return fmtStr
 }
 
 // Diff A struct whcih stores the details for an individual difference
@@ -46,8 +49,8 @@ type Diff struct {
 }
 
 // Print Generate a human readable string representation of the Diff
-func (d Diff) Print() {
-	FormatOperation(fmt.Sprintf("Table: [%s] Field: [%s] Property: [%s] Value: [%#v]", d.Table, d.Field, d.Property, d.Value), d.Op)
+func (d Diff) Print() string {
+	return FormatOperation(fmt.Sprintf("Table: [%s] Field: [%s] Property: [%s] Value: [%#v]", d.Table, d.Field, d.Property, d.Value), d.Op)
 }
 
 // DiffPair Utility struct for grouping diffs
@@ -90,7 +93,8 @@ func (d *Differences) Merge(diffs Differences) {
 //
 // e.g Table has fields such as Name, but it also contains a Columns property, each of which contains multiple fields.
 
-func compare(tableName string, fieldName string, toContainer interface{}, fromContainer interface{}) (hasDiff bool, difference Diff) {
+// Compare Generic object comparison that returns the differences as a Diff struct
+func Compare(tableName string, fieldName string, toContainer interface{}, fromContainer interface{}) (hasDiff bool, difference Diff) {
 
 	toField := reflect.ValueOf(toContainer).FieldByName(fieldName)
 	fromField := reflect.ValueOf(fromContainer).FieldByName(fieldName)
@@ -221,7 +225,7 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 		// For each field
 		for _, field := range propertyNames {
 
-			if diffFound, difference := compare(tableName, field, existingProperty.To, existingProperty.From); diffFound {
+			if diffFound, difference := Compare(tableName, field, existingProperty.To, existingProperty.From); diffFound {
 
 				difference.Field = fieldName
 				difference.Value = reflect.ValueOf(existingProperty).Interface()
@@ -306,7 +310,7 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 	fieldNames := []string{"Name", "Engine", "CharSet"}
 
 	for _, field := range fieldNames {
-		if diffFound, fieldsDiff := compare(fromTable.Name, field, toTable, fromTable); diffFound {
+		if diffFound, fieldsDiff := Compare(fromTable.Name, field, toTable, fromTable); diffFound {
 			hasDiff = diffFound
 			fieldsDiff.Metadata = fromTable.Metadata
 			differences.Add(fieldsDiff)

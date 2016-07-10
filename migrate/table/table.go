@@ -45,6 +45,10 @@ func (c Column) ToSQL() string {
 	return fmt.Sprintf("%s %s(%d) %s", c.Name, c.Type, c.Size, params.String())
 }
 
+const (
+	PrimaryKey = "PrimaryKey"
+)
+
 // Index Stores the properties for a Index field
 type Index struct {
 	ID        string `yaml:"id"`
