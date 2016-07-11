@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -53,7 +54,7 @@ func hasParameter(s string, param string) (result bool) {
 	return strings.Index(s, param) != -1
 }
 
-func extractParameter(s string, param string) (result string) {
+func extractParameter(s string, param string) (result string, err error) {
 
 	param = param + "="
 
@@ -70,9 +71,15 @@ func extractParameter(s string, param string) (result string) {
 		} else {
 			result = paramString
 		}
+	} else {
+		err = fmt.Errorf("Error parsing Parameter: [%s]", param)
 	}
 
-	return result
+	return result, err
+}
+
+func parseError(msg string) error {
+	return fmt.Errorf("Parse Error MySQL CREATE TABLE: %s", msg)
 }
 
 func buildTable(lines []string, tbl *table.Table) (err error) {
@@ -85,10 +92,20 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	var hasMetadata bool
 	var md metadata.Metadata
 
+	if len(lines) < 2 {
+		return parseError("Invalid table definition")
+	}
+
 	// extract the name from the first line
 	firstLine := lines[0]
 
-	name = firstLine[strings.Index(firstLine, "`")+1 : strings.LastIndex(firstLine, "`")]
+	nameStart := strings.Index(firstLine, "`")
+	nameEnd := strings.LastIndex(firstLine, "`")
+
+	if nameStart == -1 || nameStart == nameEnd {
+		return parseError("Unable to parse Table Name")
+	}
+	name = firstLine[nameStart+1 : nameEnd]
 
 	// grab last line
 	lastLine := lines[len(lines)-1]
@@ -98,28 +115,45 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 
 	if hasParameter(lastLine, "ENGINE") {
 		// extract ENGINE and value
-		engine = extractParameter(lastLine, "ENGINE")
+		engine, err = extractParameter(lastLine, "ENGINE")
+
+		if util.ErrorCheckf(err, "Error Parsing ENGINE") {
+			return parseError("Malformed Table ENGINE definition")
+		}
 	}
 
 	if hasParameter(lastLine, "AUTO_INCREMENT") {
 		// extract AUTO_INCREMENT and value
-		autoinc, err = strconv.ParseInt(extractParameter(lastLine, "AUTO_INCREMENT"), 10, 64)
-		util.ErrorCheckf(err, "Error Parsing AUTO_INCREMENT")
+		var aip string
+		aip, err = extractParameter(lastLine, "AUTO_INCREMENT")
+		autoinc, err = strconv.ParseInt(aip, 10, 64)
+		if util.ErrorCheckf(err, "Error Parsing AUTO_INCREMENT") {
+			return parseError("Malformed AUTO_INCREMENT definition")
+		}
 	}
 
 	// extract DEFAULT CHARSET and value
 	if hasParameter(lastLine, "DEFAULT CHARSET") {
 		// extract DEFAULT CHARSET and value
-		charset = extractParameter(lastLine, "DEFAULT CHARSET")
+		charset, err = extractParameter(lastLine, "DEFAULT CHARSET")
+		if util.ErrorCheckf(err, "Error Parsing DEFAULT CHARSET") {
+			return parseError("Malformed DEFAULT CHARSET definition")
+		}
 	}
 
 	// Get Metadata for the table
 	hasMetadata, err = metadata.TableRegistered(name)
 
+	if util.ErrorCheckf(err, "Error accessing Metadata database table") {
+		return parseError("Error accessing Metadata database table")
+	}
+
 	if hasMetadata {
 		md, err = metadata.GetTableByName(name)
 		if !util.ErrorCheckf(err, "Problem finding metadata for table: "+name) {
 			tbl.Metadata = md
+		} else {
+			return parseError("Problem finding table in Metadata database")
 		}
 	} else {
 		// New Table so fill out the Metadata
@@ -163,25 +197,45 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 		autoinc = false
 	}
 
-	line = line[:strings.LastIndex(line, ")")]
+	// Split components
+	bracketClose := strings.LastIndex(line, ")")
+	if bracketClose == -1 {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Missing size: [%s]", line))
+	}
+	line = line[:bracketClose]
 
 	// split on whitespace
 	lineSplit := strings.Split(strings.TrimSpace(line), " ")
 
+	if len(lineSplit) < 2 {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Invalid number of properties: [%s]", line))
+	}
+
+	// Parse Name
 	// extract item[0] = name using ``
 	name = strings.Trim(lineSplit[0], "`")
 
+	// Parse Datatype and Size
+	//
+
 	// split on (
+	if strings.Index(lineSplit[1], "(") == -1 {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Missing size: [%s]", line))
+	}
 	dt := strings.Split(lineSplit[1], "(")
 
-	// use dt[0] as type
+	// use dt[0] as datatype
 	datatype := dt[0]
 
 	// dt[1][:-1] as size
 	var colSize int
-	colSize, err = strconv.Atoi(dt[1][:len(dt[1])])
-	util.ErrorCheckf(err, "Error Parsing Column Size parameter")
+	sizeStr := strings.Trim(dt[1], ")")
+	colSize, err = strconv.Atoi(sizeStr)
+	if util.ErrorCheckf(err, "Error Parsing Column Size parameter") {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
+	}
 
+	// Build Column result
 	column.Name = name
 	column.Type = datatype
 	column.Size = colSize
@@ -193,6 +247,8 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 		md, err = metadata.GetByName(name, tblPropertyID)
 		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tblName) {
 			column.Metadata = md
+		} else {
+			return column, parseError(fmt.Sprintf("Failed to retrieve Column Metadata: [%s]", line))
 		}
 	} else {
 		md.Name = column.Name
@@ -209,11 +265,24 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 	var hasMetadata bool
 	var md metadata.Metadata
 
-	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`) COMMENT='M_ID=<id>'
+	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`)
 	// extract substring between brackets
-	pk = pk[strings.Index(pk, "(")+1 : strings.Index(pk, ")")]
+
+	firstBracket := strings.Index(pk, "(") + 1
+	secondBracket := strings.Index(pk, ")")
+
+	if firstBracket == -1 || secondBracket == -1 || firstBracket == secondBracket {
+		return primaryKey, parseError(fmt.Sprintf("Malformed PrimaryKey Columns definition. [%s]", pk))
+	}
+	pk = pk[firstBracket:secondBracket]
+
 	// split on ,
-	values := strings.Split(pk, ",")
+	columns := strings.Split(pk, ",")
+
+	if len(columns) < 1 {
+		return primaryKey, parseError(fmt.Sprintf("No Columns found for PrimaryKey. [%s]", pk))
+	}
+
 	primaryKey.IsPrimary = true
 	primaryKey.Name = table.PrimaryKey
 
@@ -222,6 +291,8 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 		md, err = metadata.GetByName(table.PrimaryKey, tblPropertyID)
 		if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tblName) {
 			primaryKey.Metadata = md
+		} else {
+			return primaryKey, parseError(fmt.Sprintf("Failed to retrieve PrimaryKey Metadata: [%s]", pk))
 		}
 	} else {
 		md.Name = table.PrimaryKey
@@ -230,7 +301,7 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 		primaryKey.Metadata = md
 	}
 
-	for _, column := range values {
+	for _, column := range columns {
 		// strip ` and add to primary key array
 		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
 	}
@@ -250,11 +321,19 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 
 	// Separate name from columns
 	nv := strings.Split(key, " ")
+	if len(nv) < 2 {
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: Invalid number of properties: [%s]", key))
+	}
 	index.Name = strings.Trim(nv[0], "`")
 
 	// Process Index Columns
-	cvalues := strings.Split(strings.Trim(nv[1], "()"), ",")
-	for _, column := range cvalues {
+	cnames := strings.Split(strings.Trim(nv[1], "()"), ",")
+
+	if len(cnames) == 0 {
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: No columns defined for index: [%s]", key))
+	}
+
+	for _, column := range cnames {
 		index.Columns = append(index.Columns, strings.Trim(column, "`"))
 	}
 
@@ -263,6 +342,8 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 		md, err = metadata.GetByName(index.Name, tblPropertyID)
 		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", index.Name, tblName) {
 			index.Metadata = md
+		} else {
+			return index, parseError(fmt.Sprintf("Failed to retrieve Index Metadata: [%s]", key))
 		}
 	} else {
 		md.Name = index.Name
@@ -276,6 +357,10 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 
 // ParseCreateTable Parses a MySQL Create Table statement into a table.Table struct
 func ParseCreateTable(createTable string) (tbl table.Table, err error) {
+
+	if len(createTable) == 0 {
+		return tbl, parseError("Empty CREATE TABLE statement")
+	}
 
 	// Split by newlines
 	lines := strings.Split(createTable, "\n")
