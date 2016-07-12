@@ -18,7 +18,7 @@ type Column struct {
 	ID       string `yaml:"id"`
 	Name     string
 	Type     string
-	Size     int
+	Size     []int
 	Nullable bool `yaml:",omitempty"`
 	AutoInc  bool `yaml:",omitempty"`
 

@@ -101,7 +101,7 @@ func IgnoreTestRead(t *testing.T) {
 		t.Error(fmt.Sprintf("Column Type incorrect: Expected: 'int' Found: '%s'", col.Type))
 	}
 
-	if col.Size != 11 {
+	if col.Size[0] != 11 {
 		t.Error(fmt.Sprintf("Column Size incorrect: Expected: '11' Found: '%d'", col.Size))
 	}
 

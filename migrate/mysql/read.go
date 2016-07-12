@@ -19,6 +19,51 @@ import (
 var Schema table.Tables
 var alters []string
 
+var datatypes = []string{
+	"char",
+	"varchar",
+	"tinytext",
+	"text",
+	"mediumtext",
+	"longtext",
+	"tinyblob",
+	"blob",
+	"mediumblob",
+	"longblob",
+	"tinyint",
+	"smallint",
+	"mediumint",
+	"int",
+	"bigint",
+	"float",
+	"double",
+	"decimal",
+	"numeric",
+	"bit",
+	"date",
+	"datetime",
+	"timestamp",
+	"time",
+	"enum",
+	"set",
+	"json",
+}
+
+var datatypesSizable = []string{
+	"char",
+	"varchar",
+	"tinyint",
+	"smallint",
+	"mediumint",
+	"int",
+	"bigint",
+	"float",
+	"double",
+	"decimal",
+	"numeric",
+	"bit",
+}
+
 /*
 CREATE TABLE `dogs` (
   `id` int(11) NOT NULL,
@@ -178,14 +223,97 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	var hasMetadata bool
 	var md metadata.Metadata
 
-	// extract NOT NULL
+	// Trim whitespace from the ends of the statement
+	line = strings.TrimSpace(line)
 
-	// trim whitespace from string after last )
-	bracketPos := strings.LastIndex(line, ")")
-	if bracketPos == -1 {
-		return column, parseError(fmt.Sprintf("Invalid Column Definition: Malformed size definition: [%s]", line))
+	// Split on whitespace.
+	// This will result in:
+	// [0] Name
+	// [1] Size definition
+	// [2] 1st clause
+	// ...
+	// [x] X clause
+	components := strings.Split(line, " ")
+
+	if len(components) < 2 {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Unparsable due to malformed or missing name or datatype: [%s]", line))
 	}
-	parameters := strings.TrimSpace(line[bracketPos:])
+
+	// Parse Name
+	// extract item[0] = name using ``
+	name = strings.Trim(components[0], "`")
+
+	// Parse Datatype and Size
+	dts := components[1]
+
+	var datatype string
+	var sizeStr string
+	var colSizes []int
+
+	// Check if the datatype supports an optional size
+
+	// Detect size brackets
+	if strings.Index(dts, "(") == -1 {
+		// If not found check if the datatype matches a known type
+		if !util.StringInArray(dts, datatypes) {
+			// it's not a valid datatype
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Unsupported datatype: [%s]", line))
+		}
+		datatype = dts
+
+	} else {
+		dtComp := strings.Split(dts, "(")
+
+		if len(dtComp) != 2 {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Unparsable datatype defintion: [%s]", line))
+		}
+		// Extract datatype
+		datatype = dtComp[0]
+
+		if len(datatype) == 0 {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Malformed column name: [%s]", line))
+		}
+
+		// Extract size
+		sizeStr = dtComp[1]
+		// Clean trailing bracket
+		sizeStr = strings.TrimRight(sizeStr, ")")
+
+		// Check that the datatype can have a size set
+		if !util.StringInArray(datatype, datatypesSizable) {
+			// it's not a valid sizable datatype
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Size defined for unsizable datatype: [%s]", line))
+		}
+
+		// Parse column size value(s)
+		var colSize int
+
+		// If the size type contains a length and decimal length
+		if strings.Index(sizeStr, ",") != -1 {
+			sizeSlice := strings.Split(sizeStr, ",")
+			for _, size := range sizeSlice {
+				colSize, err = strconv.Atoi(size)
+				if util.ErrorCheckf(err, "Error Parsing Column Size parameter. Malformed length or decimal length") {
+					return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
+				}
+				colSizes = append(colSizes, colSize)
+			}
+		} else {
+			colSize, err = strconv.Atoi(sizeStr)
+			if util.ErrorCheckf(err, "Error Parsing Column Size parameter") {
+				return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
+			}
+
+			colSizes = []int{colSize}
+		}
+	}
+
+	// Calculate the column clauses / parameters offset.
+
+	// offset = name + space + datatype(size)
+	paramOffset := len(components[0]) + 1 + len(components[1])
+
+	parameters := line[paramOffset:]
 
 	// NOT NULL by default
 	nullable := false
@@ -201,48 +329,10 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 		autoinc = false
 	}
 
-	// Split components
-	bracketClose := strings.LastIndex(line, ")")
-	if bracketClose == -1 {
-		return column, parseError(fmt.Sprintf("Invalid Column Definition: Missing size: [%s]", line))
-	}
-	line = line[:bracketClose]
-
-	// split on whitespace
-	lineSplit := strings.Split(strings.TrimSpace(line), " ")
-
-	if len(lineSplit) < 2 {
-		return column, parseError(fmt.Sprintf("Invalid Column Definition: Invalid number of properties: [%s]", line))
-	}
-
-	// Parse Name
-	// extract item[0] = name using ``
-	name = strings.Trim(lineSplit[0], "`")
-
-	// Parse Datatype and Size
-	//
-
-	// split on (
-	if strings.Index(lineSplit[1], "(") == -1 {
-		return column, parseError(fmt.Sprintf("Invalid Column Definition: Missing size: [%s]", line))
-	}
-	dt := strings.Split(lineSplit[1], "(")
-
-	// use dt[0] as datatype
-	datatype := dt[0]
-
-	// dt[1][:-1] as size
-	var colSize int
-	sizeStr := strings.Trim(dt[1], ")")
-	colSize, err = strconv.Atoi(sizeStr)
-	if util.ErrorCheckf(err, "Error Parsing Column Size parameter") {
-		return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
-	}
-
 	// Build Column result
 	column.Name = name
 	column.Type = datatype
-	column.Size = colSize
+	column.Size = colSizes
 	column.Nullable = nullable
 	column.AutoInc = autoinc
 

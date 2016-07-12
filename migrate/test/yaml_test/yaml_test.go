@@ -20,13 +20,13 @@ func TestRead(t *testing.T) {
     columns:
         - name:     id
           type:     int
-          size:     11
+          size:		[11]
           nullable: No
           id:       col1
 
         - name:     name
           type:     varchar
-          size:     64
+          size:		[64]
           nullable: No
           id:       col2
 
@@ -83,7 +83,7 @@ func TestRead(t *testing.T) {
 		t.Error(fmt.Sprintf("Column Type incorrect: Expected: 'int' Found: '%s'", col.Type))
 	}
 
-	if col.Size != 11 {
+	if col.Size[0] != 11 {
 		t.Error(fmt.Sprintf("Column Size incorrect: Expected: '11' Found: '%d'", col.Size))
 	}
 

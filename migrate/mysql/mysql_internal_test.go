@@ -22,7 +22,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "name",
 			Type:     "varchar",
-			Size:     64,
+			Size:     []int{64},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -33,7 +33,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "int",
-			Size:     11,
+			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -45,7 +45,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "int",
-			Size:     11,
+			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -56,7 +56,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "bigint",
-			Size:     20,
+			Size:     []int{20},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -67,7 +67,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "char",
-			Size:     11,
+			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -78,40 +78,7 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "varchar",
-			Size:     11,
-			Nullable: false,
-			AutoInc:  false,
-		},
-		ExpectFail: false,
-	},
-	{
-		Str: "`age` text NOT NULL",
-		Expected: table.Column{
-			Name:     "age",
-			Type:     "text",
-			Size:     -1,
-			Nullable: false,
-			AutoInc:  false,
-		},
-		ExpectFail: false,
-	},
-	{
-		Str: "`age` float NOT NULL",
-		Expected: table.Column{
-			Name:     "age",
-			Type:     "float",
-			Size:     -1,
-			Nullable: false,
-			AutoInc:  false,
-		},
-		ExpectFail: false,
-	},
-	{
-		Str: "`age` longblob NOT NULL",
-		Expected: table.Column{
-			Name:     "age",
-			Type:     "longblob",
-			Size:     -1,
+			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
 		},
@@ -122,19 +89,38 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "decimal",
-			Size:     -1,
+			Size:     []int{14, 4},
 			Nullable: false,
 			AutoInc:  false,
 		},
 		ExpectFail: false,
 	},
 	{
-		Str: "`age` double DEFAULT NULL",
+		Str: "`age` text NOT NULL",
 		Expected: table.Column{
 			Name:     "age",
-			Type:     "double",
-			Size:     -1,
-			Nullable: true,
+			Type:     "text",
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` float NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "float",
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` longblob NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "longblob",
+			Nullable: false,
 			AutoInc:  false,
 		},
 		ExpectFail: false,
@@ -144,7 +130,6 @@ var colTests = []ParseTest{
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "mediumtext",
-			Size:     -1,
 			Nullable: true,
 			AutoInc:  false,
 		},
@@ -152,18 +137,28 @@ var colTests = []ParseTest{
 	},
 
 	// Test DEFAULT value settings
-	{
-		Str: "`age` int(11) NOT NULL DEFAULT '1'",
-		Expected: table.Column{
-			Name: "age",
-			Type: "int",
-			Size: 11,
-			// Default: "",
-			Nullable: true,
-			AutoInc:  false,
-		},
-		ExpectFail: false,
-	},
+	// {
+	// 	Str: "`age` int(11) NOT NULL DEFAULT '1'",
+	// 	Expected: table.Column{
+	// 		Name: "age",
+	// 		Type: "int",
+	// 		Size: []int{11},
+	// 		// Default: "",
+	// 		Nullable: true,
+	// 		AutoInc:  false,
+	// 	},
+	// 	ExpectFail: false,
+	// },
+	// {
+	// 	Str: "`age` double DEFAULT NULL",
+	// 	Expected: table.Column{
+	// 		Name:     "age",
+	// 		Type:     "double",
+	// 		Nullable: true,
+	// 		AutoInc:  false,
+	// 	},
+	// 	ExpectFail: false,
+	// },
 
 	// Test malformed sql parse fails
 	{
