@@ -19,8 +19,9 @@ type Column struct {
 	Name     string
 	Type     string
 	Size     []int
-	Nullable bool `yaml:",omitempty"`
-	AutoInc  bool `yaml:",omitempty"`
+	Default  string `yaml:",omitempty"`
+	Nullable bool   `yaml:",omitempty"`
+	AutoInc  bool   `yaml:",omitempty"`
 
 	// Binary      bool
 	// Unique      bool

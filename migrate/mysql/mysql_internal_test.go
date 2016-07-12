@@ -137,28 +137,29 @@ var colTests = []ParseTest{
 	},
 
 	// Test DEFAULT value settings
-	// {
-	// 	Str: "`age` int(11) NOT NULL DEFAULT '1'",
-	// 	Expected: table.Column{
-	// 		Name: "age",
-	// 		Type: "int",
-	// 		Size: []int{11},
-	// 		// Default: "",
-	// 		Nullable: true,
-	// 		AutoInc:  false,
-	// 	},
-	// 	ExpectFail: false,
-	// },
-	// {
-	// 	Str: "`age` double DEFAULT NULL",
-	// 	Expected: table.Column{
-	// 		Name:     "age",
-	// 		Type:     "double",
-	// 		Nullable: true,
-	// 		AutoInc:  false,
-	// 	},
-	// 	ExpectFail: false,
-	// },
+	{
+		Str: "`age` int(11) NOT NULL DEFAULT '1'",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "int",
+			Size:     []int{11},
+			Default:  "1",
+			Nullable: true,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` double DEFAULT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "double",
+			Default:  "NULL",
+			Nullable: true,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
 
 	// Test malformed sql parse fails
 	{
@@ -177,32 +178,14 @@ var colTests = []ParseTest{
 		Str:        "`age` int(sk)",
 		ExpectFail: true,
 	},
-}
-
-func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
-
-	if err != nil && !test.ExpectFail {
-		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
-
-	} else if test.ExpectFail && err != nil {
-		// Successfully failed :)
-
-	} else {
-		if hasDiff, diff := table.Compare(tblName, "TestColumn", result, test.Expected); hasDiff {
-			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
-		}
-	}
-}
-
-func TestColumnParse(t *testing.T) {
-	var err error
-	var result table.Column
-
-	for _, test := range colTests {
-
-		result, err = buildColumn(test.Str, tblPropertyID, tblName)
-		validateResult(test, result, err, "Column Parse", t)
-	}
+	{
+		Str:        "`age` int(11) DEFAULT sdkjf",
+		ExpectFail: true,
+	},
+	{
+		Str:        "`age` int(11) DEFAULT ",
+		ExpectFail: true,
+	},
 }
 
 var indexTests = []ParseTest{
@@ -217,17 +200,45 @@ var indexTests = []ParseTest{
 		},
 		ExpectFail: false,
 	},
-}
-
-func TestIndexParse(t *testing.T) {
-	var err error
-	var result table.Index
-
-	for _, test := range indexTests {
-
-		result, err = buildIndex(test.Str, tblPropertyID, tblName)
-		validateResult(test, result, err, "Index Parse", t)
-	}
+	{
+		Str: "KEY `idx_id_name` (`id`)",
+		Expected: table.Index{
+			Name: "idx_id_name",
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: false,
+	},
+	// Test Fails
+	{
+		Str: "KEY `idx_id_name` ()",
+		Expected: table.Index{
+			Name:    "idx_id_name",
+			Columns: []string{},
+		},
+		ExpectFail: true,
+	},
+	{
+		Str: "KEY `` (`id`)",
+		Expected: table.Index{
+			Name: "idx_id_name",
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: true,
+	},
+	{
+		Str: "PRIMARY KEY `idx_id_name` (`id`)",
+		Expected: table.Index{
+			Name: "idx_id_name",
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: true,
+	},
 }
 
 var pkTests = []ParseTest{
@@ -241,6 +252,43 @@ var pkTests = []ParseTest{
 		},
 		ExpectFail: false,
 	},
+}
+
+func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
+
+	if !test.ExpectFail && err != nil {
+		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
+
+	} else if !test.ExpectFail && err == nil {
+		if hasDiff, diff := table.Compare(tblName, "TestColumn", result, test.Expected); hasDiff {
+			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
+		}
+	} else if test.ExpectFail && err == nil {
+		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", desc, test.Str)
+	}
+	// else Successfully failed :)
+}
+
+func TestColumnParse(t *testing.T) {
+	var err error
+	var result table.Column
+
+	for _, test := range colTests {
+
+		result, err = buildColumn(test.Str, tblPropertyID, tblName)
+		validateResult(test, result, err, "Column Parse", t)
+	}
+}
+
+func TestIndexParse(t *testing.T) {
+	var err error
+	var result table.Index
+
+	for _, test := range indexTests {
+
+		result, err = buildIndex(test.Str, tblPropertyID, tblName)
+		validateResult(test, result, err, "Index Parse", t)
+	}
 }
 
 func TestPKParse(t *testing.T) {

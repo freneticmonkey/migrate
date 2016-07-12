@@ -107,6 +107,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 		colType := fmt.Sprintf(" %s(%d) ", fromColumn.Type, fromColumn.Size)
 		isNull := ""
 		autoinc := ""
+		defaultVal := ""
 
 		if !fromColumn.Nullable {
 			isNull = "NOT NULL"
@@ -123,7 +124,11 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 
 		case "Type", "Size":
 			// if changed type or size
-			colType = fmt.Sprintf(" %s(%d) ", toColumn.Type, toColumn.Size)
+			if len(toColumn.Size) == 2 {
+				colType = fmt.Sprintf(" %s(%d,%d) ", toColumn.Type, toColumn.Size[0], toColumn.Size[1])
+			} else {
+				colType = fmt.Sprintf(" %s(%d) ", toColumn.Type, toColumn.Size[0])
+			}
 
 		case "Nullable":
 			// if Nullable is T or F
@@ -136,9 +141,19 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 			if toColumn.AutoInc {
 				autoinc = "AUTO_INCREMENT"
 			}
+
+		case "Default":
+			// if a Default value is defined
+			if len(toColumn.Default) > 0 {
+				if toColumn.Default == NULL {
+					defaultVal = "DEFAULT NULL"
+				} else {
+					defaultVal = fmt.Sprintf("DEFAULT '%s'", toColumn.Default)
+				}
+			}
 		}
 
-		modStatement = fmt.Sprintf("%s %s %s %s %s", columnOperation, name, colType, isNull, autoinc)
+		modStatement = fmt.Sprintf("%s %s %s %s %s %s", columnOperation, name, colType, isNull, defaultVal, autoinc)
 
 		operation.Statement = fmt.Sprintf(modTemplate, diff.Table, modStatement)
 

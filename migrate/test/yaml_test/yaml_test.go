@@ -30,6 +30,19 @@ func TestRead(t *testing.T) {
           nullable: No
           id:       col2
 
+		- name:     age
+		  type:     decimal
+		  size:		[14,4]
+		  nullable: No
+		  id:       col3
+
+		- name:     address
+		  type:    	varchar
+		  size:		[64]
+		  nullable: No
+		  id:       col4
+	      default:  "not supplied"
+
     primaryindex:
         columns:
           - name

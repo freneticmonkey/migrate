@@ -16,6 +16,16 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// MySQL Keywords
+const (
+	NULL            = "NULL"
+	DEFAULT         = "DEFAULT"
+	NOT_NULL        = "NOT NULL"
+	AUTO_INCREMENT  = "AUTO_INCREMENT"
+	ENGINE          = "ENGINE"
+	DEFAULT_CHARSET = "DEFAULT CHARSET"
+)
+
 var Schema table.Tables
 var alters []string
 
@@ -158,19 +168,19 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	// trim the cruft of the front of the line
 	lastLine = strings.TrimLeft(lastLine, ") ")
 
-	if hasParameter(lastLine, "ENGINE") {
+	if hasParameter(lastLine, ENGINE) {
 		// extract ENGINE and value
-		engine, err = extractParameter(lastLine, "ENGINE")
+		engine, err = extractParameter(lastLine, ENGINE)
 
 		if util.ErrorCheckf(err, "Error Parsing ENGINE") {
 			return parseError("Malformed Table ENGINE definition")
 		}
 	}
 
-	if hasParameter(lastLine, "AUTO_INCREMENT") {
+	if hasParameter(lastLine, AUTO_INCREMENT) {
 		// extract AUTO_INCREMENT and value
 		var aip string
-		aip, err = extractParameter(lastLine, "AUTO_INCREMENT")
+		aip, err = extractParameter(lastLine, AUTO_INCREMENT)
 		autoinc, err = strconv.ParseInt(aip, 10, 64)
 		if util.ErrorCheckf(err, "Error Parsing AUTO_INCREMENT") {
 			return parseError("Malformed AUTO_INCREMENT definition")
@@ -178,9 +188,9 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	}
 
 	// extract DEFAULT CHARSET and value
-	if hasParameter(lastLine, "DEFAULT CHARSET") {
+	if hasParameter(lastLine, DEFAULT_CHARSET) {
 		// extract DEFAULT CHARSET and value
-		charset, err = extractParameter(lastLine, "DEFAULT CHARSET")
+		charset, err = extractParameter(lastLine, DEFAULT_CHARSET)
 		if util.ErrorCheckf(err, "Error Parsing DEFAULT CHARSET") {
 			return parseError("Malformed DEFAULT CHARSET definition")
 		}
@@ -293,14 +303,14 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 			sizeSlice := strings.Split(sizeStr, ",")
 			for _, size := range sizeSlice {
 				colSize, err = strconv.Atoi(size)
-				if util.ErrorCheckf(err, "Error Parsing Column Size parameter. Malformed length or decimal length") {
-					return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
+				if err != nil {
+					return column, parseError(fmt.Sprintf("Invalid Column Definition: Malformed length or decimal lengthk for datatype size: [%s]", line))
 				}
 				colSizes = append(colSizes, colSize)
 			}
 		} else {
 			colSize, err = strconv.Atoi(sizeStr)
-			if util.ErrorCheckf(err, "Error Parsing Column Size parameter") {
+			if err != nil {
 				return column, parseError(fmt.Sprintf("Invalid Column Definition: Datatype size: Parse failed: [%s]", line))
 			}
 
@@ -318,21 +328,69 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	// NOT NULL by default
 	nullable := false
 	autoinc := false
+	defaultValue := ""
 
 	// If NOT NULL is not present
-	if strings.Index(parameters, "NOT NULL") == -1 {
+	if strings.Index(parameters, NOT_NULL) == -1 {
 		nullable = true
 	}
 
 	// If AUTO_INCREMENT is not present
-	if strings.Index(parameters, "AUTO_INCREMENT") == -1 {
+	if strings.Index(parameters, AUTO_INCREMENT) == -1 {
 		autoinc = false
+	}
+
+	// if DEFAULT is present
+	defaultPos := strings.Index(parameters, DEFAULT)
+	if defaultPos != -1 {
+		// Grab the string after DEFAULT, trim it, and split on whitespace.
+
+		// Check that the line contains a default value
+		if len(parameters) < defaultPos+8 {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Default value missing: [%s]", line))
+		}
+
+		lineEnd := parameters[defaultPos+7:]
+		defaultStr := strings.TrimSpace(lineEnd)
+
+		// if single quotes are detected
+		quotePos := strings.Index(defaultStr, "'")
+		if quotePos != -1 {
+			// extract the contents of the single quotes
+			qEnd := strings.LastIndex(defaultStr, "'")
+
+			if quotePos != qEnd {
+				defaultValue = defaultStr[quotePos:qEnd]
+			} else {
+				return column, parseError(fmt.Sprintf("Invalid Column Definition: Default value is empty: [%s]", line))
+			}
+		} else {
+
+			// Check for NULL default value
+			if len(defaultStr) >= 4 {
+				if defaultStr != NULL {
+					dCmp := strings.Split(defaultStr, " ")
+					if len(dCmp) > 0 && dCmp[0] == NULL {
+						defaultValue = NULL
+					}
+				} else {
+					defaultValue = defaultStr
+				}
+			}
+			// If the default value is shorter than NULL, then there's a problem
+
+			// If we're unable to parse the default value
+			if defaultValue == "" {
+				return column, parseError(fmt.Sprintf("Invalid Column Definition: Unable to parse Default value: [%s]", line))
+			}
+		}
 	}
 
 	// Build Column result
 	column.Name = name
 	column.Type = datatype
 	column.Size = colSizes
+	column.Default = defaultValue
 	column.Nullable = nullable
 	column.AutoInc = autoinc
 
@@ -410,21 +468,35 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 	var hasMetadata bool
 	var md metadata.Metadata
 
+	if !strings.HasPrefix(key, "KEY") {
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: Invalid KEY type: [%s]", key))
+	}
+
 	// Remove KEY Prefix
 	key = strings.TrimLeft(key, "KEY ")
 
-	// Separate name from columns
+	// Extract Name
 	nv := strings.Split(key, " ")
 	if len(nv) < 2 {
 		return index, parseError(fmt.Sprintf("Invalid Index Definition: Invalid number of properties: [%s]", key))
 	}
+
 	index.Name = strings.Trim(nv[0], "`")
 
+	if len(index.Name) == 0 {
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: No name defined: [%s]", key))
+	}
+
 	// Process Index Columns
-	cnames := strings.Split(strings.Trim(nv[1], "()"), ",")
+	columns := strings.Trim(nv[1], " ()")
+
+	if len(columns) == 0 {
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: No columns defined for index: [%s]", key))
+	}
+	cnames := strings.Split(columns, ",")
 
 	if len(cnames) == 0 {
-		return index, parseError(fmt.Sprintf("Invalid Index Definition: No columns defined for index: [%s]", key))
+		return index, parseError(fmt.Sprintf("Invalid Index Definition: Unable to find columns for index: [%s]", key))
 	}
 
 	for _, column := range cnames {
