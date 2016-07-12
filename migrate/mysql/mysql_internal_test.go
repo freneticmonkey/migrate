@@ -9,12 +9,16 @@ import (
 var tblPropertyID = "testtbl"
 var tblName = "test"
 
-var colTests = []struct {
-	ColStr   string       // Column definition to parse
-	Expected table.Column // Expected Column defintion
-}{
+type ParseTest struct {
+	Str        string      // Column definition to parse
+	Expected   interface{} // Expected Column defintion
+	ExpectFail bool
+}
+
+var colTests = []ParseTest{
+	// General Tests
 	{
-		ColStr: "`name` varchar(64) NOT NULL",
+		Str: "`name` varchar(64) NOT NULL",
 		Expected: table.Column{
 			Name:     "name",
 			Type:     "varchar",
@@ -22,9 +26,10 @@ var colTests = []struct {
 			Nullable: false,
 			AutoInc:  false,
 		},
+		ExpectFail: false,
 	},
 	{
-		ColStr: "`age` int(11) NOT NULL",
+		Str: "`age` int(11) NOT NULL",
 		Expected: table.Column{
 			Name:     "age",
 			Type:     "int",
@@ -32,27 +37,224 @@ var colTests = []struct {
 			Nullable: false,
 			AutoInc:  false,
 		},
+		ExpectFail: false,
 	},
+	// Test type parsing
+	{
+		Str: "`age` int(11) NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "int",
+			Size:     11,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` bigint(20) NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "bigint",
+			Size:     20,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` char(11) NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "char",
+			Size:     11,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` varchar(11) NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "varchar",
+			Size:     11,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` text NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "text",
+			Size:     -1,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` float NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "float",
+			Size:     -1,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` longblob NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "longblob",
+			Size:     -1,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` decimal(14,4) NOT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "decimal",
+			Size:     -1,
+			Nullable: false,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` double DEFAULT NULL",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "double",
+			Size:     -1,
+			Nullable: true,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "`age` mediumtext",
+		Expected: table.Column{
+			Name:     "age",
+			Type:     "mediumtext",
+			Size:     -1,
+			Nullable: true,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+
+	// Test DEFAULT value settings
+	{
+		Str: "`age` int(11) NOT NULL DEFAULT '1'",
+		Expected: table.Column{
+			Name: "age",
+			Type: "int",
+			Size: 11,
+			// Default: "",
+			Nullable: true,
+			AutoInc:  false,
+		},
+		ExpectFail: false,
+	},
+
+	// Test malformed sql parse fails
+	{
+		Str:        "`age` NOT NULL",
+		ExpectFail: true,
+	},
+	{
+		Str:        "`age`",
+		ExpectFail: true,
+	},
+	{
+		Str:        "`age` nottype",
+		ExpectFail: true,
+	},
+	{
+		Str:        "`age` int(sk)",
+		ExpectFail: true,
+	},
+}
+
+func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
+
+	if err != nil && !test.ExpectFail {
+		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
+
+	} else if test.ExpectFail && err != nil {
+		// Successfully failed :)
+
+	} else {
+		if hasDiff, diff := table.Compare(tblName, "TestColumn", result, test.Expected); hasDiff {
+			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
+		}
+	}
 }
 
 func TestColumnParse(t *testing.T) {
 	var err error
-	var colResult table.Column
+	var result table.Column
 
-	for _, colTest := range colTests {
+	for _, test := range colTests {
 
-		colResult, err = buildColumn(colTest.ColStr, tblPropertyID, tblName)
-
-		if err != nil {
-			t.Errorf("MySQL Column Parse Failed for column: '%s' with Error: '%s'", colTest.ColStr, err)
-		} else {
-			if hasDiff, diff := table.Compare(tblName, "TestColumn", colResult, colTest.Expected); hasDiff {
-				t.Errorf("MySQL Column Parse Failed with Diff: '%s'", diff.Print())
-			}
-			// if !reflect.DeepEqual(colResult, colTest.Expected) {
-			//
-			// }
-		}
+		result, err = buildColumn(test.Str, tblPropertyID, tblName)
+		validateResult(test, result, err, "Column Parse", t)
 	}
+}
 
+var indexTests = []ParseTest{
+	{
+		Str: "KEY `idx_id_name` (`id`,`name`)",
+		Expected: table.Index{
+			Name: "idx_id_name",
+			Columns: []string{
+				"id",
+				"name",
+			},
+		},
+		ExpectFail: false,
+	},
+}
+
+func TestIndexParse(t *testing.T) {
+	var err error
+	var result table.Index
+
+	for _, test := range indexTests {
+
+		result, err = buildIndex(test.Str, tblPropertyID, tblName)
+		validateResult(test, result, err, "Index Parse", t)
+	}
+}
+
+var pkTests = []ParseTest{
+	{
+		Str: "PRIMARY KEY (`id`)",
+		Expected: table.Index{
+			Name: table.PrimaryKey,
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: false,
+	},
+}
+
+func TestPKParse(t *testing.T) {
+	var err error
+	var result table.Index
+
+	for _, test := range pkTests {
+
+		result, err = buildPrimaryKey(test.Str, tblPropertyID, tblName)
+		validateResult(test, result, err, "PrimaryKey Parse", t)
+	}
 }
