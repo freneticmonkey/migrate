@@ -1,148 +1,196 @@
 package yaml_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
+	"github.com/freneticmonkey/migrate/migrate/table"
+	"github.com/freneticmonkey/migrate/migrate/util"
 	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
 
-// Successful Read
-func TestRead(t *testing.T) {
+var tblPropertyID = "testtbl"
+var tblName = "test"
 
-	context := "unittest"
-	definition := `
-    name:     test
-    charset:  latin1
-    engine:   InnoDB
-    id:       tbl1
-    columns:
-        - name:     id
-          type:     int
-          size:		[11]
-          nullable: No
-          id:       col1
-
-        - name:     name
-          type:     varchar
-          size:		[64]
-          nullable: No
-          id:       col2
-
-		- name:     age
-		  type:     decimal
-		  size:		[14,4]
-		  nullable: No
-		  id:       col3
-
-		- name:     address
-		  type:    	varchar
-		  size:		[64]
-		  nullable: No
-		  id:       col4
-	      default:  "not supplied"
-
-    primaryindex:
-        columns:
-          - name
-        isprimary: Yes
-        id: pi
-
-    secondaryindexes:
-      - name: idx_id_name
-        id: sc1
-        columns:
-            - id
-            - name
-    `
-
-	tbl, err := yaml.ReadYAML(definition, context)
-
-	if err != nil {
-		t.Error(fmt.Sprintf("Parse Error: %v", err))
-	}
-
-	// Validate table properties
-	if tbl.Name != "test" {
-		t.Error(fmt.Sprintf("Table Name incorrect: Expected: 'test' Found: '%s'", tbl.Name))
-	}
-
-	if tbl.CharSet != "latin1" {
-		t.Error(fmt.Sprintf("Table CharSet incorrect: Expected: 'latin1' Found: '%s'", tbl.CharSet))
-	}
-
-	if tbl.Engine != "InnoDB" {
-		t.Error(fmt.Sprintf("Table Engine incorrect: Expected: 'InnoDB' Found: '%s'", tbl.Engine))
-	}
-
-	if tbl.ID != "tbl1" {
-		t.Error(fmt.Sprintf("Table ID incorrect: Expected: 'tbl1' Found: '%s'", tbl.ID))
-	}
-
-	numCol := len(tbl.Columns)
-	if numCol != 2 {
-		t.Error(fmt.Sprintf("Table has invalid number of columns: Expected: 2 Found: %d", numCol))
-	}
-
-	// Validate Column Properties
-	col := tbl.Columns[0]
-
-	if col.Name != "id" {
-		t.Error(fmt.Sprintf("Column Name incorrect: Expected: 'id' Found: '%s'", col.Name))
-	}
-
-	if col.Type != "int" {
-		t.Error(fmt.Sprintf("Column Type incorrect: Expected: 'int' Found: '%s'", col.Type))
-	}
-
-	if col.Size[0] != 11 {
-		t.Error(fmt.Sprintf("Column Size incorrect: Expected: '11' Found: '%d'", col.Size))
-	}
-
-	if col.Nullable != false {
-		t.Error(fmt.Sprintf("Column Size incorrect: Expected: 'No' Found: '%t'", col.Nullable))
-	}
-
-	if col.ID != "col1" {
-		t.Error(fmt.Sprintf("Column ID incorrect: Expected: 'col1' Found: '%s'", col.ID))
-	}
-
-	// Validate PrimaryKey Properties
-	pi := tbl.PrimaryIndex
-
-	if pi.Name != "" {
-		t.Error(fmt.Sprintf("PrimaryKey Name incorrect: Expected: '' Found: '%s'", pi.Name))
-	}
-
-	if pi.ID != "pi" {
-		t.Error(fmt.Sprintf("PrimaryKey ID incorrect: Expected: 'pi' Found: '%s'", pi.ID))
-	}
-
-	cols := []string{"name"}
-	if !reflect.DeepEqual(pi.Columns, cols) {
-		t.Error(fmt.Sprintf("PrimaryKey Columns incorrect: Expected: '%v' Found: '%v'", cols, pi.Columns))
-	}
-
-	numInd := len(tbl.SecondaryIndexes)
-	if numInd != 1 {
-		t.Error(fmt.Sprintf("Table has invalid number of indexes: Expected: 1 Found: %d", numInd))
-	}
-
-	si := tbl.SecondaryIndexes[0]
-
-	if si.Name != "idx_id_name" {
-		t.Error(fmt.Sprintf("Secondary Index Name incorrect: Expected: 'idx_id_name' Found: '%s'", si.Name))
-	}
-
-	if si.ID != "sc1" {
-		t.Error(fmt.Sprintf("Secondary Index ID incorrect: Expected: 'sc1' Found: '%s'", si.ID))
-	}
-
-	cols = []string{"id", "name"}
-	if !reflect.DeepEqual(si.Columns, cols) {
-		t.Error(fmt.Sprintf("SecondaryIndexe Columns incorrect: Expected: '%v' Found: '%v'", cols, pi.Columns))
-	}
+type ParseTest struct {
+	Str        string      // Column definition to parse
+	Expected   interface{} // Expected Column defintion
+	ExpectFail bool
 }
 
-// Unsuccessful Read
+var yamlTests = []ParseTest{
+	// Test Table struct parsing
+	{
+		Str: `
+        name:     test
+        charset:  latin1
+        engine:   InnoDB
+        id:       tbl1
+        autoinc:  1234
+        `,
+		Expected: table.Table{
+			Name:    "test",
+			CharSet: "latin1",
+			Engine:  "InnoDB",
+			ID:      "tbl1",
+			AutoInc: 1234,
+		},
+		ExpectFail: false,
+	},
+	// Column Parsing
+	// Single Column
+	{
+		Str: `
+        columns:
+            - name:     id
+              type:     int
+              size:     [11]
+              nullable: No
+              id:       col1
+        `,
+		Expected: table.Table{
+			Columns: []table.Column{
+				table.Column{
+					ID:       "col1",
+					Name:     "id",
+					Type:     "int",
+					Size:     []int{11},
+					Nullable: false,
+					AutoInc:  false,
+				},
+			},
+		},
+		ExpectFail: false,
+	},
+	// Multi-Column
+	{
+		Str: `
+        columns:
+            - name:     id
+              type:     int
+              size:     [11]
+              nullable: No
+              id:       col1
+
+            - name:     name
+              type:     varchar
+              size:     [64]
+              nullable: No
+              id:       col2
+        `,
+		Expected: table.Table{
+			Columns: []table.Column{
+				table.Column{
+					ID:       "col1",
+					Name:     "id",
+					Type:     "int",
+					Size:     []int{11},
+					Nullable: false,
+					AutoInc:  false,
+				},
+				table.Column{
+					ID:       "col2",
+					Name:     "name",
+					Type:     "varchar",
+					Size:     []int{64},
+					Nullable: false,
+					AutoInc:  false,
+				},
+			},
+		},
+		ExpectFail: false,
+	},
+	// PrimaryKey Parsing
+	{
+		Str: `
+        primaryindex:
+            columns:
+                - name
+            isprimary: Yes
+            id:        pi
+        `,
+		Expected: table.Table{
+			PrimaryIndex: table.Index{
+				ID:        "pi",
+				IsPrimary: true,
+				Columns:   []string{"name"},
+			},
+		},
+		ExpectFail: false,
+	},
+	// Index Parsing
+	{
+		Str: `
+        secondaryindexes:
+            - name: idx_id_name
+              id:   sc1
+              columns:
+                  - name
+        `,
+		Expected: table.Table{
+			SecondaryIndexes: []table.Index{
+				{
+					ID:      "sc1",
+					Name:    "idx_id_name",
+					Columns: []string{"name"},
+				},
+			},
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: `
+        secondaryindexes:
+            - name: idx_id_name
+              id:   sc1
+              columns:
+                  - name
+                  - id
+        `,
+		Expected: table.Table{
+			SecondaryIndexes: []table.Index{
+				{
+					ID:      "sc1",
+					Name:    "idx_id_name",
+					Columns: []string{"name", "id"},
+				},
+			},
+		},
+		ExpectFail: false,
+	},
+}
+
+func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
+
+	if !test.ExpectFail && err != nil {
+		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
+
+	} else if !test.ExpectFail && err == nil {
+
+		if !reflect.DeepEqual(result, test.Expected) {
+			t.Errorf("%s Failed. Return object differs from expected object.", desc)
+			util.LogAttentionf("%s Failed. Return object differs from expected object.", desc)
+			util.LogWarn("Expected")
+			util.DebugDump(test.Expected)
+			util.LogWarn("Result")
+			util.DebugDump(result)
+		}
+	} else if test.ExpectFail && err == nil {
+		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", desc, test.Str)
+	}
+	// else Successfully failed :)
+}
+
+func TestYAMLParse(t *testing.T) {
+
+	var err error
+	var result table.Table
+
+	for _, test := range yamlTests {
+
+		result, err = yaml.ReadYAML(test.Str, "unittest")
+
+		validateResult(test, result, err, "YAML Column Parse", t)
+	}
+
+}
