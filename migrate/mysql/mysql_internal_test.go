@@ -210,6 +210,16 @@ var indexTests = []ParseTest{
 		},
 		ExpectFail: false,
 	},
+	{
+		Str: "KEY `idx_id_name` (id)",
+		Expected: table.Index{
+			Name: "idx_id_name",
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: false,
+	},
 	// Test Fails
 	{
 		Str: "KEY `idx_id_name` ()",
@@ -251,6 +261,47 @@ var pkTests = []ParseTest{
 			},
 		},
 		ExpectFail: false,
+	},
+	{
+		Str: "PRIMARY KEY (`id`,`name`)",
+		Expected: table.Index{
+			Name: table.PrimaryKey,
+			Columns: []string{
+				"id",
+				"name",
+			},
+		},
+		ExpectFail: false,
+	},
+	{
+		Str: "PRIMARY KEY (id,name)",
+		Expected: table.Index{
+			Name: table.PrimaryKey,
+			Columns: []string{
+				"id",
+				"name",
+			},
+		},
+		ExpectFail: false,
+	},
+	// Test failures
+	{
+		Str: "KEY (`id`)",
+		Expected: table.Index{
+			Name: table.PrimaryKey,
+			Columns: []string{
+				"id",
+			},
+		},
+		ExpectFail: true,
+	},
+	{
+		Str: "PRIMARY KEY ()",
+		Expected: table.Index{
+			Name:    table.PrimaryKey,
+			Columns: []string{},
+		},
+		ExpectFail: true,
 	},
 }
 

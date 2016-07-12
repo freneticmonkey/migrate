@@ -420,6 +420,13 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`)
 	// extract substring between brackets
 
+	// remove whitespace
+	pk = strings.TrimSpace(pk)
+
+	if !strings.HasPrefix(pk, "PRIMARY KEY") {
+		return primaryKey, parseError(fmt.Sprintf("Invalid Primary Key Definition: Invalid PRIMARY KEY type: [%s]", pk))
+	}
+
 	firstBracket := strings.Index(pk, "(") + 1
 	secondBracket := strings.Index(pk, ")")
 
