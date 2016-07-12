@@ -360,7 +360,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 			qEnd := strings.LastIndex(defaultStr, "'")
 
 			if quotePos != qEnd {
-				defaultValue = defaultStr[quotePos:qEnd]
+				defaultValue = defaultStr[quotePos+1 : qEnd]
 			} else {
 				return column, parseError(fmt.Sprintf("Invalid Column Definition: Default value is empty: [%s]", line))
 			}
