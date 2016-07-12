@@ -1,9 +1,12 @@
 package mysql
 
 import (
+	"reflect"
 	"testing"
 
+	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
+	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
 var tblPropertyID = "testtbl"
@@ -25,6 +28,11 @@ var colTests = []ParseTest{
 			Size:     []int{64},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "name",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -36,6 +44,11 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -48,6 +61,11 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -59,6 +77,11 @@ var colTests = []ParseTest{
 			Size:     []int{20},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -70,6 +93,11 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -81,6 +109,11 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -92,6 +125,11 @@ var colTests = []ParseTest{
 			Size:     []int{14, 4},
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -102,6 +140,11 @@ var colTests = []ParseTest{
 			Type:     "text",
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -112,6 +155,11 @@ var colTests = []ParseTest{
 			Type:     "float",
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -122,6 +170,11 @@ var colTests = []ParseTest{
 			Type:     "longblob",
 			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -132,6 +185,11 @@ var colTests = []ParseTest{
 			Type:     "mediumtext",
 			Nullable: true,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -144,8 +202,13 @@ var colTests = []ParseTest{
 			Type:     "int",
 			Size:     []int{11},
 			Default:  "1",
-			Nullable: true,
+			Nullable: false,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -157,6 +220,11 @@ var colTests = []ParseTest{
 			Default:  "NULL",
 			Nullable: true,
 			AutoInc:  false,
+			Metadata: metadata.Metadata{
+				Name:   "age",
+				Type:   "Column",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -197,6 +265,11 @@ var indexTests = []ParseTest{
 				"id",
 				"name",
 			},
+			Metadata: metadata.Metadata{
+				Name:   "idx_id_name",
+				Type:   "Index",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -207,6 +280,11 @@ var indexTests = []ParseTest{
 			Columns: []string{
 				"id",
 			},
+			Metadata: metadata.Metadata{
+				Name:   "idx_id_name",
+				Type:   "Index",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -216,6 +294,11 @@ var indexTests = []ParseTest{
 			Name: "idx_id_name",
 			Columns: []string{
 				"id",
+			},
+			Metadata: metadata.Metadata{
+				Name:   "idx_id_name",
+				Type:   "Index",
+				Exists: true,
 			},
 		},
 		ExpectFail: false,
@@ -259,6 +342,12 @@ var pkTests = []ParseTest{
 			Columns: []string{
 				"id",
 			},
+			IsPrimary: true,
+			Metadata: metadata.Metadata{
+				Name:   "PrimaryKey",
+				Type:   "PrimaryKey",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -270,6 +359,12 @@ var pkTests = []ParseTest{
 				"id",
 				"name",
 			},
+			IsPrimary: true,
+			Metadata: metadata.Metadata{
+				Name:   "PrimaryKey",
+				Type:   "PrimaryKey",
+				Exists: true,
+			},
 		},
 		ExpectFail: false,
 	},
@@ -280,6 +375,12 @@ var pkTests = []ParseTest{
 			Columns: []string{
 				"id",
 				"name",
+			},
+			IsPrimary: true,
+			Metadata: metadata.Metadata{
+				Name:   "PrimaryKey",
+				Type:   "PrimaryKey",
+				Exists: true,
 			},
 		},
 		ExpectFail: false,
@@ -313,6 +414,15 @@ func validateResult(test ParseTest, result interface{}, err error, desc string, 
 	} else if !test.ExpectFail && err == nil {
 		if hasDiff, diff := table.Compare(tblName, "TestColumn", result, test.Expected); hasDiff {
 			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
+		} else {
+			if !reflect.DeepEqual(result, test.Expected) {
+				t.Errorf("%s Failed. Return object differs from expected object.", desc)
+				util.LogAttentionf("%s Failed. Return object differs from expected object.", desc)
+				util.LogWarn("Expected")
+				util.DebugDump(test.Expected)
+				util.LogWarn("Result")
+				util.DebugDump(result)
+			}
 		}
 	} else if test.ExpectFail && err == nil {
 		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", desc, test.Str)
