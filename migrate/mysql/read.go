@@ -181,7 +181,11 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	// extract NOT NULL
 
 	// trim whitespace from string after last )
-	parameters := strings.TrimSpace(line[strings.LastIndex(line, ")"):])
+	bracketPos := strings.LastIndex(line, ")")
+	if bracketPos == -1 {
+		return column, parseError(fmt.Sprintf("Invalid Column Definition: Malformed size definition: [%s]", line))
+	}
+	parameters := strings.TrimSpace(line[bracketPos:])
 
 	// NOT NULL by default
 	nullable := false
