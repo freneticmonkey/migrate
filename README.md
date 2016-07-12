@@ -17,7 +17,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] Reads YAML Table definitions
 - [x] Reads MySQL show create table output
 - [x] Management DB
-- [ ] Migration Sign Off
+- [x] Migration Sign Off
 
 
 # TODO ESSENTIAL
