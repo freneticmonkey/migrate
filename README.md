@@ -42,14 +42,6 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] Load Config via URL
 - [x] Add environment setting support
 
-- [ ] Tests, tests, tests!!!!
-
-
-- [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
-- [ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?
-
-TODO: Fix index migration to use correct SQL
-
 # TODO Management
 - [x] Implement tables:
     - [x] TargetDatabase
@@ -92,3 +84,27 @@ TODO: Fix index migration to use correct SQL
 
 # TODO TOOLING
 - [x] Hash generation for embedded identifiers
+
+
+# TODO Tests
+- [x] MySQL Parsing
+- [x] YAML Parsing
+- [ ] Difference Engine
+    - [ ] Difference detection
+    - [ ] MySQL Statement Generation
+- [ ] Create Migration
+    - [ ] MySQL Statement Validity
+    - [ ] Git validation
+        - [ ] Can create new
+        - [ ] Can't create old
+    - [ ] Migration correctly stored in database
+- [ ] Run Migration
+    - [ ] Successfully applied
+    - [ ] Approval
+        - [ ] Will run approved
+        - [ ] Won't run denied
+    - [ ] Ensure single migration execution
+
+# TODO Future / Maybe
+- [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
+- [ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?
