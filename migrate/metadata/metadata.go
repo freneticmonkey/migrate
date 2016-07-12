@@ -19,15 +19,6 @@ type Metadata struct {
 	Exists     bool   `db:"exists" json:"exists"`
 }
 
-// Load Uses the valud of MDID to load from the Management DB
-func Load(mdid int64) (m *Metadata, err error) {
-	md, err := mgmtDb.Get(Metadata{}, mdid)
-	if md != nil {
-		m = md.(*Metadata)
-	}
-	return m, err
-}
-
 // Insert Insert the Metadata into the Management DB
 func (m *Metadata) Insert() error {
 	m.DB = targetDBID
@@ -61,6 +52,15 @@ func (m *Metadata) OnCreate() error {
 		return m.Insert()
 	}
 	return nil
+}
+
+// Load Uses the valud of MDID to load from the Management DB
+func Load(mdid int64) (m *Metadata, err error) {
+	md, err := mgmtDb.Get(Metadata{}, mdid)
+	if md != nil {
+		m = md.(*Metadata)
+	}
+	return m, err
 }
 
 // TableRegistered Returns a boolean indicating that the Table named 'name' is
