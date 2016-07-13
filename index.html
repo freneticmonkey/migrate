@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Migrate by freneticmonkey</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Migrate</h1>
+        <p>A basic MySQL schema migration tool using YAML and Git in Go</p>
+
+        <p class="view"><a href="https://github.com/freneticmonkey/migrate">View the Project on GitHub <small>freneticmonkey/migrate</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/freneticmonkey/migrate/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/freneticmonkey/migrate/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/freneticmonkey/migrate">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="migrate" class="anchor" href="#migrate" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Migrate</h1>
+
+<h1>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h1>
+
+<p>This tool is intended to be a very simple database migration system which migrates schema by comparing the output of mysql 'show create tables' to a simple YAML table definition.  The differences are then converted into MySQL ALTER TABLE statements which can be applied to the target database.  The YAML schema is expected to be version controlled using a Git repository, which also is the source of the migration versioning information and used to validate schema state.</p>
+
+<h2>
+<a id="management" class="anchor" href="#management" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Management</h2>
+
+<p>Migrations are tracked and approval managed using a separate database.  </p>
+
+<p>Each supported property of a table is assigned a unique identifier which is stored within the management database.  This allows non-intrusive management of the schema leaving the target schema pristine.</p>
+
+<h2>
+<a id="migration-execution" class="anchor" href="#migration-execution" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Migration execution</h2>
+
+<p>The tool uses the built in Go MySQL database driver for simple operations such as CREATE/DROP TABLE, with the option to use the pt-online-schema-change tool developed by Percona for long running operations, without requiring the downtime for the database.</p>
+
+<h1>
+<a id="feature-list" class="anchor" href="#feature-list" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Feature List</h1>
+
+<ul>
+<li>[x] Simple YAML Config</li>
+<li>[x] Reads YAML Table definitions</li>
+<li>[x] Reads MySQL show create table output</li>
+<li>[x] Management DB</li>
+<li>[x] Migration Sign Off</li>
+</ul>
+
+<h1>
+<a id="todo-essential" class="anchor" href="#todo-essential" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO ESSENTIAL</h1>
+
+<ul>
+<li>[x] Compare Table structs</li>
+<li>[x] Generate MySQL (ALTER TABLE/CREATE TABLE, DROP TABLE) statements from diff</li>
+<li>[x] Verify unique ids after deserialisation</li>
+<li>[x] Serialize Table structs to YAML</li>
+<li>[x] Serialize Table structs to MySQL</li>
+<li>[x] Namespace support</li>
+<li>[x] Metadata for ids</li>
+<li>[x] Git repo/path/version/time support</li>
+<li>[x] Human readable migration output - 'Git diff'</li>
+<li>[x] Initialise Management Database</li>
+<li>[x] Provide detailed Schema Validation Errors</li>
+<li>[x] AUTO_INC support</li>
+<li>[x] Implement migrations</li>
+<li>[x] Implement migration validation checks</li>
+<li>[x] Add flag to allow for destructive migrations (drop table, rename column)</li>
+<li>[x] Initialise Project Database</li>
+<li>[x] Setup from existing project database</li>
+<li>[x] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)</li>
+<li>[x] Load Config via URL</li>
+<li>[x] Add environment setting support</li>
+</ul>
+
+<h1>
+<a id="todo-management" class="anchor" href="#todo-management" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO Management</h1>
+
+<ul>
+<li>[x] Implement tables:
+
+<ul>
+<li>[x] TargetDatabase</li>
+<li>[x] Migration</li>
+<li>[x] MigrationStep</li>
+<li>[x] Metadata</li>
+</ul>
+</li>
+</ul>
+
+<h1>
+<a id="todo-utilities" class="anchor" href="#todo-utilities" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO Utilities</h1>
+
+<ul>
+<li>[x] Init management database</li>
+<li>[x] Init project DB
+
+<ul>
+<li>[x] Existing
+
+<ul>
+<li>[x] Generate Ids</li>
+<li>[x] YAML Schema</li>
+<li>[x] Register Metadata to Mgmt DB</li>
+</ul>
+</li>
+<li>[x] New
+
+<ul>
+<li>[x] Sandbox</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<h1>
+<a id="todo-migration" class="anchor" href="#todo-migration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO Migration</h1>
+
+<ul>
+<li>[x] Standard Go MySQL Driver Migrations</li>
+<li>[x] pt-online-schema-change Migrations (not tested)</li>
+<li>[x] Validation
+
+<ul>
+<li>[x] Creating old Migrations</li>
+<li>[x] Creating duplicate Migrations</li>
+<li>[x] Creating empty Migrations</li>
+<li>[x] Executing old Migrations</li>
+<li>[x] Executing cancelled/denied Migrations</li>
+</ul>
+</li>
+</ul>
+
+<h1>
+<a id="todo-rest-api-web-server" class="anchor" href="#todo-rest-api-web-server" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO REST API Web Server</h1>
+
+<ul>
+<li>[x] REST API
+
+<ul>
+<li>[x] Database
+
+<ul>
+<li>[x] View</li>
+</ul>
+</li>
+<li>[x] Migration
+
+<ul>
+<li>[x] View</li>
+<li>[x] Change status</li>
+</ul>
+</li>
+<li>[x] Migration Step
+
+<ul>
+<li>[x] View</li>
+<li>[x] Change status</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>[x] Static Serving</li>
+<li>[ ] REST API Front end - TODO =&gt; github.com/freneticmonkey/migrate-ui</li>
+</ul>
+
+<h1>
+<a id="todo-tooling" class="anchor" href="#todo-tooling" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO TOOLING</h1>
+
+<ul>
+<li>[x] Hash generation for embedded identifiers</li>
+</ul>
+
+<h1>
+<a id="todo-tests" class="anchor" href="#todo-tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO Tests</h1>
+
+<ul>
+<li>[x] MySQL Parsing</li>
+<li>[x] YAML Parsing</li>
+<li>[ ] Difference Engine
+
+<ul>
+<li>[ ] Difference detection</li>
+<li>[ ] MySQL Statement Generation</li>
+</ul>
+</li>
+<li>[ ] Create Migration
+
+<ul>
+<li>[ ] MySQL Statement Validity</li>
+<li>[ ] Git validation
+
+<ul>
+<li>[ ] Can create new</li>
+<li>[ ] Can't create old</li>
+</ul>
+</li>
+<li>[ ] Migration correctly stored in database</li>
+</ul>
+</li>
+<li>[ ] Run Migration
+
+<ul>
+<li>[ ] Successfully applied</li>
+<li>[ ] Approval
+
+<ul>
+<li>[ ] Will run approved</li>
+<li>[ ] Won't run denied</li>
+</ul>
+</li>
+<li>[ ] Ensure single migration execution</li>
+</ul>
+</li>
+</ul>
+
+<h1>
+<a id="todo-future--maybe" class="anchor" href="#todo-future--maybe" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO Future / Maybe</h1>
+
+<ul>
+<li>[ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.</li>
+<li>[ ] Add additional metadata validation where in a rename will fail to update the metadata table.  Repair using best guess from the YAML schema?</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/freneticmonkey">freneticmonkey</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
