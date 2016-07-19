@@ -70,6 +70,8 @@ func (d *Differences) Add(diff Diff) {
 	// If table name is empty, then the object is most likely empty
 	if len(diff.Table) > 0 {
 		d.Slice = append(d.Slice, diff)
+	} else {
+		// TODO: Throw Error here!!
 	}
 }
 
@@ -98,7 +100,6 @@ func Compare(tableName string, fieldName string, toContainer interface{}, fromCo
 
 	toField := reflect.ValueOf(toContainer).FieldByName(fieldName)
 	fromField := reflect.ValueOf(fromContainer).FieldByName(fieldName)
-
 	switch toField.Kind() {
 
 	case reflect.Bool:
@@ -112,6 +113,11 @@ func Compare(tableName string, fieldName string, toContainer interface{}, fromCo
 		}
 
 	case reflect.Int:
+		if toField.Int() != fromField.Int() {
+			hasDiff = true
+		}
+
+	case reflect.Int64:
 		if toField.Int() != fromField.Int() {
 			hasDiff = true
 		}
@@ -151,13 +157,11 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	for _, to := range toProperties {
 		found := false
 		toMD := reflect.ValueOf(to).FieldByName("Metadata").Interface().(metadata.Metadata)
-		// toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
 
 		// If an Id is defined
 		if len(toMD.PropertyID) > 0 {
 			for _, from := range fromProperties {
 				fromMD := reflect.ValueOf(from).FieldByName("Metadata").Interface().(metadata.Metadata)
-				// fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
 				if toMD.PropertyID == fromMD.PropertyID {
 					existingProperties = append(existingProperties, DiffPair{from, to})
 					found = true
@@ -189,10 +193,8 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 	for _, from := range fromProperties {
 		found := false
 		fromMD := reflect.ValueOf(from).FieldByName("Metadata").Interface().(metadata.Metadata)
-		// fromId := reflect.ValueOf(from).FieldByName("PropertyID").String()
 		for _, to := range toProperties {
 			toMD := reflect.ValueOf(to).FieldByName("Metadata").Interface().(metadata.Metadata)
-			// toId := reflect.ValueOf(to).FieldByName("PropertyID").String()
 			if toMD.PropertyID == fromMD.PropertyID {
 				found = true
 				continue
@@ -219,9 +221,6 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 
 	// Check for differences in existing fields
 	for _, existingProperty := range existingProperties {
-
-		// var propertyDifferences PropertyDiff
-
 		// For each field
 		for _, field := range propertyNames {
 
@@ -239,7 +238,6 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 }
 
 func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Differences) {
-
 	// Ugly, but it works?
 	toColumns := make([]interface{}, len(toTable.Columns))
 	for i, v := range toTable.Columns {
@@ -253,7 +251,6 @@ func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 
 	// Column Properties
 	fieldNames := []string{"Name", "Type", "Size", "Nullable", "AutoInc", "Default"}
-
 	if differentColumns := diffProperties(toTable.Name, "Columns", fieldNames, toColumns, fromColumns); len(differentColumns.Slice) > 0 {
 		hasDiff = true
 
@@ -292,8 +289,6 @@ func diffIndexes(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	// Index Properties
 	fieldNames = []string{"Name", "Columns", "IsPrimary", "IsUnique"}
 
-	// return diffProperties(toIndexes, fromIndexes, fieldNames)
-
 	if differentIndexes := diffProperties(toTable.Name, "SecondaryIndexes", fieldNames, toIndexes, fromIndexes); len(differentIndexes.Slice) > 0 {
 		hasDiff = true
 
@@ -307,7 +302,7 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 	hasDiff = false
 
 	// Table Fields
-	fieldNames := []string{"Name", "Engine", "CharSet"}
+	fieldNames := []string{"Name", "Engine", "CharSet", "AutoInc"}
 
 	for _, field := range fieldNames {
 		if diffFound, fieldsDiff := Compare(fromTable.Name, field, toTable, fromTable); diffFound {
@@ -352,7 +347,6 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 				found = true
 				if hasDiff, diff := diffTable(toTable, fromTable); hasDiff {
 					tableDiffs.Merge(diff)
-					// tableDiffs = append(tableDiffs, diff)
 				}
 			}
 		}
