@@ -1166,3 +1166,89 @@ func TestDifferences(t *testing.T) {
 
 	}
 }
+
+func TestTables(t *testing.T) {
+
+	var fromTables = []Table{
+		Table{
+			Name: "TestTable",
+			Columns: []Column{
+				Column{
+					ID:   "col1",
+					Name: "Address",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+		},
+	}
+
+	var toTables = []Table{
+		Table{
+			Name: "TestTable",
+			Columns: []Column{
+				Column{
+					ID:   "col1",
+					Name: "Address",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				Column{
+					ID:   "col1",
+					Name: "Age",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						PropertyID: "col2",
+					},
+				},
+			},
+		},
+	}
+
+	var expectedDiffs = []Diff{
+		Diff{
+			Table:    "TestTable",
+			Field:    "Columns",
+			Op:       Add,
+			Property: "Age",
+			Value: Column{
+				ID:   "col1",
+				Name: "Age",
+				Type: "int",
+				Size: []int{11},
+				Metadata: metadata.Metadata{
+					PropertyID: "col2",
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col2",
+			},
+		},
+	}
+
+	// TODO: Fix Mock DB to get this working :(
+	var diffs Differences
+	if false {
+		diffs = DiffTables(toTables, fromTables)
+	}
+
+	if len(diffs.Slice) > 0 {
+		if !reflect.DeepEqual(diffs, expectedDiffs) {
+			t.Errorf("Tables Difference Failed. Difference is not correct")
+
+			util.LogAttentionf("Tables Difference Failed. Return object differs from expected object.")
+			util.LogWarn("Expected")
+			util.DebugDump(expectedDiffs)
+
+			util.LogWarn("Result")
+			util.DebugDump(diffs)
+		}
+	}
+}
