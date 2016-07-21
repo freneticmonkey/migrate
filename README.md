@@ -90,7 +90,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] MySQL Parsing
 - [x] YAML Parsing
 - [ ] Difference Engine
-    - [ ] Difference detection
+    - [x] Difference detection
     - [ ] MySQL Statement Generation
 - [ ] Create Migration
     - [ ] MySQL Statement Validity

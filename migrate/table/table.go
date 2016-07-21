@@ -43,7 +43,20 @@ func (c Column) ToSQL() string {
 	if c.AutoInc {
 		params.Add("AUTO_INCREMENT")
 	}
-	return fmt.Sprintf("%s %s(%d) %s", c.Name, c.Type, c.Size, params.String())
+
+	size := ""
+
+	switch len(c.Size) {
+	case 1:
+		size = fmt.Sprintf("%d", c.Size[0])
+	case 2:
+		size = fmt.Sprintf("%d,%d", c.Size[0], c.Size[1])
+	}
+	sql := fmt.Sprintf("`%s` %s(%s)", c.Name, c.Type, size)
+	if len(params.Values) > 0 {
+		sql += fmt.Sprintf(" %s", params.String())
+	}
+	return sql
 }
 
 const (
@@ -60,9 +73,17 @@ type Index struct {
 	Metadata  metadata.Metadata `yaml:"-"`
 }
 
+// IsValid Return if the index contains any columns
+func (i Index) IsValid() bool {
+	return len(i.Columns) > 0
+}
+
 // ToSQL Formats the index into its SQL representation
 func (i Index) ToSQL() string {
 
+	if len(i.Columns) == 0 {
+		return ""
+	}
 	name := ""
 	columns := ""
 
@@ -73,12 +94,12 @@ func (i Index) ToSQL() string {
 		if i.IsUnique {
 			isUnique = "UNIQUE"
 		}
-		name = fmt.Sprintf("%s KEY `%s` ", isUnique, i.Name)
+		name = fmt.Sprintf("%s KEY `%s`", isUnique, i.Name)
 	}
 
-	columns = strings.Join(i.Columns, ", ")
+	columns = strings.Join(i.Columns, "`,`")
 
-	return fmt.Sprintf("%s (%s)", name, columns)
+	return fmt.Sprintf("%s (`%s`)", name, columns)
 }
 
 // Table Stores the fields and properties representing a Table parsed from YAML

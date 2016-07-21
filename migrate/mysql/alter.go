@@ -40,21 +40,41 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 
 	operation.Op = table.Add
 
-	tableTemplate := "CREATE TABLE\t`%s` (\n\t%s,%s \n) ENGINE=%s DEFAULT CHARSET=%s;"
+	tableTemplate := "CREATE TABLE `%s` (%s%s) ENGINE=%s%s DEFAULT CHARSET=%s;"
 
 	columns := []string{}
+	isAutoInc := false
 
 	for _, col := range tbl.Columns {
 		columns = append(columns, col.ToSQL())
+		if col.AutoInc {
+			isAutoInc = true
+		}
 	}
 
 	indexes := []string{}
-	indexes = append(indexes, tbl.PrimaryIndex.ToSQL())
+
+	if tbl.PrimaryIndex.IsValid() {
+		indexes = append(indexes, tbl.PrimaryIndex.ToSQL())
+	}
 
 	for _, ind := range tbl.SecondaryIndexes {
-		indexes = append(indexes, ind.ToSQL())
+		if ind.IsValid() {
+			indexes = append(indexes, ind.ToSQL())
+		}
 	}
-	operation.Statement = fmt.Sprintf(tableTemplate, tbl.Name, strings.Join(columns, ",\n\t"), strings.Join(indexes, ",\n\t"), tbl.Engine, tbl.CharSet)
+
+	strIndexes := ""
+	if len(indexes) > 0 {
+		strIndexes = ", " + strings.Join(indexes, ",")
+	}
+
+	autoInc := ""
+	if isAutoInc {
+		autoInc = fmt.Sprintf(" AUTO_INCREMENT=%d", tbl.AutoInc)
+	}
+
+	operation.Statement = fmt.Sprintf(tableTemplate, tbl.Name, strings.Join(columns, ","), strIndexes, tbl.Engine, autoInc, tbl.CharSet)
 	operation.Metadata = tbl.Metadata
 	return operation
 }
@@ -67,11 +87,11 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	operation.Metadata = diff.Metadata
 	operation.Name = diff.Metadata.Name
 
-	dropTemplate := "ALTER  TABLE `%s` DROP %s;"
-	addTemplate := "ALTER  TABLE `%s` ADD %s `%s` %s;"
+	dropTemplate := "ALTER TABLE `%s` DROP %s;"
+	addTemplate := "ALTER TABLE `%s` ADD %s `%s` %s;"
 	addColumnTemplate := "%s(%d) %s"
 
-	modTemplate := "ALTER  TABLE `%s` %s;"
+	modTemplate := "ALTER TABLE `%s` %s;"
 
 	switch diff.Op {
 
@@ -116,7 +136,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 		switch diff.Property {
 		case "Name":
 			// if rename
-			name = fmt.Sprintf("%s %s", name, toColumn.Name)
+			name = fmt.Sprintf("`%s` `%s`", name, toColumn.Name)
 			// Ensure that a rename is captured by the SQLOperation
 			operation.Name = toColumn.Name
 			// Use the correct MySQL Operation when renaming
@@ -153,7 +173,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 			}
 		}
 
-		modStatement = fmt.Sprintf("%s %s %s %s %s %s", columnOperation, name, colType, isNull, defaultVal, autoinc)
+		modStatement = fmt.Sprintf("%s `%s` %s %s %s %s", columnOperation, name, colType, isNull, defaultVal, autoinc)
 
 		operation.Statement = fmt.Sprintf(modTemplate, diff.Table, modStatement)
 
@@ -165,10 +185,9 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 // generateAlterIndex Generate a MySQL ALTER INDEX statement from a
 // Table struct
 func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
-	dropTemplate := "ALTER  TABLE `%s` DROP %s;"
-	addTemplate := "ALTER  TABLE `%s` ADD %s `%s` %s;"
-	addIndexTemplate := "%s %s"
-	renameIndexTemplate := "ALTER  TABLE `%s` RENAME %s "
+	dropTemplate := "ALTER TABLE `%s` DROP %s;"
+	addTemplate := "ALTER TABLE `%s` ADD %s `%s` %s;"
+	renameIndexTemplate := "ALTER TABLE `%s` RENAME %s "
 
 	// Obtain Index Object
 	diffPair := diff.Value.(table.DiffPair)
@@ -185,7 +204,7 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 			indexName = fmt.Sprintf("`%s`", toIndex.Name)
 		}
 
-		indexDefinition := fmt.Sprintf(addIndexTemplate, indexName, columns)
+		indexDefinition := fmt.Sprintf("%s%s", indexName, columns)
 
 		removeOp := SQLOperation{
 			Statement: fmt.Sprintf(dropTemplate, diff.Table, indexName),
@@ -265,7 +284,7 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 			tableName, ok := diff.Value.(string)
 			if ok {
 				alter.Add(SQLOperation{
-					Statement: fmt.Sprintf("ALTER  TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
+					Statement: fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
 					Op:        table.Mod,
 					Name:      tableName,
 					Metadata:  diff.Metadata,
