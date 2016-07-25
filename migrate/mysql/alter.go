@@ -252,6 +252,56 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 	return ops
 }
 
+// generateAlterTable Generate a MySQL CREATE TABLE, DROP TABLE or ALTER TABLE statement from a
+// Table struct
+func generateAlterTable(diff table.Diff) (ops SQLOperations) {
+
+	if diff.Field == "*" && diff.Property == "*" {
+		switch diff.Op {
+		case table.Add:
+			// generate the create table
+			tbl, ok := diff.Value.(table.Table)
+			if ok {
+				ops.Add(generateCreateTable(tbl))
+			} else {
+				util.LogError("ISSUES obtaining table object: " + diff.Table)
+			}
+		case table.Del:
+			// generate the drop table
+			ops.Add(SQLOperation{
+				Statement: fmt.Sprintf("DROP TABLE `%s`;", diff.Table),
+				Op:        table.Del,
+				Name:      diff.Table,
+				Metadata:  diff.Metadata,
+			})
+		}
+
+	} else if diff.Property == "Name" {
+		tableName, ok := diff.Value.(string)
+		if ok {
+			ops.Add(SQLOperation{
+				Statement: fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
+				Op:        table.Mod,
+				Name:      tableName,
+				Metadata:  diff.Metadata,
+			})
+		} else {
+			util.LogError("ISSUES obtaining table name for rename: " + diff.Table)
+		}
+	} else if diff.Property == "AutoInc" {
+		tableName := diff.Table
+		ops.Add(SQLOperation{
+			Statement: fmt.Sprintf("ALTER TABLE `%s` AUTO_INCREMENT=%d;", diff.Table, diff.Value),
+			Op:        table.Mod,
+			Name:      tableName,
+			Metadata:  diff.Metadata,
+		})
+	}
+
+	return ops
+
+}
+
 // GenerateAlters Generate MySQL ALTER TABLE statements from the Differences
 // between Table structs
 func GenerateAlters(differences table.Differences) (operations SQLOperations) {
@@ -260,40 +310,7 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 		var alter SQLOperations
 
 		// Check if the Diff is for a table
-		if diff.Field == "*" && diff.Property == "*" {
-			switch diff.Op {
-			case table.Add:
-				// generate the create table
-				tbl, ok := diff.Value.(table.Table)
-				if ok {
-					alter.Add(generateCreateTable(tbl))
-				} else {
-					util.LogError("ISSUES obtaining table object: " + diff.Table)
-				}
-			case table.Del:
-				// generate the drop table
-				alter.Add(SQLOperation{
-					Statement: fmt.Sprintf("DROP TABLE `%s`;", diff.Table),
-					Op:        table.Del,
-					Name:      diff.Table,
-					Metadata:  diff.Metadata,
-				})
-			}
-
-		} else if diff.Property == "Name" {
-			tableName, ok := diff.Value.(string)
-			if ok {
-				alter.Add(SQLOperation{
-					Statement: fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
-					Op:        table.Mod,
-					Name:      tableName,
-					Metadata:  diff.Metadata,
-				})
-			} else {
-				util.LogError("ISSUES obtaining table name for rename: " + diff.Table)
-			}
-
-		} else if diff.Field == "Columns" {
+		if diff.Field == "Columns" {
 			// It's a column change.
 			alter = generateAlterColumn(diff)
 
@@ -301,6 +318,8 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 			// It's an index change.
 			alter = generateAlterIndex(diff)
 
+		} else {
+			alter = generateAlterTable(diff)
 		}
 		operations.Merge(alter)
 	}
