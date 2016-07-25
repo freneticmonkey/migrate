@@ -8,13 +8,6 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
-type SQLGenTest struct {
-	Diff        table.Diff
-	Statement   string
-	ExpectFail  bool
-	Description string
-}
-
 type SQLCTTest struct {
 	Table       table.Table
 	Statement   string
@@ -110,13 +103,6 @@ func TestCreateTable(t *testing.T) {
 	for _, test := range createTableTests {
 		result = generateCreateTable(test.Table)
 
-		// Parse
-		// _, err := sqlparser.Parse(result.Statement)
-		// if err != nil {
-		// 	util.LogErrorf("Generated: %s", result.Statement)
-		// 	t.Errorf("%s FAILED SQL Parse with error: %v", test.Description, err)
-		// }
-
 		if result.Statement != test.Statement {
 			t.Errorf("%s FAILED.", test.Description)
 			util.LogAttentionf(" Expecting: %s", test.Statement)
@@ -125,11 +111,94 @@ func TestCreateTable(t *testing.T) {
 	}
 }
 
-var genTests = []SQLGenTest{
+const (
+	Table = iota
+	Column
+	Index
+)
+
+type SQLGenTest struct {
+	Diff        table.Diff
+	Statement   string
+	ExpectFail  bool
+	Description string
+	TestType    int
+}
+
+var genTableAlterTests = []SQLGenTest{
+	// {
+	// 	Diff:        table.Diff{},
+	// 	Statement:   "",
+	// 	ExpectFail:  false,
+	// 	Description: "No Op",
+	// },
+
 	{
-		Diff:        table.Diff{},
-		Statement:   "",
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Property: "Name",
+			Value:    "TestTableS",
+		},
+		Statement:   "ALTER TABLE `TestTable` RENAME TO `TestTableS`;",
 		ExpectFail:  false,
-		Description: "No Op",
+		Description: "Table Rename",
+		TestType:    Table,
 	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Property: "AutoInc",
+			Value:    1234,
+		},
+		Statement:   "ALTER TABLE `TestTable` AUTO_INCREMENT=1234;",
+		ExpectFail:  false,
+		Description: "Table Change Auto Increment value",
+		TestType:    Table,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Property: "AutoInc",
+			Value:    1234,
+		},
+		Statement:   "ALTER TABLE `TestTable` AUTO_INCREMENT=1234;",
+		ExpectFail:  false,
+		Description: "Table Change Auto Increment value",
+		TestType:    Table,
+	},
+}
+
+func TestGenerateAlters(t *testing.T) {
+	var results SQLOperations
+
+	for _, test := range genTableAlterTests {
+
+		switch test.TestType {
+		case Table:
+			results = generateAlterTable(test.Diff)
+
+		case Column:
+			results = generateAlterColumn(test.Diff)
+
+		case Index:
+			results = generateAlterIndex(test.Diff)
+
+		}
+
+		if len(results) > 0 {
+			if results[0].Statement != test.Statement {
+				t.Errorf("%s FAILED.", test.Description)
+				util.LogAttentionf(" Expecting: %s", test.Statement)
+				util.LogErrorf("Generated: %s", results[0].Statement)
+			}
+		} else {
+			t.Errorf("%s FAILED.", test.Description)
+			util.LogAttentionf("No generated statements")
+		}
+	}
 }
