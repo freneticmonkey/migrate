@@ -126,13 +126,6 @@ type SQLGenTest struct {
 }
 
 var genTableAlterTests = []SQLGenTest{
-	// {
-	// 	Diff:        table.Diff{},
-	// 	Statement:   "",
-	// 	ExpectFail:  false,
-	// 	Description: "No Op",
-	// },
-
 	{
 		Diff: table.Diff{
 			Table:    "TestTable",
@@ -192,6 +185,8 @@ var genTableAlterTests = []SQLGenTest{
 		Description: "Table Change Character Set",
 		TestType:    Table,
 	},
+
+	// Columns
 
 	{
 		Diff: table.Diff{
@@ -267,6 +262,84 @@ var genTableAlterTests = []SQLGenTest{
 		},
 		ExpectFail:  false,
 		Description: "Table Column: Make nullable",
+		TestType:    Column,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Field:    "Columns",
+			Property: "AutoInc",
+			Value: table.DiffPair{
+				From: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				To: table.Column{
+					ID:      "col1",
+					Name:    "Add",
+					Type:    "varchar",
+					Size:    []int{64},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL AUTO_INCREMENT",
+		},
+		ExpectFail:  false,
+		Description: "Table Column: Make Auto Increment",
+		TestType:    Column,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Field:    "Columns",
+			Property: "AutoInc",
+			Value: table.DiffPair{
+				From: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				To: table.Column{
+					ID:      "col1",
+					Name:    "Add",
+					Type:    "varchar",
+					Size:    []int{64},
+					Default: "hello",
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL DEFAULT 'hello'",
+		},
+		ExpectFail:  false,
+		Description: "Table Column: Add DEFAULT value",
 		TestType:    Column,
 	},
 
