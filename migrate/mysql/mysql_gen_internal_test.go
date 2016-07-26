@@ -119,7 +119,7 @@ const (
 
 type SQLGenTest struct {
 	Diff        table.Diff
-	Statement   string
+	Statements  []string
 	ExpectFail  bool
 	Description string
 	TestType    int
@@ -140,7 +140,9 @@ var genTableAlterTests = []SQLGenTest{
 			Property: "Name",
 			Value:    "TestTableS",
 		},
-		Statement:   "ALTER TABLE `TestTable` RENAME TO `TestTableS`;",
+		Statements: []string{
+			"ALTER TABLE `TestTable` RENAME TO `TestTableS`;",
+		},
 		ExpectFail:  false,
 		Description: "Table Rename",
 		TestType:    Table,
@@ -150,10 +152,27 @@ var genTableAlterTests = []SQLGenTest{
 		Diff: table.Diff{
 			Table:    "TestTable",
 			Op:       table.Mod,
-			Property: "AutoInc",
-			Value:    1234,
+			Property: "Engine",
+			Value:    "InnoDB",
 		},
-		Statement:   "ALTER TABLE `TestTable` AUTO_INCREMENT=1234;",
+		Statements: []string{
+			"ALTER TABLE `TestTable` ENGINE=InnoDB;",
+		},
+		ExpectFail:  false,
+		Description: "Table Change Engine Type",
+		TestType:    Table,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Property: "AutoInc",
+			Value:    int64(1234),
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` AUTO_INCREMENT=1234;",
+		},
 		ExpectFail:  false,
 		Description: "Table Change Auto Increment value",
 		TestType:    Table,
@@ -163,13 +182,220 @@ var genTableAlterTests = []SQLGenTest{
 		Diff: table.Diff{
 			Table:    "TestTable",
 			Op:       table.Mod,
-			Property: "AutoInc",
-			Value:    1234,
+			Property: "CharSet",
+			Value:    "french",
 		},
-		Statement:   "ALTER TABLE `TestTable` AUTO_INCREMENT=1234;",
+		Statements: []string{
+			"ALTER TABLE `TestTable` DEFAULT CHARACTER SET `french`;",
+		},
 		ExpectFail:  false,
-		Description: "Table Change Auto Increment value",
+		Description: "Table Change Character Set",
 		TestType:    Table,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Field:    "Columns",
+			Property: "Name",
+			Value: table.DiffPair{
+				From: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				To: table.Column{
+					ID:   "col1",
+					Name: "Address",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` CHANGE COLUMN `Add` `Address` varchar(64) NOT NULL",
+		},
+		ExpectFail:  false,
+		Description: "Table Rename Column",
+		TestType:    Column,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Field:    "Columns",
+			Property: "Nullable",
+			Value: table.DiffPair{
+				From: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				To: table.Column{
+					ID:       "col1",
+					Name:     "Add",
+					Type:     "varchar",
+					Size:     []int{64},
+					Nullable: true,
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64)",
+		},
+		ExpectFail:  false,
+		Description: "Table Column: Make nullable",
+		TestType:    Column,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Op:       table.Mod,
+			Field:    "Columns",
+			Property: "Nullable",
+			Value: table.DiffPair{
+				From: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+				To: table.Column{
+					ID:   "col1",
+					Name: "Add",
+					Type: "text",
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "col1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` text NOT NULL",
+		},
+		ExpectFail:  false,
+		Description: "Table Column: Change type to text",
+		TestType:    Column,
+	},
+
+	// Indexes
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Field:    "SecondaryIndexes",
+			Op:       table.Mod,
+			Property: "Name",
+			Value: table.DiffPair{
+				From: table.Index{
+					ID:   "sc1",
+					Name: "idx_test",
+					Columns: []string{
+						"address",
+					},
+					IsPrimary: false,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "sc1",
+					},
+				},
+				To: table.Index{
+					ID:   "sc1",
+					Name: "idx_address",
+					Columns: []string{
+						"address",
+					},
+					IsPrimary: false,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "sc1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "sc1",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` RENAME idx_test idx_address",
+		},
+		ExpectFail:  false,
+		Description: "Table Index: Rename Index",
+		TestType:    Index,
+	},
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Field:    "SecondaryIndexes",
+			Op:       table.Mod,
+			Property: "Columns",
+			Value: table.DiffPair{
+				From: table.Index{
+					ID:   "sc1",
+					Name: "idx_test",
+					Columns: []string{
+						"address",
+					},
+					IsPrimary: false,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "sc1",
+					},
+				},
+				To: table.Index{
+					ID:   "sc1",
+					Name: "idx_test",
+					Columns: []string{
+						"address",
+						"add",
+					},
+					IsPrimary: false,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "sc1",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "sc1",
+			},
+		},
+		Statements: []string{
+			"DROP INDEX `idx_test` ON `TestTable`",
+			"CREATE INDEX `idx_test` ON `TestTable` (`address`, `add`)",
+		},
+		ExpectFail:  false,
+		Description: "Table Index: Add Column",
+		TestType:    Index,
 	},
 }
 
@@ -184,21 +410,25 @@ func TestGenerateAlters(t *testing.T) {
 
 		case Column:
 			results = generateAlterColumn(test.Diff)
-
 		case Index:
 			results = generateAlterIndex(test.Diff)
 
 		}
 
-		if len(results) > 0 {
-			if results[0].Statement != test.Statement {
+		pass := false
+		for i := 0; i < len(results); i++ {
+			pass = true
+			if results[i].Statement != test.Statements[i] {
 				t.Errorf("%s FAILED.", test.Description)
-				util.LogAttentionf(" Expecting: %s", test.Statement)
-				util.LogErrorf("Generated: %s", results[0].Statement)
+				util.LogWarnf("%s FAILED.", test.Description)
+				util.LogAttentionf("Expecting: [%s]", test.Statements[i])
+				util.LogErrorf("Generated: [%s]", results[i].Statement)
+				util.DebugDump(results[i])
 			}
-		} else {
-			t.Errorf("%s FAILED.", test.Description)
-			util.LogAttentionf("No generated statements")
+		}
+
+		if !pass {
+			t.Errorf("%s FAILED. No Generated Statements", test.Description)
 		}
 	}
 }
