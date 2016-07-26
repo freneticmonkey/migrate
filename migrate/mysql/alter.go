@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/freneticmonkey/migrate/migrate/metadata"
@@ -32,6 +33,71 @@ func (s *SQLOperations) Merge(ops SQLOperations) {
 			s.Add(slice)
 		}
 	}
+}
+
+// StatementBuilder Helper for building SQL ALTER TABLE statements.
+// Assists with string concatenation and SQL specific formatting requirements.
+type StatementBuilder struct {
+	Components []string
+}
+
+// Reset Empties the statements components
+func (sb *StatementBuilder) Reset() {
+	sb.Components = []string{}
+}
+
+// Add Add a new statement component
+func (sb *StatementBuilder) Add(component string) {
+	if component != "" {
+		sb.Components = append(sb.Components, component)
+	}
+}
+
+// AddFormat Add a new formatted statement component
+func (sb *StatementBuilder) AddFormat(format string, info ...interface{}) {
+	canAdd := true
+	for _, i := range info {
+		if reflect.TypeOf(i).Kind() == reflect.String {
+			if i == "" {
+				canAdd = false
+				break
+			}
+		}
+	}
+	if canAdd {
+		sb.Components = append(sb.Components, fmt.Sprintf(format, info...))
+	}
+}
+
+// AddQuote Add a new component with `quotes`
+func (sb *StatementBuilder) AddQuote(component string) {
+	if component != "" {
+		sb.Components = append(sb.Components, fmt.Sprintf("`%s`", component))
+	}
+}
+
+// AddType Add a component which correctly formats type size it it's provided
+func (sb *StatementBuilder) AddType(typename string, size []int) {
+	// Support for decimal places makes the size a little complicated
+	if typename != "" {
+		colType := ""
+
+		switch len(size) {
+		case 2:
+			colType = fmt.Sprintf("%s(%d,%d)", typename, size[0], size[1])
+		case 1:
+			colType = fmt.Sprintf("%s(%d)", typename, size[0])
+		default:
+			colType = typename
+		}
+		sb.Add(colType)
+	}
+
+}
+
+// Format Produce a formatted String
+func (sb StatementBuilder) Format() string {
+	return strings.Join(sb.Components, " ")
 }
 
 // generateCreateTable Generate a MySQL CREATE TABLE statement from a
@@ -83,101 +149,81 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 // Table struct
 func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	var operation SQLOperation
+	var builder StatementBuilder
+
 	operation.Op = diff.Op
 	operation.Metadata = diff.Metadata
 	operation.Name = diff.Metadata.Name
 
-	dropTemplate := "ALTER TABLE `%s` DROP %s;"
-	addTemplate := "ALTER TABLE `%s` ADD %s `%s` %s;"
-	addColumnTemplate := "%s(%d) %s"
-
-	modTemplate := "ALTER TABLE `%s` %s;"
+	builder.Add("ALTER TABLE")
 
 	switch diff.Op {
 
 	case table.Add:
-		definition := ""
+		builder.AddQuote(diff.Table)
+		builder.Add("COLUMN")
+		builder.AddQuote(diff.Property)
 
 		column, ok := diff.Value.(table.Column)
 		if ok {
-			nullable := ""
+			builder.AddType(column.Type, column.Size)
+
 			if !column.Nullable {
-				nullable = "NOT NULL"
+				builder.Add("NOT NULL")
 			}
-			definition = fmt.Sprintf(addColumnTemplate, column.Type, column.Size, nullable)
 		}
 
-		operation.Statement = fmt.Sprintf(addTemplate, diff.Table, "COLUMN", diff.Property, definition)
-
 	case table.Del:
-		operation.Statement = fmt.Sprintf(dropTemplate, diff.Table, fmt.Sprintf("%s `%s`", "COLUMN", diff.Property))
+		builder.AddQuote(diff.Table)
+		builder.Add("DROP COLUMN")
+		builder.AddQuote(diff.Property)
 
 	case table.Mod:
 		// Process modification by type
-		modStatement := ""
 
 		diffPair := diff.Value.(table.DiffPair)
 		toColumn := diffPair.To.(table.Column)
 		fromColumn := diffPair.From.(table.Column)
 
+		builder.AddQuote(diff.Table)
+
+		// Name needs special handling because it requires a different number of components
 		// Assuming that we are modifying the column definition by default
-		columnOperation := "MODIFY COLUMN"
-
-		name := fromColumn.Name
-		colType := fmt.Sprintf(" %s(%d) ", fromColumn.Type, fromColumn.Size)
-		isNull := ""
-		autoinc := ""
-		defaultVal := ""
-
-		if !fromColumn.Nullable {
-			isNull = "NOT NULL"
-		}
-
-		switch diff.Property {
-		case "Name":
-			// if rename
-			name = fmt.Sprintf("`%s` `%s`", name, toColumn.Name)
-			// Ensure that a rename is captured by the SQLOperation
+		if diff.Property == "Name" {
+			builder.Add("CHANGE COLUMN")
+			builder.AddFormat("`%s` `%s`", fromColumn.Name, toColumn.Name)
 			operation.Name = toColumn.Name
-			// Use the correct MySQL Operation when renaming
-			columnOperation = "CHANGE COLUMN"
 
-		case "Type", "Size":
-			// if changed type or size
-			if len(toColumn.Size) == 2 {
-				colType = fmt.Sprintf(" %s(%d,%d) ", toColumn.Type, toColumn.Size[0], toColumn.Size[1])
-			} else {
-				colType = fmt.Sprintf(" %s(%d) ", toColumn.Type, toColumn.Size[0])
-			}
-
-		case "Nullable":
-			// if Nullable is T or F
-			if !toColumn.Nullable {
-				isNull = "NOT NULL"
-			}
-
-		case "AutoInc":
-			// if AutoInc is T or F
-			if toColumn.AutoInc {
-				autoinc = "AUTO_INCREMENT"
-			}
-
-		case "Default":
-			// if a Default value is defined
-			if len(toColumn.Default) > 0 {
-				if toColumn.Default == NULL {
-					defaultVal = "DEFAULT NULL"
-				} else {
-					defaultVal = fmt.Sprintf("DEFAULT '%s'", toColumn.Default)
-				}
-			}
+		} else {
+			builder.Add("MODIFY COLUMN")
+			builder.AddQuote(fromColumn.Name)
 		}
 
-		modStatement = fmt.Sprintf("%s `%s` %s %s %s %s", columnOperation, name, colType, isNull, defaultVal, autoinc)
+		// Support for decimal places makes the size a little complicated
+		builder.AddType(toColumn.Type, toColumn.Size)
 
-		operation.Statement = fmt.Sprintf(modTemplate, diff.Table, modStatement)
+		// if Nullable is T or F
+		if !toColumn.Nullable {
+			builder.Add("NOT NULL")
+		}
 
+		// if AutoInc is T or F
+		if toColumn.AutoInc {
+			builder.Add("AUTO_INCREMENT")
+		}
+
+		// if a Default value is defined
+		if len(toColumn.Default) > 0 {
+			if toColumn.Default == NULL {
+				builder.Add("DEFAULT NULL")
+			} else {
+				builder.AddFormat("DEFAULT '%s'", toColumn.Default)
+			}
+		}
 	}
+
+	operation.Statement = builder.Format()
+
 	ops.Add(operation)
 	return ops
 }
@@ -185,9 +231,8 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 // generateAlterIndex Generate a MySQL ALTER INDEX statement from a
 // Table struct
 func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
-	dropTemplate := "ALTER TABLE `%s` DROP %s;"
-	addTemplate := "ALTER TABLE `%s` ADD %s `%s` %s;"
-	renameIndexTemplate := "ALTER TABLE `%s` RENAME %s "
+
+	var builder StatementBuilder
 
 	// Obtain Index Object
 	diffPair := diff.Value.(table.DiffPair)
@@ -195,24 +240,36 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 
 	if ok {
 		indexName := ""
-		columns := fmt.Sprintf("(%s)", strings.Join(toIndex.Columns, ", "))
+		columns := fmt.Sprintf("(`%s`)", strings.Join(toIndex.Columns, "`, `"))
 
 		if diff.Field == "PrimaryIndex" {
 			indexName = "PRIMARY KEY"
 
 		} else if diff.Field == "SecondaryIndexes" {
-			indexName = fmt.Sprintf("`%s`", toIndex.Name)
+			indexName = fmt.Sprintf("%s", toIndex.Name)
 		}
 
-		indexDefinition := fmt.Sprintf("%s%s", indexName, columns)
+		// Drop
+		builder.Add("DROP INDEX")
+		builder.AddQuote(indexName)
+		builder.Add("ON")
+		builder.AddQuote(diff.Table)
 
 		removeOp := SQLOperation{
-			Statement: fmt.Sprintf(dropTemplate, diff.Table, indexName),
+			Statement: builder.Format(),
 			Op:        table.Del,
 			Metadata:  diff.Metadata,
 		}
+
+		builder.Reset()
+		builder.Add("CREATE INDEX")
+		builder.AddQuote(indexName)
+		builder.Add("ON")
+		builder.AddQuote(diff.Table)
+		builder.Add(columns)
+
 		addOp := SQLOperation{
-			Statement: fmt.Sprintf(addTemplate, diff.Table, indexName, diff.Property, indexDefinition),
+			Statement: builder.Format(),
 			Op:        table.Add,
 			Metadata:  diff.Metadata,
 		}
@@ -231,9 +288,14 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 
 				fromIndex, ok := diffPair.From.(table.Index)
 				if ok {
-					renameStatement := fmt.Sprintf(renameIndexTemplate, diff.Table, fmt.Sprintf("%s %s", fromIndex.Name, toIndex.Name))
+					builder.Reset()
+					builder.Add("ALTER TABLE")
+					builder.AddQuote(diff.Table)
+					builder.Add("RENAME")
+					builder.AddFormat("%s %s", fromIndex.Name, toIndex.Name)
+
 					ops.Add(SQLOperation{
-						Statement: renameStatement,
+						Statement: builder.Format(),
 						Op:        table.Mod,
 						Metadata:  diff.Metadata,
 					})
@@ -276,26 +338,46 @@ func generateAlterTable(diff table.Diff) (ops SQLOperations) {
 			})
 		}
 
-	} else if diff.Property == "Name" {
-		tableName, ok := diff.Value.(string)
-		if ok {
+	} else {
+		switch diff.Property {
+
+		case "Name":
+			newTableName, ok := diff.Value.(string)
+			if ok {
+				ops.Add(SQLOperation{
+					Statement: fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`;", diff.Table, newTableName),
+					Op:        table.Mod,
+					Name:      newTableName,
+					Metadata:  diff.Metadata,
+				})
+			} else {
+				util.LogError("ISSUES obtaining table name for rename: " + diff.Table)
+			}
+
+		case "AutoInc":
 			ops.Add(SQLOperation{
-				Statement: fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`;", diff.Table, tableName),
+				Statement: fmt.Sprintf("ALTER TABLE `%s` AUTO_INCREMENT=%d;", diff.Table, diff.Value),
 				Op:        table.Mod,
-				Name:      tableName,
+				Name:      diff.Table,
 				Metadata:  diff.Metadata,
 			})
-		} else {
-			util.LogError("ISSUES obtaining table name for rename: " + diff.Table)
+
+		case "Engine":
+			ops.Add(SQLOperation{
+				Statement: fmt.Sprintf("ALTER TABLE `%s` ENGINE=%s;", diff.Table, diff.Value),
+				Op:        table.Mod,
+				Name:      diff.Table,
+				Metadata:  diff.Metadata,
+			})
+
+		case "CharSet":
+			ops.Add(SQLOperation{
+				Statement: fmt.Sprintf("ALTER TABLE `%s` DEFAULT CHARACTER SET `%s`;", diff.Table, diff.Value),
+				Op:        table.Mod,
+				Name:      diff.Table,
+				Metadata:  diff.Metadata,
+			})
 		}
-	} else if diff.Property == "AutoInc" {
-		tableName := diff.Table
-		ops.Add(SQLOperation{
-			Statement: fmt.Sprintf("ALTER TABLE `%s` AUTO_INCREMENT=%d;", diff.Table, diff.Value),
-			Op:        table.Mod,
-			Name:      tableName,
-			Metadata:  diff.Metadata,
-		})
 	}
 
 	return ops
