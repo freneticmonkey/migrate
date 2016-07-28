@@ -214,12 +214,12 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 		}
 	}
 
-	// extract DEFAULT_COLLATE and value
-	if hasParameter(lastLine, DEFAULT_COLLATE) {
-		// extract DEFAULT_COLLATE and value
-		collation, err = extractParameter(lastLine, DEFAULT_COLLATE)
-		if util.ErrorCheckf(err, "Error Parsing DEFAULT_COLLATE") {
-			return parseError("Malformed DEFAULT_COLLATE definition")
+	// extract COLLATE and value
+	if hasParameter(lastLine, COLLATE) {
+		// extract COLLATE and value
+		collation, err = extractParameter(lastLine, COLLATE)
+		if util.ErrorCheckf(err, "Error Parsing COLLATE") {
+			return parseError("Malformed COLLATE definition")
 		}
 	}
 

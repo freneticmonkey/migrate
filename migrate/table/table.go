@@ -38,7 +38,7 @@ func (c Column) ToSQL() string {
 	var params util.Params
 
 	if c.Unsigned {
-		params.Add("UNSIGNED")
+		params.Add("unsigned")
 	}
 
 	if !c.Nullable {

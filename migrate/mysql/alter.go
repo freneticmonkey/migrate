@@ -97,7 +97,7 @@ func (sb *StatementBuilder) AddType(typename string, size []int) {
 
 // Format Produce a formatted String
 func (sb StatementBuilder) Format() string {
-	return strings.Join(sb.Components, " ")
+	return strings.Join(sb.Components, " ") + ";"
 }
 
 // generateCreateTable Generate a MySQL CREATE TABLE statement from a
@@ -151,6 +151,8 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 		builder.AddFormat("AUTO_INCREMENT=%d", tbl.AutoInc)
 	}
 
+	builder.AddFormat("DEFAULT CHARSET=%s", tbl.CharSet)
+
 	if len(tbl.RowFormat) > 0 {
 		builder.AddFormat("ROW_FORMAT=%s", tbl.RowFormat)
 	}
@@ -158,8 +160,6 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 	if len(tbl.Collation) > 0 {
 		builder.AddFormat("COLLATE=%s", tbl.Collation)
 	}
-
-	builder.AddFormat("DEFAULT CHARSET=%s;", tbl.CharSet)
 
 	operation.Statement = builder.Format()
 	operation.Metadata = tbl.Metadata

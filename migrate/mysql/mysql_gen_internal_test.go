@@ -225,7 +225,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` CHANGE COLUMN `Add` `Address` varchar(64) NOT NULL",
+			"ALTER TABLE `TestTable` CHANGE COLUMN `Add` `Address` varchar(64) NOT NULL;",
 		},
 		ExpectFail:  false,
 		Description: "Table Rename Column",
@@ -264,7 +264,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64)",
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64);",
 		},
 		ExpectFail:  false,
 		Description: "Table Column: Make nullable",
@@ -303,7 +303,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL AUTO_INCREMENT",
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL AUTO_INCREMENT;",
 		},
 		ExpectFail:  false,
 		Description: "Table Column: Make Auto Increment",
@@ -342,7 +342,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL DEFAULT 'hello'",
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` varchar(64) NOT NULL DEFAULT 'hello';",
 		},
 		ExpectFail:  false,
 		Description: "Table Column: Add DEFAULT value",
@@ -379,7 +379,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` text NOT NULL",
+			"ALTER TABLE `TestTable` MODIFY COLUMN `Add` text NOT NULL;",
 		},
 		ExpectFail:  false,
 		Description: "Table Column: Change type to text",
@@ -428,7 +428,7 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"ALTER TABLE `TestTable` RENAME idx_test idx_address",
+			"ALTER TABLE `TestTable` RENAME idx_test idx_address;",
 		},
 		ExpectFail:  false,
 		Description: "Table Index: Rename Index",
@@ -479,8 +479,8 @@ var genTableAlterTests = []SQLGenTest{
 			},
 		},
 		Statements: []string{
-			"DROP INDEX `idx_test` ON `TestTable`",
-			"CREATE INDEX `idx_test` ON `TestTable` (`address`,`add`)",
+			"DROP INDEX `idx_test` ON `TestTable`;",
+			"CREATE INDEX `idx_test` ON `TestTable` (`address`,`add`);",
 		},
 		ExpectFail:  false,
 		Description: "Table Index: Add Column",
