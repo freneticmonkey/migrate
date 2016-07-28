@@ -48,6 +48,15 @@ func (c Column) ToSQL() string {
 		params.Add("AUTO_INCREMENT")
 	}
 
+	if len(c.Default) > 0 {
+		value := c.Default
+		// Throw quotes around it if the value is not NULL
+		if value != "NULL" {
+			value = fmt.Sprintf("'%s'", value)
+		}
+		params.Add(fmt.Sprintf("DEFAULT %s", value))
+	}
+
 	size := ""
 
 	switch len(c.Size) {

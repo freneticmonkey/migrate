@@ -332,10 +332,10 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	// Convert the parameters to Upper
 	parameters = strings.ToUpper(parameters)
 
+	// NULL by default
+	nullable := true
 	unsigned := false
-	// NOT NULL by default
-	nullable := false
-	autoinc := true
+	autoinc := false
 	defaultValue := ""
 
 	// If unsigned is present
@@ -343,14 +343,14 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 		unsigned = true
 	}
 
-	// If NOT NULL is not present
-	if strings.Index(parameters, NOT_NULL) == -1 {
-		nullable = true
+	// If NOT NULL is present
+	if strings.Index(parameters, NOT_NULL) != -1 {
+		nullable = false
 	}
 
-	// If AUTO_INCREMENT is not present
-	if strings.Index(parameters, AUTO_INCREMENT) == -1 {
-		autoinc = false
+	// If AUTO_INCREMENT is present
+	if strings.Index(parameters, AUTO_INCREMENT) != -1 {
+		autoinc = true
 	}
 
 	// if DEFAULT is present
