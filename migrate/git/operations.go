@@ -111,7 +111,7 @@ func Clone(project config.Project) (err error) {
 		}
 		filedata := strings.Join(repoFolders, "\n")
 
-		// Write the folders into the git spare-checkout info file
+		// Write the folders into the git sparse-checkout info file
 		sparseFile := fmt.Sprintf("%s/.git/info/sparse-checkout", path)
 		err = ioutil.WriteFile(sparseFile, []byte(filedata), 0644)
 	}
