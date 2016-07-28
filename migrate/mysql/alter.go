@@ -241,7 +241,6 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 
 	if ok {
 		indexName := ""
-		columns := fmt.Sprintf("(`%s`)", strings.Join(toIndex.Columns, "`, `"))
 
 		if diff.Field == "PrimaryIndex" {
 			indexName = "PRIMARY KEY"
@@ -267,7 +266,7 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 		builder.AddQuote(indexName)
 		builder.Add("ON")
 		builder.AddQuote(diff.Table)
-		builder.Add(columns)
+		builder.Add(toIndex.ColumnsSQL())
 
 		addOp := SQLOperation{
 			Statement: builder.Format(),

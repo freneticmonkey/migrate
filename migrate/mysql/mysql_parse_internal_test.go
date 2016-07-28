@@ -13,9 +13,10 @@ var tblPropertyID = "testtbl"
 var tblName = "test"
 
 type ParseTest struct {
-	Str        string      // Column definition to parse
-	Expected   interface{} // Expected Column defintion
-	ExpectFail bool
+	Str         string      // Column definition to parse
+	Expected    interface{} // Expected Column defintion
+	ExpectFail  bool
+	Description string
 }
 
 var colTests = []ParseTest{
@@ -34,7 +35,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: varchar not null",
 	},
 	{
 		Str: "`age` int(11) NOT NULL",
@@ -50,7 +52,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: int not null",
 	},
 	// Test type parsing
 	{
@@ -83,7 +86,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: bigint not null",
 	},
 	{
 		Str: "`age` char(11) NOT NULL",
@@ -99,23 +103,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
-	},
-	{
-		Str: "`age` varchar(11) NOT NULL",
-		Expected: table.Column{
-			Name:     "age",
-			Type:     "varchar",
-			Size:     []int{11},
-			Nullable: false,
-			AutoInc:  false,
-			Metadata: metadata.Metadata{
-				Name:   "age",
-				Type:   "Column",
-				Exists: true,
-			},
-		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: char not null",
 	},
 	{
 		Str: "`age` decimal(14,4) NOT NULL",
@@ -146,7 +135,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: text not null",
 	},
 	{
 		Str: "`age` float NOT NULL",
@@ -161,7 +151,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: float not null",
 	},
 	{
 		Str: "`age` longblob NOT NULL",
@@ -176,7 +167,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: longblob not null",
 	},
 	{
 		Str: "`age` mediumtext",
@@ -191,7 +183,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: mediumtext not null",
 	},
 
 	// Test DEFAULT value settings
@@ -209,7 +202,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: int not null default",
 	},
 	{
 		Str: "`age` double DEFAULT NULL",
@@ -225,7 +219,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: double default null",
 	},
 
 	{
@@ -242,7 +237,8 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: int auto increment",
 	},
 
 	{
@@ -259,33 +255,40 @@ var colTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Column: int default '1'",
 	},
 
 	// Test malformed sql parse fails
 	{
-		Str:        "`age` NOT NULL",
-		ExpectFail: true,
+		Str:         "`age` NOT NULL",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL missing type",
 	},
 	{
-		Str:        "`age`",
-		ExpectFail: true,
+		Str:         "`age`",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL missing everything",
 	},
 	{
-		Str:        "`age` nottype",
-		ExpectFail: true,
+		Str:         "`age` nottype",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL invalid type",
 	},
 	{
-		Str:        "`age` int(sk)",
-		ExpectFail: true,
+		Str:         "`age` int(sk)",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL invalid size",
 	},
 	{
-		Str:        "`age` int(11) DEFAULT sdkjf",
-		ExpectFail: true,
+		Str:         "`age` int(11) DEFAULT sdkjf",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL invalid default value format",
 	},
 	{
-		Str:        "`age` int(11) DEFAULT ",
-		ExpectFail: true,
+		Str:         "`age` int(11) DEFAULT ",
+		ExpectFail:  true,
+		Description: "Parse Column: Test FAIL missing default",
 	},
 }
 
@@ -294,9 +297,13 @@ var indexTests = []ParseTest{
 		Str: "KEY `idx_id_name` (`id`,`name`)",
 		Expected: table.Index{
 			Name: "idx_id_name",
-			Columns: []string{
-				"id",
-				"name",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+				{
+					Name: "name",
+				},
 			},
 			Metadata: metadata.Metadata{
 				Name:   "idx_id_name",
@@ -304,14 +311,17 @@ var indexTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Index: Basic Index multi column",
 	},
 	{
 		Str: "KEY `idx_id_name` (`id`)",
 		Expected: table.Index{
 			Name: "idx_id_name",
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 			Metadata: metadata.Metadata{
 				Name:   "idx_id_name",
@@ -319,14 +329,17 @@ var indexTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Index: Basic Index single column",
 	},
 	{
 		Str: "KEY `idx_id_name` (id)",
 		Expected: table.Index{
 			Name: "idx_id_name",
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 			Metadata: metadata.Metadata{
 				Name:   "idx_id_name",
@@ -334,36 +347,86 @@ var indexTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Index: Basic Index single column no quotes",
 	},
 	// Test Fails
 	{
 		Str: "KEY `idx_id_name` ()",
 		Expected: table.Index{
 			Name:    "idx_id_name",
-			Columns: []string{},
+			Columns: []table.IndexColumn{},
 		},
-		ExpectFail: true,
+		ExpectFail:  true,
+		Description: "Parse Index: Test Fail no columns",
 	},
 	{
 		Str: "KEY `` (`id`)",
 		Expected: table.Index{
 			Name: "idx_id_name",
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 		},
-		ExpectFail: true,
+		ExpectFail:  true,
+		Description: "Parse Index: Test Fail no name",
 	},
 	{
 		Str: "PRIMARY KEY `idx_id_name` (`id`)",
 		Expected: table.Index{
 			Name: "idx_id_name",
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 		},
-		ExpectFail: true,
+		ExpectFail:  true,
+		Description: "Parse Index: Test Fail name on Primary Key",
+	},
+
+	{
+		Str: "KEY `id name` (`id`,`name`)",
+		Expected: table.Index{
+			Name: "id name",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+				{
+					Name: "name",
+				},
+			},
+			Metadata: metadata.Metadata{
+				Name:   "id name",
+				Type:   "Index",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Parse Index: Test Name with spaces",
+	},
+
+	{
+		Str: "KEY `idx_name` (`name`(20))",
+		Expected: table.Index{
+			Name: "idx_name",
+			Columns: []table.IndexColumn{
+				{
+					Name:   "name",
+					Length: 20,
+				},
+			},
+			Metadata: metadata.Metadata{
+				Name:   "idx_name",
+				Type:   "Index",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Parse Index: Test partial column",
 	},
 }
 
@@ -372,8 +435,10 @@ var pkTests = []ParseTest{
 		Str: "PRIMARY KEY (`id`)",
 		Expected: table.Index{
 			Name: table.PrimaryKey,
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 			IsPrimary: true,
 			Metadata: metadata.Metadata{
@@ -382,15 +447,20 @@ var pkTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Primary Key: Test single column",
 	},
 	{
 		Str: "PRIMARY KEY (`id`,`name`)",
 		Expected: table.Index{
 			Name: table.PrimaryKey,
-			Columns: []string{
-				"id",
-				"name",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+				{
+					Name: "name",
+				},
 			},
 			IsPrimary: true,
 			Metadata: metadata.Metadata{
@@ -399,15 +469,20 @@ var pkTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Primary Key: Test multiple columns",
 	},
 	{
 		Str: "PRIMARY KEY (id,name)",
 		Expected: table.Index{
 			Name: table.PrimaryKey,
-			Columns: []string{
-				"id",
-				"name",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+				{
+					Name: "name",
+				},
 			},
 			IsPrimary: true,
 			Metadata: metadata.Metadata{
@@ -416,46 +491,51 @@ var pkTests = []ParseTest{
 				Exists: true,
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "Parse Primary Key: Test multiple columns no quotes",
 	},
 	// Test failures
 	{
 		Str: "KEY (`id`)",
 		Expected: table.Index{
 			Name: table.PrimaryKey,
-			Columns: []string{
-				"id",
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
 			},
 		},
-		ExpectFail: true,
+		ExpectFail:  true,
+		Description: "Parse Primary Key: Test malformed Primary Key definition",
 	},
 	{
 		Str: "PRIMARY KEY ()",
 		Expected: table.Index{
 			Name:    table.PrimaryKey,
-			Columns: []string{},
+			Columns: []table.IndexColumn{},
 		},
-		ExpectFail: true,
+		ExpectFail:  true,
+		Description: "Parse Primary Key: Test malformed Primary Key column definition",
 	},
 }
 
-func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
+func validateResult(test ParseTest, result interface{}, err error, t *testing.T) {
 
 	if !test.ExpectFail && err != nil {
-		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
+		t.Errorf("%s FAILED for column: '%s' with Error: '%s'", test.Description, test.Str, err)
 
 	} else if !test.ExpectFail && err == nil {
 		if hasDiff, diff := table.Compare(tblName, "TestColumn", result, test.Expected); hasDiff {
-			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
+			t.Errorf("%s FAILED with Diff: '%s'", test.Description, diff.Print())
 		} else {
 			if !reflect.DeepEqual(result, test.Expected) {
-				t.Errorf("%s Failed. Return object differs from expected object. Query: '%s'", desc, test.Str)
-				util.LogAttentionf("%s Failed. Return object differs from expected object.", desc)
+				t.Errorf("%s FAILED. Return object differs from expected object.", test.Description)
+				util.LogAttentionf("%s FAILED. Return object differs from expected object.", test.Description)
 				util.DebugDumpDiff(test.Expected, result)
 			}
 		}
 	} else if test.ExpectFail && err == nil {
-		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", desc, test.Str)
+		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", test.Description, test.Str)
 	}
 	// else Successfully failed :)
 }
@@ -467,7 +547,7 @@ func TestColumnParse(t *testing.T) {
 	for _, test := range colTests {
 
 		result, err = buildColumn(test.Str, tblPropertyID, tblName)
-		validateResult(test, result, err, "Column Parse", t)
+		validateResult(test, result, err, t)
 	}
 }
 
@@ -478,7 +558,7 @@ func TestIndexParse(t *testing.T) {
 	for _, test := range indexTests {
 
 		result, err = buildIndex(test.Str, tblPropertyID, tblName)
-		validateResult(test, result, err, "Index Parse", t)
+		validateResult(test, result, err, t)
 	}
 }
 
@@ -489,6 +569,6 @@ func TestPKParse(t *testing.T) {
 	for _, test := range pkTests {
 
 		result, err = buildPrimaryKey(test.Str, tblPropertyID, tblName)
-		validateResult(test, result, err, "PrimaryKey Parse", t)
+		validateResult(test, result, err, t)
 	}
 }

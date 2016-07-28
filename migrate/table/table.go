@@ -78,11 +78,24 @@ const (
 	PrimaryKey = "PrimaryKey"
 )
 
+// IndexColumn Stores the properties of an index field
+type IndexColumn struct {
+	Name   string
+	Length int `yaml:",omitempty"`
+}
+
+func (i IndexColumn) ToSQL() string {
+	if i.Length > 0 {
+		return fmt.Sprintf("`%s`(%d)", i.Name, i.Length)
+	}
+	return fmt.Sprintf("`%s`", i.Name)
+}
+
 // Index Stores the properties for a Index field
 type Index struct {
 	ID        string `yaml:"id"`
 	Name      string
-	Columns   []string
+	Columns   []IndexColumn
 	IsPrimary bool              `yaml:",omitempty"`
 	IsUnique  bool              `yaml:",omitempty"`
 	Metadata  metadata.Metadata `yaml:"-"`
@@ -100,7 +113,6 @@ func (i Index) ToSQL() string {
 		return ""
 	}
 	name := ""
-	columns := ""
 
 	if i.IsPrimary {
 		name = "PRIMARY KEY"
@@ -112,9 +124,18 @@ func (i Index) ToSQL() string {
 		name = fmt.Sprintf("%s KEY `%s`", isUnique, i.Name)
 	}
 
-	columns = strings.Join(i.Columns, "`,`")
+	return fmt.Sprintf("%s %s", name, i.ColumnsSQL())
+}
 
-	return fmt.Sprintf("%s (`%s`)", name, columns)
+// ColumnsSQL Formats the Index columns into the appropriate SQL representation
+func (i Index) ColumnsSQL() string {
+	columnStr := []string{}
+
+	for _, indCol := range i.Columns {
+		columnStr = append(columnStr, indCol.ToSQL())
+	}
+
+	return fmt.Sprintf("(%s)", strings.Join(columnStr, ","))
 }
 
 // Table Stores the fields and properties representing a Table parsed from YAML

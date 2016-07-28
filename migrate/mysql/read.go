@@ -426,12 +426,44 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	return column, err
 }
 
+func buildIndexColumns(key string) (indexColumns []table.IndexColumn, err error) {
+	// Find Column brackets
+	lb := strings.Index(key, "(")
+	rb := strings.LastIndex(key, ")")
+
+	columnsStr := key[lb+1 : rb]
+
+	if len(columnsStr) == 0 {
+		return indexColumns, parseError(fmt.Sprintf("Invalid Index Definition: No columns defined for index: [%s]", key))
+	}
+	columns := strings.Split(columnsStr, ",")
+
+	for _, colStr := range columns {
+		ic := table.IndexColumn{}
+		// Check for length definition
+		if strings.ContainsAny(colStr, "()") {
+			clb := strings.Index(colStr, "(")
+			crb := strings.LastIndex(colStr, ")")
+			ic.Length, err = strconv.Atoi(colStr[clb+1 : crb])
+			if err != nil {
+				return indexColumns, parseError(fmt.Sprintf("Invalid Index Definition: Invalid partial index value: [%s]", key))
+			}
+			colStr = colStr[:clb]
+		}
+		// Strip quotes from name
+		ic.Name = strings.Trim(colStr, "`")
+		indexColumns = append(indexColumns, ic)
+	}
+
+	return
+}
+
 func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKey table.Index, err error) {
 
 	var hasMetadata bool
 	var md metadata.Metadata
 
-	// Format: PRIMARY KEY (`<COLUMN_1>`, `<COLUMN_2>`)
+	// Format: PRIMARY KEY (`<COLUMN_1>`[(<size)], `<COLUMN_2>`[(<size)])
 	// extract substring between brackets
 
 	// remove whitespace
@@ -441,20 +473,9 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 		return primaryKey, parseError(fmt.Sprintf("Invalid Primary Key Definition: Invalid PRIMARY KEY type: [%s]", pk))
 	}
 
-	firstBracket := strings.Index(pk, "(") + 1
-	secondBracket := strings.Index(pk, ")")
+	pk = strings.TrimPrefix(pk, "PRIMARY KEY")
 
-	if firstBracket == -1 || secondBracket == -1 || firstBracket == secondBracket {
-		return primaryKey, parseError(fmt.Sprintf("Malformed PrimaryKey Columns definition. [%s]", pk))
-	}
-	pk = pk[firstBracket:secondBracket]
-
-	// split on ,
-	columns := strings.Split(pk, ",")
-
-	if len(columns) < 1 {
-		return primaryKey, parseError(fmt.Sprintf("No Columns found for PrimaryKey. [%s]", pk))
-	}
+	primaryKey.Columns, err = buildIndexColumns(pk)
 
 	primaryKey.IsPrimary = true
 	primaryKey.Name = table.PrimaryKey
@@ -474,17 +495,12 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 		primaryKey.Metadata = md
 	}
 
-	for _, column := range columns {
-		// strip ` and add to primary key array
-		primaryKey.Columns = append(primaryKey.Columns, strings.Trim(column, "`"))
-	}
-
 	return primaryKey, err
 
 }
 
 func buildIndex(key string, tblPropertyID string, tblName string) (index table.Index, err error) {
-	// Format: [UNIQUE] KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
+	// Format: [UNIQUE] KEY `<NAME>` (`<COLUMN_1>`[(<size)],`<COLUMN_2>`[(<size)])
 
 	var hasMetadata bool
 	var md metadata.Metadata
@@ -502,33 +518,15 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 	// Remove KEY Prefix
 	key = strings.TrimLeft(key, "KEY ")
 
-	// Extract Name
-	nv := strings.Split(key, " ")
-	if len(nv) < 2 {
-		return index, parseError(fmt.Sprintf("Invalid Index Definition: Invalid number of properties: [%s]", key))
-	}
-
-	index.Name = strings.Trim(nv[0], "`")
+	// Extract Name, stripping whitespace and backticks
+	index.Name = strings.Trim(key[:strings.Index(key, "(")], " `")
 
 	if len(index.Name) == 0 {
 		return index, parseError(fmt.Sprintf("Invalid Index Definition: No name defined: [%s]", key))
 	}
 
-	// Process Index Columns
-	columns := strings.Trim(nv[1], " ()")
-
-	if len(columns) == 0 {
-		return index, parseError(fmt.Sprintf("Invalid Index Definition: No columns defined for index: [%s]", key))
-	}
-	cnames := strings.Split(columns, ",")
-
-	if len(cnames) == 0 {
-		return index, parseError(fmt.Sprintf("Invalid Index Definition: Unable to find columns for index: [%s]", key))
-	}
-
-	for _, column := range cnames {
-		index.Columns = append(index.Columns, strings.Trim(column, "`"))
-	}
+	// Extract Columns
+	index.Columns, err = buildIndexColumns(key)
 
 	if hasMetadata {
 		// Retrieve Metadata for index

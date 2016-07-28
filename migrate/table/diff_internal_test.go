@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/freneticmonkey/migrate/migrate/metadata"
+	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
@@ -765,9 +766,13 @@ var diffTests = []DiffTest{
 		From: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []string{
-					"address",
-					"age",
+				Columns: []table.IndexColumn{
+					{
+						Name: "address",
+					},
+					{
+						Name: "age",
+					},
 				},
 				IsPrimary: true,
 				IsUnique:  false,
@@ -779,9 +784,13 @@ var diffTests = []DiffTest{
 		To: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []string{
-					"address",
-					"age",
+				Columns: []table.IndexColumn{
+					{
+						Name: "address",
+					},
+					{
+						Name: "age",
+					},
 				},
 				IsPrimary: true,
 				IsUnique:  false,
@@ -799,9 +808,13 @@ var diffTests = []DiffTest{
 		From: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []string{
-					"address",
-					"age",
+				Columns: []table.IndexColumn{
+					{
+						Name: "address",
+					},
+					{
+						Name: "age",
+					},
 				},
 				IsPrimary: true,
 				IsUnique:  false,
@@ -813,8 +826,10 @@ var diffTests = []DiffTest{
 		To: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []string{
-					"address",
+				Columns: []table.IndexColumn{
+					{
+						Name: "address",
+					},
 				},
 				IsPrimary: true,
 				IsUnique:  false,
@@ -831,9 +846,13 @@ var diffTests = []DiffTest{
 				Property: "Columns",
 				Value: DiffPair{
 					From: Index{
-						Columns: []string{
-							"address",
-							"age",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
+							{
+								Name: "age",
+							},
 						},
 						IsPrimary: true,
 						IsUnique:  false,
@@ -842,8 +861,10 @@ var diffTests = []DiffTest{
 						},
 					},
 					To: Index{
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: true,
 						IsUnique:  false,
@@ -870,9 +891,13 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
-						"age",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+						{
+							Name: "age",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -888,9 +913,13 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
-						"age",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+						{
+							Name: "age",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -912,8 +941,10 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -929,8 +960,10 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_address",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -950,8 +983,10 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  false,
@@ -962,8 +997,10 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_address",
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  false,
@@ -988,9 +1025,13 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
-						"age",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+						{
+							Name: "age",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -1006,8 +1047,10 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -1027,9 +1070,13 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []string{
-							"address",
-							"age",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
+							{
+								Name: "age",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  false,
@@ -1040,8 +1087,10 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  false,
@@ -1066,8 +1115,10 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -1083,8 +1134,10 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  true,
@@ -1104,8 +1157,10 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  false,
@@ -1116,8 +1171,10 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []string{
-							"address",
+						Columns: []table.IndexColumn{
+							{
+								Name: "address",
+							},
 						},
 						IsPrimary: false,
 						IsUnique:  true,

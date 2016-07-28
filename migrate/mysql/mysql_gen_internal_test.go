@@ -50,17 +50,23 @@ var createTableTests = []SQLCTTest{
 			},
 			PrimaryIndex: table.Index{
 				IsPrimary: true,
-				Columns: []string{
-					"name",
-					"address",
+				Columns: []table.IndexColumn{
+					{
+						Name: "name",
+					},
+					{
+						Name: "address",
+					},
 				},
 			},
 			SecondaryIndexes: []table.Index{
 				table.Index{
 					Name:      "idx_name",
 					IsPrimary: false,
-					Columns: []string{
-						"name",
+					Columns: []table.IndexColumn{
+						{
+							Name: "name",
+						},
 					},
 				},
 			},
@@ -391,8 +397,10 @@ var genTableAlterTests = []SQLGenTest{
 				From: table.Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -403,8 +411,10 @@ var genTableAlterTests = []SQLGenTest{
 				To: table.Index{
 					ID:   "sc1",
 					Name: "idx_address",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -435,8 +445,10 @@ var genTableAlterTests = []SQLGenTest{
 				From: table.Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -447,9 +459,13 @@ var genTableAlterTests = []SQLGenTest{
 				To: table.Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []string{
-						"address",
-						"add",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+						{
+							Name: "add",
+						},
 					},
 					IsPrimary: false,
 					IsUnique:  false,
@@ -464,7 +480,7 @@ var genTableAlterTests = []SQLGenTest{
 		},
 		Statements: []string{
 			"DROP INDEX `idx_test` ON `TestTable`",
-			"CREATE INDEX `idx_test` ON `TestTable` (`address`, `add`)",
+			"CREATE INDEX `idx_test` ON `TestTable` (`address`,`add`)",
 		},
 		ExpectFail:  false,
 		Description: "Table Index: Add Column",

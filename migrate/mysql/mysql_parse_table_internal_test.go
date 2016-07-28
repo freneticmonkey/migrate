@@ -65,8 +65,12 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 			},
 			PrimaryIndex: table.Index{
-				Name:      "PrimaryKey",
-				Columns:   []string{"id"},
+				Name: "PrimaryKey",
+				Columns: []table.IndexColumn{
+					{
+						Name: "id",
+					},
+				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
 					Name:   "PrimaryKey",
@@ -77,9 +81,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 			SecondaryIndexes: []table.Index{
 				{
 					Name: "idx_id_name",
-					Columns: []string{
-						"id",
-						"name",
+					Columns: []table.IndexColumn{
+						{
+							Name: "id",
+						},
+						{
+							Name: "name",
+						},
 					},
 					Metadata: metadata.Metadata{
 						Name:   "idx_id_name",
@@ -181,8 +189,12 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 			},
 			PrimaryIndex: table.Index{
-				Name:      "PrimaryKey",
-				Columns:   []string{"parameter_id"},
+				Name: "PrimaryKey",
+				Columns: []table.IndexColumn{
+					{
+						Name: "parameter_id",
+					},
+				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
 					Name:   "PrimaryKey",
@@ -194,9 +206,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 				{
 					Name:     "idx_game_id_name",
 					IsUnique: true,
-					Columns: []string{
-						"game_id",
-						"name",
+					Columns: []table.IndexColumn{
+						{
+							Name: "game_id",
+						},
+						{
+							Name: "name",
+						},
 					},
 					Metadata: metadata.Metadata{
 						Name:   "idx_game_id_name",
@@ -206,9 +222,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				{
 					Name: "idx_game_id_parameter_id",
-					Columns: []string{
-						"game_id",
-						"parameter_id",
+					Columns: []table.IndexColumn{
+						{
+							Name: "game_id",
+						},
+						{
+							Name: "parameter_id",
+						},
 					},
 					Metadata: metadata.Metadata{
 						Name:   "idx_game_id_parameter_id",
@@ -284,8 +304,12 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 			},
 			PrimaryIndex: table.Index{
-				Name:      "PrimaryKey",
-				Columns:   []string{"file_id"},
+				Name: "PrimaryKey",
+				Columns: []table.IndexColumn{
+					{
+						Name: "file_id",
+					},
+				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
 					Name:   "PrimaryKey",
@@ -361,8 +385,12 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 			},
 			PrimaryIndex: table.Index{
-				Name:      "PrimaryKey",
-				Columns:   []string{"file_id"},
+				Name: "PrimaryKey",
+				Columns: []table.IndexColumn{
+					{
+						Name: "file_id",
+					},
+				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
 					Name:   "PrimaryKey",
@@ -378,7 +406,104 @@ var parseCreateTableTests = []SQLParseCTTest{
 			},
 		},
 		ExpectFail:  false,
-		Description: "Create Table: Default Value",
+		Description: "Create Table: Has Column with Default Value",
+	},
+
+	{
+		CTStatement: []string{
+			"CREATE TABLE `storeproductfile` (",
+			"`file_id` int(11) NOT NULL AUTO_INCREMENT,",
+			"KEY `file id`(`file_id`)",
+			") ENGINE=InnoDB",
+		},
+		Expected: table.Table{
+			Name:   "storeproductfile",
+			Engine: "InnoDB",
+			Columns: []table.Column{
+				{
+					Name:    "file_id",
+					Type:    "int",
+					Size:    []int{11},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						Name:   "file_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			SecondaryIndexes: []table.Index{
+				{
+					Name: "file id",
+					Columns: []table.IndexColumn{
+						{
+							Name: "file_id",
+						},
+					},
+					Metadata: metadata.Metadata{
+						Name:   "file id",
+						Type:   "Index",
+						Exists: true,
+					},
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "storeproductfile",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: Index with name with space",
+	},
+
+	{
+		CTStatement: []string{
+			"CREATE TABLE `storeproductfile` (",
+			"`name` varchar(64) NOT NULL,",
+			"PRIMARY KEY (`name`(20))",
+			") ENGINE=InnoDB",
+		},
+		Expected: table.Table{
+			Name:   "storeproductfile",
+			Engine: "InnoDB",
+			Columns: []table.Column{
+				{
+					Name: "name",
+					Type: "varchar",
+					Size: []int{64},
+					Metadata: metadata.Metadata{
+						Name:   "name",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			PrimaryIndex: table.Index{
+				Name:      "PrimaryKey",
+				IsPrimary: true,
+				Columns: []table.IndexColumn{
+					{
+						Name:   "name",
+						Length: 20,
+					},
+				},
+				Metadata: metadata.Metadata{
+					Name:   "PrimaryKey",
+					Type:   "PrimaryKey",
+					Exists: true,
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "storeproductfile",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: PrimaryKey with partial index",
 	},
 }
 

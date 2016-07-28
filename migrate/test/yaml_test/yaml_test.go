@@ -105,7 +105,7 @@ var yamlTests = []ParseTest{
 		Str: `
         primaryindex:
             columns:
-                - name
+                - name: name
             isprimary: Yes
             id:        pi
         `,
@@ -113,7 +113,11 @@ var yamlTests = []ParseTest{
 			PrimaryIndex: table.Index{
 				ID:        "pi",
 				IsPrimary: true,
-				Columns:   []string{"name"},
+				Columns: []table.IndexColumn{
+					{
+						Name: "name",
+					},
+				},
 			},
 		},
 		ExpectFail: false,
@@ -122,17 +126,21 @@ var yamlTests = []ParseTest{
 	{
 		Str: `
         secondaryindexes:
-            - name: idx_id_name
+            - name: idx_name
               id:   sc1
               columns:
-                  - name
+                  - name: name
         `,
 		Expected: table.Table{
 			SecondaryIndexes: []table.Index{
 				{
-					ID:      "sc1",
-					Name:    "idx_id_name",
-					Columns: []string{"name"},
+					ID:   "sc1",
+					Name: "idx_name",
+					Columns: []table.IndexColumn{
+						{
+							Name: "name",
+						},
+					},
 				},
 			},
 		},
@@ -144,15 +152,52 @@ var yamlTests = []ParseTest{
             - name: idx_id_name
               id:   sc1
               columns:
-                  - name
-                  - id
+                  - name: name
+                  - name: id
         `,
 		Expected: table.Table{
 			SecondaryIndexes: []table.Index{
 				{
-					ID:      "sc1",
-					Name:    "idx_id_name",
-					Columns: []string{"name", "id"},
+					ID:   "sc1",
+					Name: "idx_id_name",
+					Columns: []table.IndexColumn{
+						{
+							Name: "name",
+						},
+						{
+							Name: "id",
+						},
+					},
+				},
+			},
+		},
+		ExpectFail: false,
+	},
+
+	{
+		Str: `
+        secondaryindexes:
+            - name: idx_id_name
+              id:   sc1
+              columns:
+                  - name: name
+                    length: 20
+                  - name: id
+        `,
+		Expected: table.Table{
+			SecondaryIndexes: []table.Index{
+				{
+					ID:   "sc1",
+					Name: "idx_id_name",
+					Columns: []table.IndexColumn{
+						{
+							Name:   "name",
+							Length: 20,
+						},
+						{
+							Name: "id",
+						},
+					},
 				},
 			},
 		},
