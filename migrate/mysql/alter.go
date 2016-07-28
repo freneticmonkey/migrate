@@ -136,7 +136,8 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 	}
 
 	autoInc := ""
-	if isAutoInc {
+	// If AUTO_INCREMENT is being used and it has a non-zero value
+	if isAutoInc && tbl.AutoInc > 0 {
 		autoInc = fmt.Sprintf(" AUTO_INCREMENT=%d", tbl.AutoInc)
 	}
 
