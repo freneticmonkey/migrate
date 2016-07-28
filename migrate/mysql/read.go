@@ -27,6 +27,7 @@ const (
 	ENGINE          = "ENGINE"
 	DEFAULT_CHARSET = "DEFAULT CHARSET"
 	ROW_FORMAT      = "ROW_FORMAT"
+	COLLATE         = "COLLATE"
 )
 
 var Schema table.Tables
@@ -349,6 +350,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	unsigned := false
 	autoinc := false
 	defaultValue := ""
+	collationValue := ""
 
 	// If unsigned is present
 	if strings.Index(parameters, UNSIGNED) != -1 {
@@ -370,12 +372,13 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	if defaultPos != -1 {
 		// Grab the string after DEFAULT, trim it, and split on whitespace.
 
-		// Check that the line contains a default value
-		if len(parameters) < defaultPos+8 {
+		// Check that the line contains a DEFAULT value
+		if len(parameters) < defaultPos+len(DEFAULT)+1 {
 			return column, parseError(fmt.Sprintf("Invalid Column Definition: Default value missing: [%s]", line))
 		}
 
-		lineEnd := parameters[defaultPos+7:]
+		// Now extract value of the parameter from the original line (non-ToUpper())
+		lineEnd := line[paramOffset+defaultPos+len(DEFAULT):]
 		defaultStr := strings.TrimSpace(lineEnd)
 
 		// if single quotes are detected
@@ -387,11 +390,11 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 			if quotePos != qEnd {
 				defaultValue = defaultStr[quotePos+1 : qEnd]
 			} else {
-				return column, parseError(fmt.Sprintf("Invalid Column Definition: Default value is empty: [%s]", line))
+				return column, parseError(fmt.Sprintf("Invalid Column Definition: DEFAULT value is empty: [%s]", line))
 			}
 		} else {
 
-			// Check for NULL default value
+			// Check for NULL default value if there aren't any quotes.  Can only be NULL
 			if len(defaultStr) >= 4 {
 				if defaultStr != NULL {
 					dCmp := strings.Split(defaultStr, " ")
@@ -406,8 +409,29 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 
 			// If we're unable to parse the default value
 			if defaultValue == "" {
-				return column, parseError(fmt.Sprintf("Invalid Column Definition: Unable to parse Default value: [%s]", line))
+				return column, parseError(fmt.Sprintf("Invalid Column Definition: Unable to parse DEFAULT value: [%s]", line))
 			}
+		}
+	}
+
+	// if COLLATE is present
+	collatePos := strings.Index(parameters, COLLATE)
+	if collatePos != -1 {
+		// Grab the string after COLLATE, trim it, and split on whitespace.
+		// Check that the line contains a COLLATION value
+		if len(parameters) < collatePos+len(COLLATE)+1 {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: COLLATE type missing: [%s]", line))
+		}
+
+		// Now extract value of the parameter from the original line (non-ToUpper())
+		lineEnd := line[paramOffset+collatePos+len(COLLATE):]
+		collateStr := strings.TrimSpace(lineEnd)
+
+		cCmp := strings.Split(collateStr, " ")
+		if len(cCmp) > 0 && cCmp[0] != "" {
+			collationValue = cCmp[0]
+		} else {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Couldn't extract COLLATE type: [%s]", line))
 		}
 	}
 
@@ -419,6 +443,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	column.Default = defaultValue
 	column.Nullable = nullable
 	column.AutoInc = autoinc
+	column.Collation = collationValue
 
 	if hasMetadata {
 		// Retrieve Metadata for column

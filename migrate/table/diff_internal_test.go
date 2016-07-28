@@ -500,6 +500,68 @@ var diffTests = []DiffTest{
 		Description: "Column Field Diff: Change Set AutoInc",
 	},
 
+	{
+		From: Table{
+			Name: "TestTable",
+			Columns: []Column{
+				Column{
+					ID:   "col1",
+					Name: "Address",
+					Type: "text",
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+		},
+		To: Table{
+			Name: "TestTable",
+			Columns: []Column{
+				Column{
+					ID:        "col1",
+					Name:      "Address",
+					Type:      "text",
+					Collation: "utf8_bin",
+					Metadata: metadata.Metadata{
+						PropertyID: "col1",
+					},
+				},
+			},
+		},
+		Expected: []Diff{
+			Diff{
+				Table:    "TestTable",
+				Op:       Mod,
+				Field:    "Columns",
+				Property: "Collation",
+				Value: DiffPair{
+					From: Column{
+						ID:   "col1",
+						Name: "Address",
+						Type: "text",
+						Metadata: metadata.Metadata{
+							PropertyID: "col1",
+						},
+					},
+					To: Column{
+						ID:        "col1",
+						Name:      "Address",
+						Type:      "text",
+						Collation: "utf8_bin",
+						Metadata: metadata.Metadata{
+							PropertyID: "col1",
+						},
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "col1",
+				},
+			},
+		},
+		ExpectFail:  false,
+		Description: "Column Field Diff: Add collation to column",
+	},
+
 	// Removing Column Size
 	{
 		From: Table{

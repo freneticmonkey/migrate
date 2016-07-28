@@ -224,6 +224,23 @@ var colTests = []ParseTest{
 	},
 
 	{
+		Str: "`address` text COLLATE utf8_bin",
+		Expected: table.Column{
+			Name:      "address",
+			Type:      "text",
+			Nullable:  true,
+			Collation: "utf8_bin",
+			Metadata: metadata.Metadata{
+				Name:   "address",
+				Type:   "Column",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Parse Column: text with utf8_bin collation",
+	},
+
+	{
 		Str: "`count` int(11) AUTO_INCREMENT",
 		Expected: table.Column{
 			Name:     "count",

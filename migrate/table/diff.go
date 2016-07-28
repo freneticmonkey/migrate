@@ -250,7 +250,7 @@ func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	}
 
 	// Column Properties
-	fieldNames := []string{"Name", "Type", "Size", "Nullable", "AutoInc", "Default"}
+	fieldNames := []string{"Name", "Type", "Size", "Nullable", "AutoInc", "Default", "Collation"}
 	if differentColumns := diffProperties(toTable.Name, "Columns", fieldNames, toColumns, fromColumns); len(differentColumns.Slice) > 0 {
 		hasDiff = true
 

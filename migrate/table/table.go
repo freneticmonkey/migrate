@@ -15,14 +15,15 @@ type Tables []Table
 
 // Column Stores the properties for a Column field
 type Column struct {
-	ID       string `yaml:"id"`
-	Name     string
-	Type     string
-	Size     []int
-	Default  string `yaml:",omitempty"`
-	Nullable bool   `yaml:",omitempty"`
-	AutoInc  bool   `yaml:",omitempty"`
-	Unsigned bool   `yaml:",omitempty"`
+	ID        string `yaml:"id"`
+	Name      string
+	Type      string
+	Size      []int
+	Default   string `yaml:",omitempty"`
+	Nullable  bool   `yaml:",omitempty"`
+	AutoInc   bool   `yaml:",omitempty"`
+	Unsigned  bool   `yaml:",omitempty"`
+	Collation string `yaml:",omitempty"`
 
 	// Binary      bool
 	// Unique      bool
@@ -55,6 +56,10 @@ func (c Column) ToSQL() string {
 			value = fmt.Sprintf("'%s'", value)
 		}
 		params.Add(fmt.Sprintf("DEFAULT %s", value))
+	}
+
+	if len(c.Collation) > 0 {
+		params.Add(fmt.Sprintf("COLLATE %s", c.Collation))
 	}
 
 	size := ""

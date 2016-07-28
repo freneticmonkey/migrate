@@ -44,6 +44,7 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] DEFAULT values support
 - [x] Partial string index support
 - [x] ROW_FORMAT support
+- [x] Column Collation support
 
 # TODO Management
 - [x] Implement tables:

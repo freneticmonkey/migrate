@@ -67,6 +67,34 @@ var yamlTests = []ParseTest{
 		ExpectFail:  false,
 		Description: "YAML Parse: Basic Column",
 	},
+	// Single Column
+	{
+		Str: `
+        columns:
+            - name:      id
+              type:      int
+              size:      [11]
+              nullable:  No
+              id:        col1
+              autoinc:   Yes
+              collation: utf8_bin
+        `,
+		Expected: table.Table{
+			Columns: []table.Column{
+				table.Column{
+					ID:        "col1",
+					Name:      "id",
+					Type:      "int",
+					Size:      []int{11},
+					Nullable:  false,
+					AutoInc:   true,
+					Collation: "utf8_bin",
+				},
+			},
+		},
+		ExpectFail:  false,
+		Description: "YAML Parse: Basic Column all options",
+	},
 	// Multi-Column
 	{
 		Str: `
