@@ -672,6 +672,56 @@ func ReadTables(project config.Project) (err error) {
 	return err
 }
 
+// ReadDump Read a MySQL Dump file as a source of MySQL Schema and return the
+// CREATE TABLE statements as an array of strings
+func ReadDump(filename string) (statements []string, err error) {
+
+	var dump []byte
+	// Read the Dump file.
+	dump, err = ioutil.ReadFile(filename)
+
+	lines := strings.Split(string(dump), "\n")
+
+	// Extract CREATE TABLE statements
+	type DumpTable struct {
+		lines []string
+	}
+	dumpTables := []*DumpTable{}
+
+	var currentTable *DumpTable
+
+	for _, line := range lines {
+		// Ignore comments
+		if len(line) == 0 || strings.HasPrefix(line, "--") || strings.HasPrefix(line, "/*") || strings.HasPrefix(line, "DROP") {
+			continue
+		}
+
+		if strings.HasPrefix(line, "CREATE TABLE") {
+			if currentTable != nil {
+				dumpTables = append(dumpTables, currentTable)
+			}
+			currentTable = &DumpTable{}
+		}
+
+		if currentTable != nil {
+			currentTable.lines = append(currentTable.lines, line)
+		}
+	}
+
+	if currentTable != nil {
+		dumpTables = append(dumpTables, currentTable)
+	}
+
+	for _, dt := range dumpTables {
+
+		// Build CREATE TABLE string
+		statements = append(statements, strings.Join(dt.lines, "\n"))
+	}
+
+	return statements, err
+
+}
+
 // func WriteSQLFile(file string, table Table) (err error) {
 //
 // 	// writeOp := GenerateCreateTable(table)
