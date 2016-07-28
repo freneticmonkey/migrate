@@ -1,4 +1,4 @@
-package yaml_test
+package yaml
 
 import (
 	"reflect"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
-	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
 
 var tblPropertyID = "testtbl"
@@ -270,7 +269,7 @@ func TestYAMLParse(t *testing.T) {
 
 	for _, test := range yamlTests {
 
-		result, err = yaml.ReadYAML(test.Str, "unittest")
+		result, err = ReadYAML(test.Str, "unittest")
 
 		validateResult(test, result, err, t)
 	}
