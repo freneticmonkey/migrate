@@ -22,10 +22,10 @@ type Column struct {
 	Default  string `yaml:",omitempty"`
 	Nullable bool   `yaml:",omitempty"`
 	AutoInc  bool   `yaml:",omitempty"`
+	Unsigned bool   `yaml:",omitempty"`
 
 	// Binary      bool
 	// Unique      bool
-	// Unsigned    bool
 	// ZeroFilled  bool
 
 	Metadata metadata.Metadata `yaml:"-"`
@@ -35,6 +35,10 @@ type Column struct {
 func (c Column) ToSQL() string {
 
 	var params util.Params
+
+	if c.Unsigned {
+		params.Add("unsigned")
+	}
 
 	if !c.Nullable {
 		params.Add("NOT NULL")
@@ -48,11 +52,13 @@ func (c Column) ToSQL() string {
 
 	switch len(c.Size) {
 	case 1:
-		size = fmt.Sprintf("%d", c.Size[0])
+		size = fmt.Sprintf("(%d)", c.Size[0])
 	case 2:
-		size = fmt.Sprintf("%d,%d", c.Size[0], c.Size[1])
+		size = fmt.Sprintf("(%d,%d)", c.Size[0], c.Size[1])
+	case 0:
+		size = ""
 	}
-	sql := fmt.Sprintf("`%s` %s(%s)", c.Name, c.Type, size)
+	sql := fmt.Sprintf("`%s` %s%s", c.Name, c.Type, size)
 	if len(params.Values) > 0 {
 		sql += fmt.Sprintf(" %s", params.String())
 	}

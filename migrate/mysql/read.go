@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -21,6 +22,7 @@ const (
 	NULL            = "NULL"
 	DEFAULT         = "DEFAULT"
 	NOT_NULL        = "NOT NULL"
+	UNSIGNED        = "UNSIGNED"
 	AUTO_INCREMENT  = "AUTO_INCREMENT"
 	ENGINE          = "ENGINE"
 	DEFAULT_CHARSET = "DEFAULT CHARSET"
@@ -327,10 +329,16 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 
 	parameters := line[paramOffset:]
 
+	unsigned := false
 	// NOT NULL by default
 	nullable := false
 	autoinc := true
 	defaultValue := ""
+
+	// If unsigned is present
+	if strings.Index(parameters, UNSIGNED) != -1 {
+		unsigned = true
+	}
 
 	// If NOT NULL is not present
 	if strings.Index(parameters, NOT_NULL) == -1 {
@@ -392,6 +400,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	column.Name = name
 	column.Type = datatype
 	column.Size = colSizes
+	column.Unsigned = unsigned
 	column.Default = defaultValue
 	column.Nullable = nullable
 	column.AutoInc = autoinc
@@ -546,9 +555,10 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 	// Split by newlines
 	lines := strings.Split(createTable, "\n")
 
-	// Strip any trailing commas
+	// Strip any trailing commas or semi-colons
 	for i := 0; i < len(lines); i++ {
 		lines[i] = strings.TrimRight(lines[i], ",")
+		lines[i] = strings.TrimRight(lines[i], ";")
 	}
 
 	err = buildTable(lines, &tbl)
