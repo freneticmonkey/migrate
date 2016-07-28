@@ -203,7 +203,6 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Default:  "1",
 			Nullable: false,
-			AutoInc:  false,
 			Metadata: metadata.Metadata{
 				Name:   "age",
 				Type:   "Column",
@@ -237,6 +236,23 @@ var colTests = []ParseTest{
 			Size:     []int{11},
 			Nullable: true,
 			AutoInc:  true,
+			Metadata: metadata.Metadata{
+				Name:   "count",
+				Type:   "Column",
+				Exists: true,
+			},
+		},
+		ExpectFail: false,
+	},
+
+	{
+		Str: "`count` int(11) DEFAULT '1'",
+		Expected: table.Column{
+			Name:     "count",
+			Type:     "int",
+			Size:     []int{11},
+			Nullable: true,
+			Default:  "1",
 			Metadata: metadata.Metadata{
 				Name:   "count",
 				Type:   "Column",
@@ -433,12 +449,9 @@ func validateResult(test ParseTest, result interface{}, err error, desc string, 
 			t.Errorf("%s Failed with Diff: '%s'", desc, diff.Print())
 		} else {
 			if !reflect.DeepEqual(result, test.Expected) {
-				t.Errorf("%s Failed. Return object differs from expected object.", desc)
+				t.Errorf("%s Failed. Return object differs from expected object. Query: '%s'", desc, test.Str)
 				util.LogAttentionf("%s Failed. Return object differs from expected object.", desc)
-				util.LogWarn("Expected")
-				util.DebugDump(test.Expected)
-				util.LogWarn("Result")
-				util.DebugDump(result)
+				util.DebugDumpDiff(test.Expected, result)
 			}
 		}
 	} else if test.ExpectFail && err == nil {

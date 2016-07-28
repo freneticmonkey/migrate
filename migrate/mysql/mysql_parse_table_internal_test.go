@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"regexp"
 	"strings"
@@ -302,6 +303,83 @@ var parseCreateTableTests = []SQLParseCTTest{
 		ExpectFail:  false,
 		Description: "Create Table: StoreProducts Parse",
 	},
+
+	{
+		CTStatement: []string{
+			"CREATE TABLE `storeproductfile` (",
+			"`file_id` int(11) NOT NULL AUTO_INCREMENT,",
+			"`game_id` int(11) NOT NULL DEFAULT '34',",
+			"`file` longblob NOT NULL,",
+			"`order` int(11) NOT NULL,",
+			"PRIMARY KEY (`file_id`)",
+			") ENGINE=InnoDB",
+		},
+		Expected: table.Table{
+			Name:   "storeproductfile",
+			Engine: "InnoDB",
+			Columns: []table.Column{
+				{
+					Name:    "file_id",
+					Type:    "int",
+					Size:    []int{11},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						Name:   "file_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name:    "game_id",
+					Type:    "int",
+					Size:    []int{11},
+					Default: "34",
+					Metadata: metadata.Metadata{
+						Name:   "game_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "file",
+					Type: "longblob",
+					Metadata: metadata.Metadata{
+						Name:   "file",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "order",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "order",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			PrimaryIndex: table.Index{
+				Name:      "PrimaryKey",
+				Columns:   []string{"file_id"},
+				IsPrimary: true,
+				Metadata: metadata.Metadata{
+					Name:   "PrimaryKey",
+					Type:   "PrimaryKey",
+					Exists: true,
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "storeproductfile",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: Default Value",
+	},
 }
 
 var mockDb *sql.DB
@@ -357,11 +435,6 @@ func TestParseCreateTable(t *testing.T) {
 
 		if err != nil || !reflect.DeepEqual(result, test.Expected) {
 
-			// we make sure that all expectations were met
-			if err = mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("Metadata was not queried for table name:%s Error: %s", test.Expected.Name, err)
-			}
-
 			context := ""
 			if err != nil {
 				util.LogWarnf("%s FAILED with error: %v", test.Description, err)
@@ -370,14 +443,83 @@ func TestParseCreateTable(t *testing.T) {
 				util.LogWarnf("%s FAILED.", test.Description)
 				context = "Parsed Table doesn't match"
 				util.DebugDumpDiff(test.Expected, result)
-				// util.LogAttention("Expected")
-				// util.DebugDump(test.Expected)
-				// util.LogWarn("Result")
-				// util.DebugDump(result)
+			}
+
+			// we make sure that all expectations were met
+			if err = mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Metadata was not queried for table name:%s Error: %s", test.Expected.Name, err)
 			}
 
 			t.Errorf("%s FAILED. %s", test.Description, context)
-
 		}
 	}
+}
+
+func TestParseDump(t *testing.T) {
+
+	filename := "dump.sql"
+
+	statements, err := ReadDump(filename)
+	successCount := 0
+
+	output := []string{}
+
+	if err == nil {
+		// Mock Database Setup
+		db, err := dbSetup()
+		if err != nil {
+			t.Fatal(fmt.Sprintf("Failed due to mock database setup with error: %v", err))
+		}
+		defer dbTearDown()
+
+		// Configure metadata
+		metadata.Setup(db, 1)
+
+		for _, ct := range statements {
+
+			// Extract table name.
+			name := strings.Split(ct, "`")[1]
+
+			query := fmt.Sprintf("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", name)
+			query = regexp.QuoteMeta(query)
+
+			mock.ExpectQuery(query).
+				WillReturnRows(sqlmock.NewRows([]string{
+					"count",
+				}).AddRow(0))
+
+			tbl, err := ParseCreateTable(ct)
+
+			if err != nil {
+
+				context := ""
+				if err != nil {
+					util.LogWarnf("Dump Parse FAILED for table: %s with error: %v", name, err)
+					context = "Errors while parsing CREATE TABLE statement"
+				}
+
+				// we make sure that all expectations were met
+				if err = mock.ExpectationsWereMet(); err != nil {
+					t.Errorf("Metadata was not queried for table name:%s Error: %s", name, err)
+				}
+
+				t.Errorf("Dump Parse FAILED for table FAILED. %s", context)
+
+			} else {
+				successCount += 1
+
+				op := generateCreateTable(tbl)
+
+				output = append(output, op.Statement)
+			}
+
+		}
+	} else {
+		t.Errorf("Dump Parse FAILED. Unable to read SQL Dump File: %s", filename)
+	}
+
+	util.LogAttentionf("Successfully parsed %d tables", successCount)
+
+	ioutil.WriteFile("output.sql", []byte(strings.Join(output, "\n")), 0644)
+
 }

@@ -91,7 +91,7 @@ var createTableTests = []SQLCTTest{
 				},
 			},
 		},
-		Statement:   "CREATE TABLE `TestTable` (`age` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+		Statement:   "CREATE TABLE `TestTable` (`age` int(11) NOT NULL DEFAULT '1') ENGINE=InnoDB DEFAULT CHARSET=latin1;",
 		ExpectFail:  false,
 		Description: "Create Table: No Index",
 	},
@@ -494,9 +494,7 @@ func TestGenerateAlters(t *testing.T) {
 			if results[i].Statement != test.Statements[i] {
 				t.Errorf("%s FAILED.", test.Description)
 				util.LogWarnf("%s FAILED.", test.Description)
-				util.LogAttentionf("Expecting: [%s]", test.Statements[i])
-				util.LogErrorf("Generated: [%s]", results[i].Statement)
-				util.DebugDump(results[i])
+				util.DebugDiffString(test.Statements[i], results[i].Statement)
 			}
 		}
 

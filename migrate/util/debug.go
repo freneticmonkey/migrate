@@ -22,6 +22,17 @@ func DebugDumpDiff(left interface{}, right interface{}) {
 	l := strings.Split(spew.Sdump(left), "\n")
 	r := strings.Split(spew.Sdump(right), "\n")
 
+	DebugDiffStrings(l, r)
+}
+
+//DebugDiffString Diff two strings
+func DebugDiffString(l, r string) {
+	DebugDiffStrings([]string{l}, []string{r})
+}
+
+// DebugDiffStrings Diff two arrays of strings
+func DebugDiffStrings(l, r []string) {
+
 	diffs := difflib.Diff(l, r)
 
 	for _, diff := range diffs {
