@@ -329,6 +329,9 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 
 	parameters := line[paramOffset:]
 
+	// Convert the parameters to Upper
+	parameters = strings.ToUpper(parameters)
+
 	unsigned := false
 	// NOT NULL by default
 	nullable := false
