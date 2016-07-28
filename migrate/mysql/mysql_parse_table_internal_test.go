@@ -632,7 +632,7 @@ func TestParseCreateTable(t *testing.T) {
 	}
 }
 
-func TestParseDump(t *testing.T) {
+func DisableTestParseDump(t *testing.T) {
 
 	filename := "dump.sql"
 
@@ -683,7 +683,7 @@ func TestParseDump(t *testing.T) {
 				t.Errorf("Dump Parse FAILED for table FAILED. %s", context)
 
 			} else {
-				successCount += 1
+				successCount++
 
 				op := generateCreateTable(tbl)
 
