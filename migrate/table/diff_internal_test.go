@@ -119,6 +119,26 @@ var diffTests = []DiffTest{
 	},
 	{
 		From: Table{
+			Name:      "TestTable",
+			Collation: "utf8_bin",
+		},
+		To: Table{
+			Name:      "TestTable",
+			Collation: "latin1_german2_ci",
+		},
+		Expected: []Diff{
+			Diff{
+				Table:    "TestTable",
+				Op:       Mod,
+				Property: "Collation",
+				Value:    "latin1_german2_ci",
+			},
+		},
+		ExpectFail:  false,
+		Description: "Table Field Diff: Changing Table collation to latin1_german2_ci",
+	},
+	{
+		From: Table{
 			Name:    "TestTable",
 			CharSet: "latin1",
 		},

@@ -302,7 +302,7 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 	hasDiff = false
 
 	// Table Fields
-	fieldNames := []string{"Name", "Engine", "CharSet", "AutoInc", "RowFormat"}
+	fieldNames := []string{"Name", "Engine", "CharSet", "AutoInc", "RowFormat", "Collation"}
 
 	for _, field := range fieldNames {
 		if diffFound, fieldsDiff := Compare(fromTable.Name, field, toTable, fromTable); diffFound {

@@ -152,7 +152,11 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 	}
 
 	if len(tbl.RowFormat) > 0 {
-		builder.AddFormat("ROWFORMAT=%s", tbl.RowFormat)
+		builder.AddFormat("ROW_FORMAT=%s", tbl.RowFormat)
+	}
+
+	if len(tbl.Collation) > 0 {
+		builder.AddFormat("COLLATE=%s", tbl.Collation)
 	}
 
 	builder.AddFormat("DEFAULT CHARSET=%s;", tbl.CharSet)

@@ -29,6 +29,7 @@ var yamlTests = []ParseTest{
         id:        tbl1
         autoinc:   1234
         rowformat: DYNAMIC
+        collation: utf8_bin
         `,
 		Expected: table.Table{
 			Name:      "test",
@@ -37,6 +38,7 @@ var yamlTests = []ParseTest{
 			ID:        "tbl1",
 			AutoInc:   1234,
 			RowFormat: "DYNAMIC",
+			Collation: "utf8_bin",
 		},
 		ExpectFail:  false,
 		Description: "YAML Parse: Table Options",

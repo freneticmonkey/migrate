@@ -28,6 +28,7 @@ const (
 	DEFAULT_CHARSET = "DEFAULT CHARSET"
 	ROW_FORMAT      = "ROW_FORMAT"
 	COLLATE         = "COLLATE"
+	DEFAULT_COLLATE = "DEFAULT COLLATE"
 )
 
 var Schema table.Tables
@@ -150,6 +151,7 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	var autoinc int64
 	var charset string
 	var rowFormat string
+	var collation string
 
 	var hasMetadata bool
 	var md metadata.Metadata
@@ -212,6 +214,15 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 		}
 	}
 
+	// extract DEFAULT_COLLATE and value
+	if hasParameter(lastLine, DEFAULT_COLLATE) {
+		// extract DEFAULT_COLLATE and value
+		collation, err = extractParameter(lastLine, DEFAULT_COLLATE)
+		if util.ErrorCheckf(err, "Error Parsing DEFAULT_COLLATE") {
+			return parseError("Malformed DEFAULT_COLLATE definition")
+		}
+	}
+
 	// Get Metadata for the table
 	hasMetadata, err = metadata.TableRegistered(name)
 
@@ -239,6 +250,7 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	tbl.AutoInc = autoinc
 	tbl.CharSet = charset
 	tbl.RowFormat = rowFormat
+	tbl.Collation = collation
 	tbl.Filename = "DB"
 
 	return err

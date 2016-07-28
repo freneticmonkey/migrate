@@ -112,7 +112,7 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"CREATE TABLE `test` (",
 			"`id` int(11) NOT NULL AUTO_INCREMENT, ",
 			"PRIMARY KEY (`id`), ",
-			") ENGINE=InnoDB AUTO_INCREMENT=1234 ROW_FORMAT=DYNAMIC DEFAULT CHARSET=latin1",
+			") ENGINE=InnoDB AUTO_INCREMENT=1234 ROW_FORMAT=DYNAMIC DEFAULT COLLATE=utf8_bin DEFAULT CHARSET=latin1",
 		},
 		Expected: table.Table{
 			Name:      "test",
@@ -120,6 +120,7 @@ var parseCreateTableTests = []SQLParseCTTest{
 			CharSet:   "latin1",
 			AutoInc:   1234,
 			RowFormat: "DYNAMIC",
+			Collation: "utf8_bin",
 			Columns: []table.Column{
 				{
 					Name:    "id",

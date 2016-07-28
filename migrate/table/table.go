@@ -152,6 +152,7 @@ type Table struct {
 	AutoInc          int64 `yaml:",omitempty"`
 	CharSet          string
 	RowFormat        string `yaml:",omitempty"`
+	Collation        string `yaml:",omitempty"`
 	Columns          []Column
 	PrimaryIndex     Index
 	SecondaryIndexes []Index
