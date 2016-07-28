@@ -99,6 +99,26 @@ var diffTests = []DiffTest{
 	},
 	{
 		From: Table{
+			Name:      "TestTable",
+			RowFormat: "DYNAMIC",
+		},
+		To: Table{
+			Name:      "TestTable",
+			RowFormat: "FIXED",
+		},
+		Expected: []Diff{
+			Diff{
+				Table:    "TestTable",
+				Op:       Mod,
+				Property: "RowFormat",
+				Value:    "FIXED",
+			},
+		},
+		ExpectFail:  false,
+		Description: "Table Field Diff: RowFormat",
+	},
+	{
+		From: Table{
 			Name:    "TestTable",
 			CharSet: "latin1",
 		},
