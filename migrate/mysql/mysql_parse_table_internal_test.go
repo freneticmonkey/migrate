@@ -109,6 +109,57 @@ var parseCreateTableTests = []SQLParseCTTest{
 
 	{
 		CTStatement: []string{
+			"CREATE TABLE `test` (",
+			"`id` int(11) NOT NULL AUTO_INCREMENT, ",
+			"PRIMARY KEY (`id`), ",
+			") ENGINE=InnoDB AUTO_INCREMENT=1234 ROW_FORMAT=DYNAMIC DEFAULT CHARSET=latin1",
+		},
+		Expected: table.Table{
+			Name:      "test",
+			Engine:    "InnoDB",
+			CharSet:   "latin1",
+			AutoInc:   1234,
+			RowFormat: "DYNAMIC",
+			Columns: []table.Column{
+				{
+					Name:    "id",
+					Type:    "int",
+					Size:    []int{11},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						Name:   "id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			PrimaryIndex: table.Index{
+				Name: "PrimaryKey",
+				Columns: []table.IndexColumn{
+					{
+						Name: "id",
+					},
+				},
+				IsPrimary: true,
+				Metadata: metadata.Metadata{
+					Name:   "PrimaryKey",
+					Type:   "PrimaryKey",
+					Exists: true,
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "test",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: All Table Options",
+	},
+
+	{
+		CTStatement: []string{
 			"CREATE TABLE `devicetierparameter` (",
 			"`parameter_id` int(11) NOT NULL AUTO_INCREMENT,",
 			"`game_id` int(11) NOT NULL,",

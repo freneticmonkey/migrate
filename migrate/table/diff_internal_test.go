@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/freneticmonkey/migrate/migrate/metadata"
-	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
@@ -766,7 +765,7 @@ var diffTests = []DiffTest{
 		From: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []table.IndexColumn{
+				Columns: []IndexColumn{
 					{
 						Name: "address",
 					},
@@ -784,7 +783,7 @@ var diffTests = []DiffTest{
 		To: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []table.IndexColumn{
+				Columns: []IndexColumn{
 					{
 						Name: "address",
 					},
@@ -808,7 +807,7 @@ var diffTests = []DiffTest{
 		From: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []table.IndexColumn{
+				Columns: []IndexColumn{
 					{
 						Name: "address",
 					},
@@ -826,7 +825,7 @@ var diffTests = []DiffTest{
 		To: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
-				Columns: []table.IndexColumn{
+				Columns: []IndexColumn{
 					{
 						Name: "address",
 					},
@@ -846,7 +845,7 @@ var diffTests = []DiffTest{
 				Property: "Columns",
 				Value: DiffPair{
 					From: Index{
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -861,7 +860,7 @@ var diffTests = []DiffTest{
 						},
 					},
 					To: Index{
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -891,7 +890,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -913,7 +912,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -941,7 +940,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -960,7 +959,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_address",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -983,7 +982,7 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -997,7 +996,7 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_address",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -1025,7 +1024,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -1047,7 +1046,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -1070,7 +1069,7 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -1087,7 +1086,7 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -1115,7 +1114,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -1134,7 +1133,7 @@ var diffTests = []DiffTest{
 				Index{
 					ID:   "sc1",
 					Name: "idx_test",
-					Columns: []table.IndexColumn{
+					Columns: []IndexColumn{
 						{
 							Name: "address",
 						},
@@ -1157,7 +1156,7 @@ var diffTests = []DiffTest{
 					From: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},
@@ -1171,7 +1170,7 @@ var diffTests = []DiffTest{
 					To: Index{
 						ID:   "sc1",
 						Name: "idx_test",
-						Columns: []table.IndexColumn{
+						Columns: []IndexColumn{
 							{
 								Name: "address",
 							},

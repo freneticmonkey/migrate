@@ -103,10 +103,15 @@ func (sb StatementBuilder) Format() string {
 // generateCreateTable Generate a MySQL CREATE TABLE statement from a
 // Table struct
 func generateCreateTable(tbl table.Table) (operation SQLOperation) {
+	var builder StatementBuilder
 
 	operation.Op = table.Add
 
-	tableTemplate := "CREATE TABLE `%s` (%s%s) ENGINE=%s%s DEFAULT CHARSET=%s;"
+	// tableTemplate := "CREATE TABLE `%s` (%s%s) ENGINE=%s%s DEFAULT CHARSET=%s;"
+
+	// Setup Statement
+	builder.Add("CREATE TABLE")
+	builder.AddQuote(tbl.Name)
 
 	columns := []string{}
 	isAutoInc := false
@@ -135,13 +140,24 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 		strIndexes = ", " + strings.Join(indexes, ",")
 	}
 
-	autoInc := ""
+	// Add Columns and Indexes
+	builder.Add(fmt.Sprintf("(%s%s)", strings.Join(columns, ","), strIndexes))
+
+	// Add Table Options
+	builder.AddFormat("ENGINE=%s", tbl.Engine)
+
 	// If AUTO_INCREMENT is being used and it has a non-zero value
 	if isAutoInc && tbl.AutoInc > 0 {
-		autoInc = fmt.Sprintf(" AUTO_INCREMENT=%d", tbl.AutoInc)
+		builder.AddFormat("AUTO_INCREMENT=%d", tbl.AutoInc)
 	}
 
-	operation.Statement = fmt.Sprintf(tableTemplate, tbl.Name, strings.Join(columns, ","), strIndexes, tbl.Engine, autoInc, tbl.CharSet)
+	if len(tbl.RowFormat) > 0 {
+		builder.AddFormat("ROWFORMAT=%s", tbl.RowFormat)
+	}
+
+	builder.AddFormat("DEFAULT CHARSET=%s;", tbl.CharSet)
+
+	operation.Statement = builder.Format()
 	operation.Metadata = tbl.Metadata
 	return operation
 }

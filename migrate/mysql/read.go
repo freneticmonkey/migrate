@@ -26,6 +26,7 @@ const (
 	AUTO_INCREMENT  = "AUTO_INCREMENT"
 	ENGINE          = "ENGINE"
 	DEFAULT_CHARSET = "DEFAULT CHARSET"
+	ROW_FORMAT      = "ROW_FORMAT"
 )
 
 var Schema table.Tables
@@ -147,6 +148,7 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	var engine string
 	var autoinc int64
 	var charset string
+	var rowFormat string
 
 	var hasMetadata bool
 	var md metadata.Metadata
@@ -200,6 +202,15 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 		}
 	}
 
+	// extract ROW_FORMAT and value
+	if hasParameter(lastLine, ROW_FORMAT) {
+		// extract ROW_FORMAT and value
+		rowFormat, err = extractParameter(lastLine, ROW_FORMAT)
+		if util.ErrorCheckf(err, "Error Parsing ROW_FORMAT") {
+			return parseError("Malformed ROW_FORMAT definition")
+		}
+	}
+
 	// Get Metadata for the table
 	hasMetadata, err = metadata.TableRegistered(name)
 
@@ -226,6 +237,7 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 	tbl.Engine = engine
 	tbl.AutoInc = autoinc
 	tbl.CharSet = charset
+	tbl.RowFormat = rowFormat
 	tbl.Filename = "DB"
 
 	return err

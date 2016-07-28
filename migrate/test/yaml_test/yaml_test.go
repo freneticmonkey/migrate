@@ -13,29 +13,33 @@ var tblPropertyID = "testtbl"
 var tblName = "test"
 
 type ParseTest struct {
-	Str        string      // Column definition to parse
-	Expected   interface{} // Expected Column defintion
-	ExpectFail bool
+	Str         string      // Column definition to parse
+	Expected    interface{} // Expected Column defintion
+	ExpectFail  bool
+	Description string
 }
 
 var yamlTests = []ParseTest{
 	// Test Table struct parsing
 	{
 		Str: `
-        name:     test
-        charset:  latin1
-        engine:   InnoDB
-        id:       tbl1
-        autoinc:  1234
+        name:      test
+        charset:   latin1
+        engine:    InnoDB
+        id:        tbl1
+        autoinc:   1234
+        rowformat: DYNAMIC
         `,
 		Expected: table.Table{
-			Name:    "test",
-			CharSet: "latin1",
-			Engine:  "InnoDB",
-			ID:      "tbl1",
-			AutoInc: 1234,
+			Name:      "test",
+			CharSet:   "latin1",
+			Engine:    "InnoDB",
+			ID:        "tbl1",
+			AutoInc:   1234,
+			RowFormat: "DYNAMIC",
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: Table Options",
 	},
 	// Column Parsing
 	// Single Column
@@ -60,7 +64,8 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: Basic Column",
 	},
 	// Multi-Column
 	{
@@ -98,7 +103,8 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: Multi Column",
 	},
 	// PrimaryKey Parsing
 	{
@@ -120,7 +126,8 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: PrimaryIndex",
 	},
 	// Index Parsing
 	{
@@ -144,7 +151,8 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: Secondary Index Basic",
 	},
 	{
 		Str: `
@@ -171,7 +179,8 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: SecondaryIndexes multi column",
 	},
 
 	{
@@ -201,27 +210,25 @@ var yamlTests = []ParseTest{
 				},
 			},
 		},
-		ExpectFail: false,
+		ExpectFail:  false,
+		Description: "YAML Parse: SecondaryIndexes multi column with partial index",
 	},
 }
 
-func validateResult(test ParseTest, result interface{}, err error, desc string, t *testing.T) {
+func validateResult(test ParseTest, result interface{}, err error, t *testing.T) {
 
 	if !test.ExpectFail && err != nil {
-		t.Errorf("%s Failed for column: '%s' with Error: '%s'", desc, test.Str, err)
+		t.Errorf("%s Failed for column: '%s' with Error: '%s'", test.Description, test.Str, err)
 
 	} else if !test.ExpectFail && err == nil {
 
 		if !reflect.DeepEqual(result, test.Expected) {
-			t.Errorf("%s Failed. Return object differs from expected object.", desc)
-			util.LogAttentionf("%s Failed. Return object differs from expected object.", desc)
-			util.LogWarn("Expected")
-			util.DebugDump(test.Expected)
-			util.LogWarn("Result")
-			util.DebugDump(result)
+			t.Errorf("%s Failed. Return object differs from expected object.", test.Description)
+			util.LogAttentionf("%s Failed. Return object differs from expected object.", test.Description)
+			util.DebugDumpDiff(test.Expected, result)
 		}
 	} else if test.ExpectFail && err == nil {
-		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", desc, test.Str)
+		t.Errorf("%s Succeeded and it should have FAILED! Test String: '%s'", test.Description, test.Str)
 	}
 	// else Successfully failed :)
 }
@@ -235,7 +242,7 @@ func TestYAMLParse(t *testing.T) {
 
 		result, err = yaml.ReadYAML(test.Str, "unittest")
 
-		validateResult(test, result, err, "YAML Column Parse", t)
+		validateResult(test, result, err, t)
 	}
 
 }

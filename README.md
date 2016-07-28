@@ -41,6 +41,9 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 - [x] Support local Git Schema changes (Avoiding Git Clone wiping any uncommitted changes from schema)
 - [x] Load Config via URL
 - [x] Add environment setting support
+- [x] DEFAULT values support
+- [x] Partial string index support
+- [x] ROW_FORMAT support
 
 # TODO Management
 - [x] Implement tables:
@@ -89,9 +92,9 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 # TODO Tests
 - [x] MySQL Parsing
 - [x] YAML Parsing
-- [ ] Difference Engine
+- [x] Difference Engine
     - [x] Difference detection
-    - [ ] MySQL Statement Generation
+    - [x] MySQL Statement Generation
 - [ ] Create Migration
     - [ ] MySQL Statement Validity
     - [ ] Git validation

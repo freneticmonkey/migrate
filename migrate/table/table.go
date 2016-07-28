@@ -146,6 +146,7 @@ type Table struct {
 	Engine           string
 	AutoInc          int64 `yaml:",omitempty"`
 	CharSet          string
+	RowFormat        string `yaml:",omitempty"`
 	Columns          []Column
 	PrimaryIndex     Index
 	SecondaryIndexes []Index
