@@ -31,7 +31,7 @@ func GetCreateCommand() (setup cli.Command) {
 			},
 			cli.BoolFlag{
 				Name:  "rollback",
-				Usage: "Allows for a rollback to be created",
+				Usage: "Force a rollback (backward) migration to be created",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
