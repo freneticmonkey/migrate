@@ -229,6 +229,23 @@ var colTests = []ParseTest{
 		ExpectFail: false,
 	},
 
+	{
+		Str: "`count` int(11) AUTO_INCREMENT",
+		Expected: table.Column{
+			Name:     "count",
+			Type:     "int",
+			Size:     []int{11},
+			Nullable: true,
+			AutoInc:  true,
+			Metadata: metadata.Metadata{
+				Name:   "count",
+				Type:   "Column",
+				Exists: true,
+			},
+		},
+		ExpectFail: false,
+	},
+
 	// Test malformed sql parse fails
 	{
 		Str:        "`age` NOT NULL",

@@ -97,6 +97,211 @@ var parseCreateTableTests = []SQLParseCTTest{
 		ExpectFail:  false,
 		Description: "Create Table: Basic Parse",
 	},
+
+	{
+		CTStatement: []string{
+			"CREATE TABLE `devicetierparameter` (",
+			"`parameter_id` int(11) NOT NULL AUTO_INCREMENT,",
+			"`game_id` int(11) NOT NULL,",
+			"`name` varchar(255) NOT NULL,",
+			"`type` int(11) NOT NULL,",
+			"`default_value` varchar(255) NOT NULL,",
+			"`order` int(11) NOT NULL,",
+			"PRIMARY KEY (`parameter_id`),",
+			"UNIQUE KEY `idx_game_id_name` (`game_id`,`name`),",
+			"KEY `idx_game_id_parameter_id` (`game_id`,`parameter_id`)",
+			") ENGINE=InnoDB AUTO_INCREMENT=1014",
+		},
+		Expected: table.Table{
+			Name:    "devicetierparameter",
+			Engine:  "InnoDB",
+			AutoInc: 1014,
+			Columns: []table.Column{
+				{
+					Name:    "parameter_id",
+					Type:    "int",
+					Size:    []int{11},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						Name:   "parameter_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "game_id",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "game_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "name",
+					Type: "varchar",
+					Size: []int{255},
+					Metadata: metadata.Metadata{
+						Name:   "name",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "type",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "type",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "default_value",
+					Type: "varchar",
+					Size: []int{255},
+					Metadata: metadata.Metadata{
+						Name:   "default_value",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "order",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "order",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			PrimaryIndex: table.Index{
+				Name:      "PrimaryKey",
+				Columns:   []string{"parameter_id"},
+				IsPrimary: true,
+				Metadata: metadata.Metadata{
+					Name:   "PrimaryKey",
+					Type:   "PrimaryKey",
+					Exists: true,
+				},
+			},
+			SecondaryIndexes: []table.Index{
+				{
+					Name:     "idx_game_id_name",
+					IsUnique: true,
+					Columns: []string{
+						"game_id",
+						"name",
+					},
+					Metadata: metadata.Metadata{
+						Name:   "idx_game_id_name",
+						Type:   "Index",
+						Exists: true,
+					},
+				},
+				{
+					Name: "idx_game_id_parameter_id",
+					Columns: []string{
+						"game_id",
+						"parameter_id",
+					},
+					Metadata: metadata.Metadata{
+						Name:   "idx_game_id_parameter_id",
+						Type:   "Index",
+						Exists: true,
+					},
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "devicetierparameter",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: Device Tier Parse",
+	},
+
+	{
+		CTStatement: []string{
+			"CREATE TABLE `storeproductfile` (",
+			"`file_id` int(11) NOT NULL AUTO_INCREMENT,",
+			"`game_id` int(11) NOT NULL,",
+			"`file` longblob NOT NULL,",
+			"`order` int(11) NOT NULL,",
+			"PRIMARY KEY (`file_id`)",
+			") ENGINE=InnoDB",
+		},
+		Expected: table.Table{
+			Name:   "storeproductfile",
+			Engine: "InnoDB",
+			Columns: []table.Column{
+				{
+					Name:    "file_id",
+					Type:    "int",
+					Size:    []int{11},
+					AutoInc: true,
+					Metadata: metadata.Metadata{
+						Name:   "file_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "game_id",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "game_id",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "file",
+					Type: "longblob",
+					Metadata: metadata.Metadata{
+						Name:   "file",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				{
+					Name: "order",
+					Type: "int",
+					Size: []int{11},
+					Metadata: metadata.Metadata{
+						Name:   "order",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+			PrimaryIndex: table.Index{
+				Name:      "PrimaryKey",
+				Columns:   []string{"file_id"},
+				IsPrimary: true,
+				Metadata: metadata.Metadata{
+					Name:   "PrimaryKey",
+					Type:   "PrimaryKey",
+					Exists: true,
+				},
+			},
+			Filename: "DB",
+			Metadata: metadata.Metadata{
+				Name:   "storeproductfile",
+				Type:   "Table",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Create Table: StoreProducts Parse",
+	},
 }
 
 var mockDb *sql.DB
@@ -157,11 +362,21 @@ func TestParseCreateTable(t *testing.T) {
 				t.Errorf("Metadata was not queried for table name:%s Error: %s", test.Expected.Name, err)
 			}
 
-			t.Errorf("%s FAILED.", test.Description)
+			context := ""
 			if err != nil {
 				util.LogWarnf("%s FAILED with error: %v", test.Description, err)
+				context = "Errors while parsing CREATE TABLE statement"
+			} else {
+				util.LogWarnf("%s FAILED.", test.Description)
+				context = "Parsed Table doesn't match"
+				util.DebugDumpDiff(test.Expected, result)
+				// util.LogAttention("Expected")
+				// util.DebugDump(test.Expected)
+				// util.LogWarn("Result")
+				// util.DebugDump(result)
 			}
-			util.LogWarnf("%s FAILED.", test.Description)
+
+			t.Errorf("%s FAILED. %s", test.Description, context)
 
 		}
 	}

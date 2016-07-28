@@ -329,7 +329,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 
 	// NOT NULL by default
 	nullable := false
-	autoinc := false
+	autoinc := true
 	defaultValue := ""
 
 	// If NOT NULL is not present
@@ -472,13 +472,19 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 }
 
 func buildIndex(key string, tblPropertyID string, tblName string) (index table.Index, err error) {
-	// Format: KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
+	// Format: [UNIQUE] KEY `<NAME>` (`<COLUMN_1>`,`<COLUMN_2>`)
 
 	var hasMetadata bool
 	var md metadata.Metadata
 
-	if !strings.HasPrefix(key, "KEY") {
+	if !strings.HasPrefix(key, "KEY") && !strings.HasPrefix(key, "UNIQUE KEY") {
 		return index, parseError(fmt.Sprintf("Invalid Index Definition: Invalid KEY type: [%s]", key))
+	}
+
+	if strings.HasPrefix(key, "UNIQUE KEY") {
+		index.IsUnique = true
+		// Remove UNIQUE Prefix
+		key = strings.TrimLeft(key, "UNIQUE ")
 	}
 
 	// Remove KEY Prefix
@@ -559,7 +565,7 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 		if strings.HasPrefix(line, "PRIMARY KEY") {
 			pk = line
 
-		} else if strings.HasPrefix(line, "KEY") {
+		} else if strings.HasPrefix(line, "KEY") || strings.HasPrefix(line, "UNIQUE KEY") {
 			secondaryKeys = append(secondaryKeys, line)
 
 		} else if strings.HasPrefix(line, "`") {
