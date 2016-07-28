@@ -15,7 +15,7 @@ func GetValidateCommand() (setup cli.Command) {
 	bothType := "both"
 	setup = cli.Command{
 		Name:  "validate",
-		Usage: "Validate the MySQL target database and the YAML schema.",
+		Usage: "Validate the MySQL target database and the YAML schema can be successfully parsed.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "project",
@@ -30,7 +30,7 @@ func GetValidateCommand() (setup cli.Command) {
 			cli.StringFlag{
 				Name:  "schema-type",
 				Value: bothType,
-				Usage: "The target git version",
+				Usage: "Which schema to validate: yaml, mysql",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
