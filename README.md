@@ -89,7 +89,8 @@ The tool uses the built in Go MySQL database driver for simple operations such a
 
 # TODO TOOLING
 - [x] Hash generation for embedded identifiers
-
+- [ ] Add a dependency check flag to setup which checks env for git and pt-online-schema-change
+- [ ] Add MySQL validation option for validate cli
 
 # TODO Tests
 - [x] MySQL Parsing
