@@ -12,12 +12,12 @@ import (
 func GetExecCommand() (setup cli.Command) {
 	setup = cli.Command{
 		Name:  "exec",
-		Usage: "Migrations created by the create are executed by this subcommand. Migrations are identified by an id.",
+		Usage: "Apply a migration.",
 		Flags: []cli.Flag{
 			cli.IntFlag{
 				Name:  "id",
 				Value: 0,
-				Usage: "The id of the migration to be run",
+				Usage: "The id of the migration to be applied",
 			},
 			cli.BoolFlag{
 				Name:  "dryrun",
