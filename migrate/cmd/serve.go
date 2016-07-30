@@ -35,7 +35,11 @@ func GetServeCommand() (srv cli.Command) {
 			port := ctx.Int("port")
 
 			// Setup the management database and configuration settings
-			configureManagement()
+			_, err = configureManagement()
+
+			if err != nil {
+				return cli.NewExitError("Configuration Load failed.", 1)
+			}
 
 			err = serve.Run(frontend, port)
 

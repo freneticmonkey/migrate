@@ -36,7 +36,11 @@ func GetDiffCommand() (setup cli.Command) {
 			parseGlobalFlags(ctx)
 
 			// Setup the management database and configuration settings
-			configureManagement()
+			conf, err := configureManagement()
+
+			if err != nil {
+				return cli.NewExitError("Configuration Load failed.", 1)
+			}
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("version") {
@@ -51,7 +55,7 @@ func GetDiffCommand() (setup cli.Command) {
 			}
 
 			// Read the YAML files cloned from the repo
-			err := yaml.ReadTables(conf.Options.WorkingPath)
+			err = yaml.ReadTables(conf.Options.WorkingPath)
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Diff failed. Unable to read YAML Tables", 1)
 			}

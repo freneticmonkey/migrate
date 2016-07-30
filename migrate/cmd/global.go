@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var conf config.Config
+// var conf config.Config
 var configURL string
 var configFile string
 
@@ -63,9 +63,7 @@ func parseGlobalFlags(ctx *cli.Context) {
 
 // configureManagement Read the command line parameters,
 // load configuration and setup the mananagement database
-func configureManagement() (err error) {
-	var targetConfig config.Config
-
+func configureManagement() (targetConfig config.Config, err error) {
 	// Load Configuration
 	targetConfig, err = loadConfig(configURL, configFile)
 
@@ -74,7 +72,7 @@ func configureManagement() (err error) {
 		err = setConfig(targetConfig)
 	}
 
-	return err
+	return targetConfig, err
 }
 
 // loadConfig Load a configuration from URL and fallback to filepath if URL is not supplied.
@@ -123,10 +121,10 @@ func loadConfig(configURL, configFile string) (targetConfig config.Config, err e
 func setConfig(targetConfig config.Config) (err error) {
 
 	// Initialise any utility configuration
-	util.Config(conf)
+	util.Config(targetConfig)
 
 	// Configure access to the management DB
-	err = management.Setup(conf)
+	err = management.Setup(targetConfig)
 
 	if util.ErrorCheck(err) {
 		return fmt.Errorf("Unable configure management database. Error: %v", err)

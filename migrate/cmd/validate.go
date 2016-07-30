@@ -38,7 +38,11 @@ func GetValidateCommand() (setup cli.Command) {
 			parseGlobalFlags(ctx)
 
 			// Setup the management database and configuration settings
-			configureManagement()
+			conf, err := configureManagement()
+
+			if err != nil {
+				return cli.NewExitError("Configuration Load failed.", 1)
+			}
 
 			if ctx.IsSet("project") && ctx.IsSet("version") {
 				git.Clone(conf.Project)

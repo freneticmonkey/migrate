@@ -31,13 +31,17 @@ func GetSetupCommand() (setup cli.Command) {
 			if ctx.IsSet("management") {
 
 				// Read configuration and access the management database
-				err := configureManagement()
+				conf, err := configureManagement()
+
+				if err != nil {
+					return cli.NewExitError("Configuration Load failed.", 1)
+				}
 
 				// If the management database access throws an error,
 				// it's because the schema needs to be created
 				if util.ErrorCheck(err) {
 					// Build the schema for the management database
-					management.BuildSchema(&conf)
+					management.BuildSchema(conf)
 
 					return cli.NewExitError("Management Database Setup completed successfully.", 0)
 				}
@@ -50,10 +54,14 @@ func GetSetupCommand() (setup cli.Command) {
 				action := NO
 
 				// Read configuration and access the management database
-				configureManagement()
+				conf, err := configureManagement()
+
+				if err != nil {
+					return cli.NewExitError("Configuration Load failed.", 1)
+				}
 
 				// Read the MySQL Database and generate Tables
-				err := mysql.ReadTables(conf.Project)
+				err = mysql.ReadTables(conf.Project)
 				if util.ErrorCheck(err) {
 					return cli.NewExitError("Setup Existing failed. Unable to read MySQL Tables", 1)
 				}

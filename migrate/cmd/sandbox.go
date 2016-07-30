@@ -42,27 +42,33 @@ func GetSandboxCommand() (setup cli.Command) {
 		},
 		Action: func(ctx *cli.Context) (err error) {
 
+			var conf config.Config
+
 			// Parse global flags
 			parseGlobalFlags(ctx)
 
+			// Setup the management database and configuration settings
+			conf, err = configureManagement()
+
+			if err != nil {
+				return cli.NewExitError("Configuration Load failed.", 1)
+			}
+
 			// Process command line flags
-			return sandboxProcessFlags(ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"))
+			return sandboxProcessFlags(conf, ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"))
 		},
 	}
 	return setup
 }
 
 // sandboxProcessFlags Setup the Sandbox operation
-func sandboxProcessFlags(recreate, migrate, dryrun, force bool) (err error) {
+func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bool) (err error) {
 	var successmsg string
 
 	const YES, NO = "yes", "no"
 	action := NO
 
 	if migrate || recreate {
-
-		// Setup the management database and configuration settings
-		configureManagement()
 
 		if conf.Project.DB.Environment != "SANDBOX" && !force {
 			return cli.NewExitError("Configured database isn't SANDBOX. Halting. If required use the force option.", 1)
