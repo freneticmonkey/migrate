@@ -33,20 +33,34 @@ func tablesExist() bool {
 	return len(dbTables) == len(tables)
 }
 
-// Setup Setup the database access to the Management DB
-func Setup(conf config.Config) (err error) {
+// SetManagementDB Used to set a configured gorp.DbMap so that Unit Tests
+// can control management database access
+func SetManagementDB(db *gorp.DbMap) {
+	mgmtDb = db
+}
+
+func getManagementDB(conf config.Config) *gorp.DbMap {
 	mgmt := conf.Options.Management
 
-	var db *sql.DB
-	db, err = sql.Open("mysql", mgmt.DB.ConnectString())
+	db, err := sql.Open("mysql", mgmt.DB.ConnectString())
 	util.ErrorCheckf(err, "Failed to connect to the management DB")
 
-	mgmtDb = &gorp.DbMap{
+	return &gorp.DbMap{
 		Db: db,
 		Dialect: gorp.MySQLDialect{
 			Engine:   "InnoDB",
 			Encoding: "UTF8",
 		},
+	}
+}
+
+// Setup Setup the database access to the Management DB
+func Setup(conf config.Config) (err error) {
+
+	// If the management DB hasn't already been setup, set it up now
+	// The idea is that Unit Tests can set it up before this function is called.
+	if mgmtDb == nil {
+		mgmtDb = getManagementDB(conf)
 	}
 
 	if !tablesExist() {
@@ -79,20 +93,12 @@ func Setup(conf config.Config) (err error) {
 }
 
 // BuildSchema Create the tables in the management database
-func BuildSchema(conf *config.Config) (err error) {
+func BuildSchema(conf config.Config) (err error) {
 
-	mgmt := conf.Options.Management
-
-	var db *sql.DB
-	db, err = sql.Open("mysql", mgmt.DB.ConnectString())
-	util.ErrorCheckf(err, "Failed to connect to the management DB")
-
-	mgmtDb = &gorp.DbMap{
-		Db: db,
-		Dialect: gorp.MySQLDialect{
-			Engine:   "InnoDB",
-			Encoding: "UTF8",
-		},
+	// If the management DB hasn't already been setup, set it up now
+	// The idea is that Unit Tests can set it up before this function is called.
+	if mgmtDb == nil {
+		mgmtDb = getManagementDB(conf)
 	}
 
 	if !tablesExist() {
