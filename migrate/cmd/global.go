@@ -14,6 +14,8 @@ import (
 )
 
 var conf config.Config
+var configURL string
+var configFile string
 
 // GetGlobalFlags Configures the global flags used by all subcommands
 func GetGlobalFlags() (flags []cli.Flag) {
@@ -21,6 +23,11 @@ func GetGlobalFlags() (flags []cli.Flag) {
 	flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config-url",
+			Value: "",
+			Usage: "URL for remote configuration.  If supplied config-file is ignored.",
+		},
+		cli.StringFlag{
+			Name:  "config-file",
 			Value: "config.yml",
 			Usage: "URL for remote configuration.",
 		},
@@ -33,15 +40,50 @@ func GetGlobalFlags() (flags []cli.Flag) {
 	return flags
 }
 
-func configureManagement(ctx *cli.Context) (err error) {
+func parseGlobalFlags(ctx *cli.Context) {
+	// Verbose output for now
+	verbose := true
 
-	configURL := "config.yml"
+	if ctx.GlobalIsSet("config-file") {
+		configFile = ctx.GlobalString("config-file")
+		util.LogInfof("Detected config-file: %s", configFile)
+	}
 
 	if ctx.GlobalIsSet("config-url") {
 		configURL = ctx.GlobalString("config-url")
 		util.LogInfof("Detected config-url: %s", configURL)
 	}
 
+	if ctx.GlobalIsSet("verbose") {
+		verbose = ctx.GlobalBool("verbose")
+		util.LogInfof("Detected verbose: %t", verbose)
+	}
+	util.SetVerbose(verbose)
+}
+
+// configureManagement Read the command line parameters,
+// load configuration and setup the mananagement database
+func configureManagement() (err error) {
+	var targetConfig config.Config
+
+	// Load Configuration
+	targetConfig, err = loadConfig(configURL, configFile)
+
+	if err == nil {
+		// Set Configuration
+		err = setConfig(targetConfig)
+	}
+
+	return err
+}
+
+// loadConfig Load a configuration from URL and fallback to filepath if URL is not supplied.
+// If the URL fails to return a valid configration an error is returned.
+func loadConfig(configURL, configFile string) (targetConfig config.Config, err error) {
+
+	var configSource string
+
+	// If the ConfigURL is set and it's a http URL
 	if strings.HasPrefix(configURL, "http") {
 		var response *http.Response
 
@@ -57,29 +99,38 @@ func configureManagement(ctx *cli.Context) (err error) {
 
 			if !util.ErrorCheckf(err, "Problem reading the response for the config-url request") {
 				// Unmarshal the YAML config
-				err = yaml.ReadData(data, &conf)
+				err = yaml.ReadData(data, &targetConfig)
+				configSource = configURL
 			}
 		}
 
 	} else {
 		// Assume that it's a local file
-		err = yaml.ReadFile(configURL, &conf)
+		err = yaml.ReadFile(configFile, &targetConfig)
+		configSource = configFile
 	}
 
-	if !util.ErrorCheckf(err, "Configuration read failed for: %s", configURL) {
-		util.LogInfo("Configuration Read Success: " + configURL)
-
-		// Initialise any utility configuration
-		util.Config(conf)
-
-		// Configure access to the management DB
-		err = management.Setup(conf)
-		if util.ErrorCheck(err) {
-			return fmt.Errorf("Unable configure management database")
-		}
-
-	} else {
-		return fmt.Errorf("Unable to read configuration: [%s]", configURL)
+	if util.ErrorCheckf(err, "Configuration read failed for: %s", configSource) {
+		return targetConfig, fmt.Errorf("Unable to read configuration from: [%s]", configSource)
 	}
+
+	util.LogInfo("Successfully read configuration from: " + configSource)
+
+	return targetConfig, err
+}
+
+// setConfig Initialise using the Config parameter
+func setConfig(targetConfig config.Config) (err error) {
+
+	// Initialise any utility configuration
+	util.Config(conf)
+
+	// Configure access to the management DB
+	err = management.Setup(conf)
+
+	if util.ErrorCheck(err) {
+		return fmt.Errorf("Unable configure management database. Error: %v", err)
+	}
+
 	return nil
 }

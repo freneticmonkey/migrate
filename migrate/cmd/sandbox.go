@@ -41,66 +41,72 @@ func GetSandboxCommand() (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
+
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
 			// Process command line flags
-			recreate := ctx.Bool("recreate")
-			migrate := ctx.Bool("migrate")
-			dryrun := ctx.Bool("dryrun")
-			force := ctx.Bool("force")
-			var successmsg string
-
-			const YES, NO = "yes", "no"
-			action := NO
-
-			if migrate || recreate {
-				// Setup the management database and configuration settings
-				configureManagement(ctx)
-
-				if conf.Project.DB.Environment != "SANDBOX" && !force {
-					return cli.NewExitError("Configured database isn't SANDBOX. Halting. If required use the force option.", 1)
-				}
-
-				if migrate {
-					// If performing a migration
-
-					successmsg, err = sandboxAction(&conf, dryrun, false, "Sandbox Migration")
-					if util.ErrorCheck(err) {
-						return cli.NewExitError(err.Error(), 1)
-					}
-					return cli.NewExitError(successmsg, 0)
-
-				}
-
-				// If recreating the sandbox database from scratch
-
-				// If a dryrun, or being forced, don't prompt
-				if dryrun || force {
-					action = YES
-				}
-
-				if action == "" {
-					action, err = util.SelectAction("Are you sure you want to reset your sandbox?", []string{YES, NO})
-					if util.ErrorCheck(err) {
-						return cli.NewExitError("There was a problem confirming the action.", 1)
-					}
-				}
-
-				switch action {
-				case YES:
-					{
-						successmsg, err = sandboxAction(&conf, dryrun, true, "Sandbox Recreation")
-						if util.ErrorCheck(err) {
-							return cli.NewExitError(err.Error(), 1)
-						}
-						return cli.NewExitError(successmsg, 0)
-					}
-				}
-				return cli.NewExitError("Sandbox Recreation cancelled.", 0)
-
-			}
-			return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
+			return sandboxProcessFlags(ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"))
 		},
 	}
 	return setup
+}
+
+// sandboxProcessFlags Setup the Sandbox operation
+func sandboxProcessFlags(recreate, migrate, dryrun, force bool) (err error) {
+	var successmsg string
+
+	const YES, NO = "yes", "no"
+	action := NO
+
+	if migrate || recreate {
+
+		// Setup the management database and configuration settings
+		configureManagement()
+
+		if conf.Project.DB.Environment != "SANDBOX" && !force {
+			return cli.NewExitError("Configured database isn't SANDBOX. Halting. If required use the force option.", 1)
+		}
+
+		if migrate {
+			// If performing a migration
+
+			successmsg, err = sandboxAction(&conf, dryrun, false, "Sandbox Migration")
+			if util.ErrorCheck(err) {
+				return cli.NewExitError(err.Error(), 1)
+			}
+			return cli.NewExitError(successmsg, 0)
+
+		}
+
+		// If recreating the sandbox database from scratch
+
+		// If a dryrun, or being forced, don't prompt
+		if dryrun || force {
+			action = YES
+		}
+
+		if action == "" {
+			action, err = util.SelectAction("Are you sure you want to reset your sandbox?", []string{YES, NO})
+			if util.ErrorCheck(err) {
+				return cli.NewExitError("There was a problem confirming the action.", 1)
+			}
+		}
+
+		switch action {
+		case YES:
+			{
+				successmsg, err = sandboxAction(&conf, dryrun, true, "Sandbox Recreation")
+				if util.ErrorCheck(err) {
+					return cli.NewExitError(err.Error(), 1)
+				}
+				return cli.NewExitError(successmsg, 0)
+			}
+		}
+		return cli.NewExitError("Sandbox Recreation cancelled.", 0)
+
+	}
+	return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
 }
 
 func sandboxAction(conf *config.Config, dryrun bool, recreate bool, actionTitle string) (successmsg string, err error) {
@@ -208,7 +214,7 @@ func createMigration(conf *config.Config, actionTitle string, dryrun bool, forwa
 		// Create a temporary migration.  If there a way we can avoid this?
 		m, err = migration.New(migration.Param{
 			Project: conf.Project.Name,
-			Version: conf.Project.Version,
+			Version: conf.Project.Schema.Version,
 			// Use the current state of the local Git repo (Don't do a git checkout )
 			// Migration Database doesn't need to have any git info in it because this feature is for testing
 			// migrations without having checked them in

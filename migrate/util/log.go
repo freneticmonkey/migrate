@@ -8,6 +8,12 @@ import (
 	"github.com/fatih/color"
 )
 
+var verbose bool
+
+func SetVerbose(v bool) {
+	verbose = v
+}
+
 func LogInfo(info ...interface{}) {
 	color.Set(color.FgWhite)
 	log.Printf("INFO: %s", fmt.Sprintln(info...))
@@ -15,33 +21,43 @@ func LogInfo(info ...interface{}) {
 }
 
 func LogInfof(format string, info ...interface{}) {
-	color.Set(color.FgWhite)
-	log.Printf("INFO: %s", fmt.Sprintf(format, info...))
-	color.Unset()
+	if verbose {
+		color.Set(color.FgWhite)
+		log.Printf("INFO: %s", fmt.Sprintf(format, info...))
+		color.Unset()
+	}
 }
 
 func LogAttention(info ...interface{}) {
-	color.Set(color.FgYellow)
-	log.Printf("INFO: %s", fmt.Sprintln(info...))
-	color.Unset()
+	if verbose {
+		color.Set(color.FgYellow)
+		log.Printf("INFO: %s", fmt.Sprintln(info...))
+		color.Unset()
+	}
 }
 
 func LogAttentionf(format string, info ...interface{}) {
-	color.Set(color.FgYellow)
-	log.Printf("INFO: %s", fmt.Sprintf(format, info...))
-	color.Unset()
+	if verbose {
+		color.Set(color.FgYellow)
+		log.Printf("INFO: %s", fmt.Sprintf(format, info...))
+		color.Unset()
+	}
 }
 
 func LogWarn(warn ...interface{}) {
-	color.Set(color.FgMagenta)
-	log.Printf("WARN: %s", fmt.Sprintln(warn...))
-	color.Unset()
+	if verbose {
+		color.Set(color.FgMagenta)
+		log.Printf("WARN: %s", fmt.Sprintln(warn...))
+		color.Unset()
+	}
 }
 
 func LogWarnf(format string, warn ...interface{}) {
-	color.Set(color.FgMagenta)
-	log.Printf("WARN: %s", fmt.Sprintf(format, warn...))
-	color.Unset()
+	if verbose {
+		color.Set(color.FgMagenta)
+		log.Printf("WARN: %s", fmt.Sprintf(format, warn...))
+		color.Unset()
+	}
 }
 
 func LogError(err ...interface{}) {

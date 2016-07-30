@@ -3,24 +3,24 @@ package config
 import "fmt"
 
 type Config struct {
-	Options
-	Project
+	Options Options
+	Project Project
 }
 
 type Options struct {
 	WorkingPath string
-	Management
+	Management  Management
 }
 
 type Management struct {
-	DB
+	DB DB
 }
 
 type Project struct {
-	Name string
-	DB
-	Schema
-	LocalSchema
+	Name        string
+	DB          DB
+	Schema      Schema
+	LocalSchema LocalSchema
 }
 
 type Schema struct {

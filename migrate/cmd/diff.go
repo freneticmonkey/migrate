@@ -32,12 +32,15 @@ func GetDiffCommand() (setup cli.Command) {
 		},
 		Action: func(ctx *cli.Context) error {
 
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
 			// Setup the management database and configuration settings
-			configureManagement(ctx)
+			configureManagement()
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("version") {
-				conf.Project.Version = ctx.String("version")
+				conf.Project.Schema.Version = ctx.String("version")
 			}
 
 			if ctx.IsSet("project") {

@@ -25,10 +25,13 @@ func GetSetupCommand() (setup cli.Command) {
 		},
 		Action: func(ctx *cli.Context) error {
 
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
 			if ctx.IsSet("management") {
 
 				// Read configuration and access the management database
-				err := configureManagement(ctx)
+				err := configureManagement()
 
 				// If the management database access throws an error,
 				// it's because the schema needs to be created
@@ -47,7 +50,7 @@ func GetSetupCommand() (setup cli.Command) {
 				action := NO
 
 				// Read configuration and access the management database
-				configureManagement(ctx)
+				configureManagement()
 
 				// Read the MySQL Database and generate Tables
 				err := mysql.ReadTables(conf.Project)

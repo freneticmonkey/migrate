@@ -34,9 +34,11 @@ func GetValidateCommand() (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+			// Parse global flags
+			parseGlobalFlags(ctx)
 
 			// Setup the management database and configuration settings
-			configureManagement(ctx)
+			configureManagement()
 
 			if ctx.IsSet("project") && ctx.IsSet("version") {
 				git.Clone(conf.Project)

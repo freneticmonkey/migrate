@@ -26,13 +26,16 @@ func GetServeCommand() (srv cli.Command) {
 		Action: func(ctx *cli.Context) (err error) {
 			// Process command line flags
 
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
 			// frontend by default
 			frontend := ctx.IsSet("frontend")
 
 			port := ctx.Int("port")
 
 			// Setup the management database and configuration settings
-			configureManagement(ctx)
+			configureManagement()
 
 			err = serve.Run(frontend, port)
 

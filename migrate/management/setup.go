@@ -35,7 +35,7 @@ func tablesExist() bool {
 
 // Setup Setup the database access to the Management DB
 func Setup(conf config.Config) (err error) {
-	mgmt := conf.Management
+	mgmt := conf.Options.Management
 
 	var db *sql.DB
 	db, err = sql.Open("mysql", mgmt.DB.ConnectString())
@@ -81,7 +81,7 @@ func Setup(conf config.Config) (err error) {
 // BuildSchema Create the tables in the management database
 func BuildSchema(conf *config.Config) (err error) {
 
-	mgmt := conf.Management
+	mgmt := conf.Options.Management
 
 	var db *sql.DB
 	db, err = sql.Open("mysql", mgmt.DB.ConnectString())

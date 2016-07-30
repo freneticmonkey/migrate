@@ -40,8 +40,11 @@ func GetCreateCommand() (setup cli.Command) {
 			var info string
 			rollback := false
 
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
 			// Setup the management database and configuration settings
-			configureManagement(ctx)
+			configureManagement()
 
 			// Override the project settings with the command line flags
 			if ctx.IsSet("project") {
@@ -49,13 +52,13 @@ func GetCreateCommand() (setup cli.Command) {
 			}
 
 			if ctx.IsSet("version") {
-				conf.Project.Version = ctx.String("version")
+				conf.Project.Schema.Version = ctx.String("version")
 			}
 
 			// if the version hasn't been defined
 			if len(conf.Project.Name) == 0 {
 				return cli.NewExitError("Creation failed.  Unable to generate a migration as no project was defined", 1)
-			} else if len(conf.Project.Version) == 0 {
+			} else if len(conf.Project.Schema.Version) == 0 {
 				return cli.NewExitError("Creation failed.  Unable to generate a migration as no version was defined to migrate to", 1)
 			} else {
 				git.Clone(conf.Project)
@@ -87,18 +90,18 @@ func GetCreateCommand() (setup cli.Command) {
 			backwardDiff := table.DiffTables(mysql.Schema, yaml.Schema)
 			backwardOps := mysql.GenerateAlters(backwardDiff)
 
-			ts, err = git.GetVersionTime(conf.Project.Name, conf.Project.Version)
+			ts, err = git.GetVersionTime(conf.Project.Name, conf.Project.Schema.Version)
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Create failed. Unable to obtain Version Timestamp from Git checkout", 1)
 			}
-			info, err = git.GetVersionDetails(conf.Project.Name, conf.Project.Version)
+			info, err = git.GetVersionDetails(conf.Project.Name, conf.Project.Schema.Version)
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Create failed. Unable to obtain Version Details from Git checkout", 1)
 			}
 
 			m, err := migration.New(migration.Param{
 				Project:     conf.Project.Name,
-				Version:     conf.Project.Version,
+				Version:     conf.Project.Schema.Version,
 				Timestamp:   ts,
 				Description: info,
 				Forwards:    forwardOps,
