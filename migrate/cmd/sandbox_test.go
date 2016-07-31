@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,20 +14,18 @@ import (
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"github.com/freneticmonkey/migrate/migrate/config"
-	"github.com/freneticmonkey/migrate/migrate/management"
+	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/util"
 )
 
-var mockDb *sql.DB
-var mock sqlmock.Sqlmock
-
-// Configure Gorp with Mock DB
-func dbSetup() (gdb *gorp.DbMap, err error) {
+// createMockDB Configure Gorp with Mock DB
+func createMockDB() (gdb *gorp.DbMap, mock sqlmock.Sqlmock, err error) {
+	var mockDb *sql.DB
 
 	mockDb, mock, err = sqlmock.New()
 
 	if err != nil {
-		return nil, err
+		return nil, mock, err
 	}
 
 	gdb = &gorp.DbMap{
@@ -37,11 +36,45 @@ func dbSetup() (gdb *gorp.DbMap, err error) {
 		},
 	}
 
-	return gdb, err
+	return gdb, mock, err
 }
 
-func dbTearDown() {
-	mockDb.Close()
+const (
+	ExecCmd = iota
+	QueryCmd
+)
+
+type DBQueryMock struct {
+	Type    int
+	Query   string
+	Args    []interface{}
+	Columns []string
+	Rows    [][]driver.Value
+	Result  driver.Result
+}
+
+func (dbq *DBQueryMock) SetArgs(args ...interface{}) {
+	dbq.Args = args
+}
+
+func expectDB(mockDb sqlmock.Sqlmock, query DBQueryMock) {
+	var builtQuery string
+	builtQuery = regexp.QuoteMeta(fmt.Sprintf(query.Query, query.Args...))
+
+	switch query.Type {
+	case ExecCmd:
+		mockDb.ExpectExec(builtQuery).
+			WithArgs().
+			WillReturnResult(query.Result)
+	case QueryCmd:
+
+		rows := sqlmock.NewRows(query.Columns)
+		for _, r := range query.Rows {
+			rows.AddRow(r...)
+		}
+
+		mockDb.ExpectQuery(builtQuery).WillReturnRows(rows)
+	}
 }
 
 func DisableTestConfigReadURL(t *testing.T) {
@@ -113,91 +146,152 @@ func DisableTestConfigReadURL(t *testing.T) {
 	}
 }
 
-func TestRefreshDatabase(t *testing.T) {
-	util.SetVerbose(true)
-	// Test Configuration
+func TestRecreateProjectDatabase(t *testing.T) {
+	var pdb *gorp.DbMap
+	var projectMock sqlmock.Sqlmock
 
+	var err error
+
+	// Test Configuration
 	testConfig := config.Config{
 		Project: config.Project{
-			Name: "animals",
 			DB: config.DB{
-				Username:    "root",
-				Password:    "test",
-				Ip:          "127.0.0.1",
-				Port:        3500,
-				Database:    "test",
-				Environment: "SANDBOX",
+				Database: "test",
 			},
 		},
 	}
 
-	// Configure the management gorp DB
-
-	mdb, err := dbSetup()
+	// Setup the mock project database
+	pdb, projectMock, err = createMockDB()
 
 	if err != nil {
-		t.Errorf("Test Refresh Database: Setup Management DB Failed with Error: %v", err)
+		t.Errorf("Test Recreate Project Database: Setup Project DB Failed with Error: %v", err)
 	} else {
-		management.SetManagementDB(mdb)
+		// Connect to Project DB
+		exec.SetProjectDB(pdb)
 	}
 
-	// TODO: Add mock db expect table 'database' accesses here.
+	// Configure expected project database refresh queries
+	query := DBQueryMock{
+		Type:   ExecCmd,
+		Query:  "DROP DATABASE `%s`",
+		Result: sqlmock.NewResult(0, 0),
+	}
+	query.SetArgs(testConfig.Project.DB.Database)
 
-	mock.ExpectQuery("SHOW TABLES IN management").
-		WillReturnRows(sqlmock.NewRows([]string{
-			"tables",
-		}).
-			AddRow("metadata").
-			AddRow("migration").
-			AddRow("migration_steps").
-			AddRow("target_database"))
+	expectDB(projectMock, query)
 
-	query := fmt.Sprintf("SELECT * FROM target_database WHERE project=\"%s\" AND name=\"%s\" AND env=\"%s\"",
-		testConfig.Project.Name,
-		testConfig.Project.DB.Database,
-		testConfig.Project.DB.Environment,
-	)
-	query = regexp.QuoteMeta(query)
+	// Reuse the query object to define the create database
+	query.Query = "CREATE DATABASE `%s`"
+	expectDB(projectMock, query)
 
-	mock.ExpectQuery(query).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"dbid",
-			"project",
-			"name",
-			"env",
-		}).AddRow(
-			1,
-			testConfig.Project.Name,
-			testConfig.Project.DB.Database,
-			testConfig.Project.DB.Environment,
-		))
+	// Execute the recreation!
 
-	// Configure management
-	setConfig(testConfig)
+	recreateProjectDatabase(&testConfig, false)
 
-	// Reset/recreate management database?
-
-	// TODO: Add mock db expect database recreation statements here.
-
-	// Setup expected database operations
-
-	query = "select count(*) from migration"
-	query = regexp.QuoteMeta(query)
-	mock.ExpectQuery(query).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"count",
-		}).AddRow(
-			0,
-		))
-
-	// Execute the migration
-	err = sandboxProcessFlags(testConfig, true, false, false, true)
-
-	if err != nil {
-		t.Errorf("Sandbox Refresh FAILED with Error: %v", err)
+	if err = projectMock.ExpectationsWereMet(); err != nil {
+		t.Errorf("Test Recreate Database: Project DB queries failed expectations. Error: %s", err)
 	}
 
-	// Verify database operations
+}
+
+func TestRefreshDatabase(t *testing.T) {
+
+	// var mdb *gorp.DbMap
+	// var mgmtMock sqlmock.Sqlmock
+	//
+	// var pdb *gorp.DbMap
+	// var projectMock sqlmock.Sqlmock
+	//
+	// var err error
+	//
+	// // Useful for unit tests
+	// util.SetVerbose(true)
+	//
+	// // Test Configuration
+	// testConfig := config.Config{
+	// 	Project: config.Project{
+	// 		Name: "animals",
+	// 		DB: config.DB{
+	// 			Username:    "root",
+	// 			Password:    "test",
+	// 			Ip:          "127.0.0.1",
+	// 			Port:        3500,
+	// 			Database:    "test",
+	// 			Environment: "SANDBOX",
+	// 		},
+	// 	},
+	// }
+	//
+	// // Configure the management gorp DB
+	// mdb, mgmtMock, err = createMockDB()
+	//
+	// if err != nil {
+	// 	t.Errorf("Test Refresh Database: Setup Management DB Failed with Error: %v", err)
+	// } else {
+	// 	management.SetManagementDB(mdb)
+	// }
+	//
+	// // Add mock db expect table 'database' accesses here.
+	//
+	// mgmtMock.ExpectQuery("SHOW TABLES IN management").
+	// 	WillReturnRows(sqlmock.NewRows([]string{
+	// 		"tables",
+	// 	}).
+	// 		AddRow("metadata").
+	// 		AddRow("migration").
+	// 		AddRow("migration_steps").
+	// 		AddRow("target_database"))
+	//
+	// query := fmt.Sprintf("SELECT * FROM target_database WHERE project=\"%s\" AND name=\"%s\" AND env=\"%s\"",
+	// 	testConfig.Project.Name,
+	// 	testConfig.Project.DB.Database,
+	// 	testConfig.Project.DB.Environment,
+	// )
+	// query = regexp.QuoteMeta(query)
+	//
+	// mgmtMock.ExpectQuery(query).
+	// 	WillReturnRows(sqlmock.NewRows([]string{
+	// 		"dbid",
+	// 		"project",
+	// 		"name",
+	// 		"env",
+	// 	}).AddRow(
+	// 		1,
+	// 		testConfig.Project.Name,
+	// 		testConfig.Project.DB.Database,
+	// 		testConfig.Project.DB.Environment,
+	// 	))
+	//
+	// // Configure management
+	// setConfig(testConfig)
+	//
+	// // Reset/recreate management database?
+	//
+	// // TODO: Add mock db expect management database recreation statements here.
+	//
+	// query = "select count(*) from migration"
+	// query = regexp.QuoteMeta(query)
+	//
+	// mgmtMock.ExpectQuery(query).
+	// 	WillReturnRows(sqlmock.NewRows([]string{
+	// 		"count",
+	// 	}).AddRow(
+	// 		0,
+	// 	))
+	//
+	// // Execute the migration
+	// err = sandboxProcessFlags(testConfig, true, false, false, true)
+	//
+	// if err != nil {
+	// 	t.Errorf("Sandbox Refresh FAILED with Error: %v", err)
+	// }
+	//
+	// // Verify database operations
+	//
+	// if err = mgmtMock.ExpectationsWereMet(); err != nil {
+	// 	t.Errorf("Refresh Database: Management DB access failed. Error: %s", err)
+	// }
 }
 
 func TestNewTableApplyImmediately(t *testing.T) {

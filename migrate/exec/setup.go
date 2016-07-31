@@ -12,6 +12,12 @@ var projectDB *gorp.DbMap
 var projectConnectionDetails string
 var projectDBID int
 
+// SetProjectDB Used to set a configured gorp.DbMap so that Unit Tests
+// can control project database access
+func SetProjectDB(pdb *gorp.DbMap) {
+	projectDB = pdb
+}
+
 // Setup Setup the migration tables in the management DB
 func Setup(db *gorp.DbMap, projectDatabaseID int, projectConnDetails string) {
 	mgmtDb = db
