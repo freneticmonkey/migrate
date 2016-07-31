@@ -77,7 +77,7 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bo
 		if migrate {
 			// If performing a migration
 
-			successmsg, err = sandboxAction(&conf, dryrun, false, "Sandbox Migration")
+			successmsg, err = sandboxAction(conf, dryrun, false, "Sandbox Migration")
 			if util.ErrorCheck(err) {
 				return cli.NewExitError(err.Error(), 1)
 			}
@@ -102,7 +102,7 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bo
 		switch action {
 		case YES:
 			{
-				successmsg, err = sandboxAction(&conf, dryrun, true, "Sandbox Recreation")
+				successmsg, err = sandboxAction(conf, dryrun, true, "Sandbox Recreation")
 				if util.ErrorCheck(err) {
 					return cli.NewExitError(err.Error(), 1)
 				}
@@ -115,7 +115,7 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bo
 	return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
 }
 
-func sandboxAction(conf *config.Config, dryrun bool, recreate bool, actionTitle string) (successmsg string, err error) {
+func sandboxAction(conf config.Config, dryrun bool, recreate bool, actionTitle string) (successmsg string, err error) {
 	util.LogInfo(actionTitle)
 
 	// Kick off a migration to recreate the db
@@ -173,7 +173,7 @@ func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (er
 	return err
 }
 
-func diffSchema(conf *config.Config, actionTitle string, recreate bool) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
+func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
 
 	// Read the YAML schema
 	err = yaml.ReadTables(conf.Project.LocalSchema.Path)
@@ -190,7 +190,8 @@ func diffSchema(conf *config.Config, actionTitle string, recreate bool) (forward
 		}
 
 		// Read the MySQL tables from the target database
-		err = mysql.ReadTables(conf.Project)
+		mysql.Setup(conf)
+		err = mysql.ReadTables()
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. Unable to read MySQL Tables", actionTitle)
 		}
@@ -215,7 +216,7 @@ func diffSchema(conf *config.Config, actionTitle string, recreate bool) (forward
 	return forwardOps, backwardOps, err
 }
 
-func createMigration(conf *config.Config, actionTitle string, dryrun bool, forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations) (m migration.Migration, err error) {
+func createMigration(conf config.Config, actionTitle string, dryrun bool, forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations) (m migration.Migration, err error) {
 	if !dryrun {
 		// Create a temporary migration.  If there a way we can avoid this?
 		m, err = migration.New(migration.Param{
@@ -244,7 +245,7 @@ func createMigration(conf *config.Config, actionTitle string, dryrun bool, forwa
 	return m, err
 }
 
-func recreateProjectDatabase(conf *config.Config, dryrun bool) (err error) {
+func recreateProjectDatabase(conf config.Config, dryrun bool) (err error) {
 	var output string
 
 	dropCommand := fmt.Sprintf("DROP DATABASE `%s`", conf.Project.DB.Database)

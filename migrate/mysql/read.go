@@ -9,7 +9,6 @@ import (
 	// Get a MySQL Database Connection
 	"database/sql"
 
-	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/util"
@@ -672,16 +671,30 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 
 // ReadTables Reads the database for the project parameter and parses the
 // show create table result for each into table.Table structs
-func ReadTables(project config.Project) (err error) {
-	con, err := sql.Open("mysql", project.DB.ConnectString())
+func ReadTables() (err error) {
 
-	util.ErrorCheckf(err, "Problem opening connection to target database")
+	type CreateTable struct {
+		Name            string
+		CreateStatement string
+	}
 
-	if con != nil {
-		util.LogInfo("DB Connection Success!")
+	var rows *sql.Rows
+	var pdb *sql.DB
+	var tables []CreateTable
+	var tbl table.Table
 
-		var rows *sql.Rows
-		rows, err = con.Query("show tables")
+	// Connect to the Project database
+	pdb, err = connectProjectDB()
+
+	// Ensure that the connection is cleaned up
+	defer pdb.Close()
+	if util.ErrorCheckf(err, "Problem opening connection to target database") {
+		return err
+	}
+
+	// If the Database connection exists
+	if pdb != nil {
+		rows, err = pdb.Query("show tables")
 
 		util.ErrorCheckf(err, "Problem retrieving tables")
 
@@ -690,31 +703,41 @@ func ReadTables(project config.Project) (err error) {
 		for rows.Next() {
 			var name string
 			err = rows.Scan(&name)
-			util.ErrorCheckf(err, "Could not parse name from database tables")
+			if util.ErrorCheckf(err, "Could not parse name from database tables") {
+				return err
+			}
+			tables = append(tables, CreateTable{name, ""})
+		}
 
-			// Extract the Create Tables
-			var row *sql.Rows
-			row, err = con.Query("show create table " + name)
-			util.ErrorCheckf(err, "Could not execute show create tables for: "+name)
+		// Extract the Create Table Statements
+		for i, ct := range tables {
+			rows, err = pdb.Query("show create table " + ct.Name)
+			if util.ErrorCheckf(err, "Could not execute show create tables for: "+ct.Name) {
+				return err
+			}
 
-			defer row.Close()
-
-			for row.Next() {
+			for rows.Next() {
+				var name string
 				var create string
-				var tbl table.Table
 
-				err = row.Scan(&name, &create)
-				util.ErrorCheck(err)
-
-				tbl, err = ParseCreateTable(create)
-				if !util.ErrorCheck(err) {
-					Schema = append(Schema, tbl)
+				err = rows.Scan(&name, &create)
+				if util.ErrorCheck(err) {
+					return err
 				}
+				tables[i].CreateStatement = create
+
 			}
 		}
-	}
 
-	util.LogInfo("DB Processing Finished")
+		// Process the Create Table Statements into Tables
+		for _, ct := range tables {
+			tbl, err = ParseCreateTable(ct.CreateStatement)
+			if util.ErrorCheck(err) {
+				return err
+			}
+			Schema = append(Schema, tbl)
+		}
+	}
 
 	return err
 }

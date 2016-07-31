@@ -68,8 +68,10 @@ func GetValidateCommand() (setup cli.Command) {
 			}
 
 			if schemaType == "mysql" || schemaType == bothType {
+
 				// Read the MySQL tables from the target database
-				err := mysql.ReadTables(conf.Project)
+				mysql.Setup(conf)
+				err := mysql.ReadTables()
 				if util.ErrorCheck(err) {
 					return cli.NewExitError("Validation failed. Unable to read MySQL Tables", 1)
 				}
