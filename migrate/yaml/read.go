@@ -63,6 +63,13 @@ func processMetadata(t *table.Table) {
 // into table.Table structs
 func ReadTables(path string) (err error) {
 
+	// If the path has been defined as ignore, then immediately return without error.
+	// This is intended to be used for unit tests which will manually add Tables to the
+	// YAML Schema.
+	if path == "ignore" {
+		return err
+	}
+
 	// Recursively build a list of YAML schema files
 	err = util.ReadDirRelative(path, "yml", &schemaList)
 

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"database/sql/driver"
+	"strings"
 	"testing"
 
 	"github.com/go-gorp/gorp"
@@ -8,10 +10,266 @@ import (
 
 	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/exec"
+	"github.com/freneticmonkey/migrate/migrate/metadata"
+	"github.com/freneticmonkey/migrate/migrate/mysql"
+	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/test"
+	"github.com/freneticmonkey/migrate/migrate/yaml"
 )
 
 func TestDiffSchema(t *testing.T) {
+	var pdb *gorp.DbMap
+	var projectMock sqlmock.Sqlmock
+	var err error
+
+	// Test Configuration
+	testConfig := config.Config{
+		Project: config.Project{
+			DB: config.DB{
+				Database: "test",
+			},
+			LocalSchema: config.LocalSchema{
+				Path: "ignore",
+			},
+		},
+	}
+
+	// Mock MySQL
+	var dogsTable = []string{
+		"CREATE TABLE `dogs` (",
+		"  `id` int(11) NOT NULL,",
+		"  PRIMARY KEY (`id`),",
+		") ENGINE=InnoDB DEFAULT CHARSET=latin1",
+	}
+	var dogsTableStr = strings.Join(dogsTable, "\n")
+
+	// Mock Table structs
+	dogsTbl := table.Table{
+		Name:    "dogs",
+		Engine:  "InnoDB",
+		CharSet: "latin1",
+		Columns: []table.Column{
+			{
+				Name: "id",
+				Type: "int",
+				Size: []int{11},
+				Metadata: metadata.Metadata{
+					PropertyID: "col1",
+					ParentID:   "tbl1",
+					Name:       "id",
+				},
+			},
+		},
+		PrimaryIndex: table.Index{
+			IsPrimary: true,
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "pi",
+				ParentID:   "tbl1",
+				Name:       "PrimaryKey",
+			},
+		},
+		Metadata: metadata.Metadata{
+			PropertyID: "tbl1",
+			Name:       "dogs",
+		},
+	}
+
+	// Push Dogs table into YAML Schema for Diffing
+	yaml.Schema = append(yaml.Schema, dogsTbl)
+
+	// Setup the mock project database
+	pdb, projectMock, err = test.CreateMockDB()
+
+	if err != nil {
+		t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
+	}
+
+	// Configure the MySQL Read Tables queries
+
+	// SHOW TABLES Query
+	query := test.DBQueryMock{
+		Type:    test.QueryCmd,
+		Query:   "show tables",
+		Columns: []string{"table"},
+		Rows: [][]driver.Value{
+			{
+				dogsTbl.Name,
+			},
+		},
+	}
+
+	test.ExpectDB(projectMock, query)
+
+	// SHOW CREATE TABLE Query
+	query = test.DBQueryMock{
+		Type:    test.QueryCmd,
+		Query:   "show create table dogs",
+		Columns: []string{"name", "create_table"},
+		Rows: [][]driver.Value{
+			{
+				dogsTbl.Name,
+				dogsTableStr,
+			},
+		},
+	}
+
+	test.ExpectDB(projectMock, query)
+
+	// Configure the Mock Managment DB
+
+	mgmtDb, mgmtMock, err := test.CreateMockDB()
+
+	if err != nil {
+		t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
+	}
+
+	query = test.DBQueryMock{
+		Type:    test.QueryCmd,
+		Query:   "SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"",
+		Columns: []string{"count"},
+		Rows:    [][]driver.Value{{1}},
+	}
+	query.SetArgs(dogsTbl.Name)
+
+	test.ExpectDB(mgmtMock, query)
+
+	// Search Metadata for `dogs` table query - MySQL
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{1, 1, "tbl1", "", "Table", "dogs", 1},
+		},
+	}
+	query.SetArgs(dogsTbl.Name)
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{2, 1, "col1", "tbl1", "Column", "id", 1},
+		},
+	}
+	query.SetArgs("id", "tbl1")
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
+	}
+	query.SetArgs("PrimaryKey", "tbl1")
+	test.ExpectDB(mgmtMock, query)
+
+	// Search Metadata for `dogs` table query - YAML
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{1, 1, "tbl1", "", "Table", "dogs", 1},
+		},
+	}
+	query.SetArgs(dogsTbl.Name)
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
+	}
+	query.SetArgs("PrimaryKey", "tbl1")
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:  test.QueryCmd,
+		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Columns: []string{
+			"mdid",
+			"db",
+			"property_id",
+			"parent_id",
+			"type",
+			"name",
+			"exists",
+		},
+		Rows: [][]driver.Value{
+			{2, 1, "col1", "tbl1", "Column", "id", 1},
+		},
+	}
+	query.SetArgs("id", "tbl1")
+	test.ExpectDB(mgmtMock, query)
+
+	// Configure metadata
+	metadata.Setup(mgmtDb, 1)
+
+	// Connect to Project DB
+	mysql.SetProjectDB(pdb.Db)
+
+	// Execute the schema diff
+	diffSchema(testConfig, "Unit Test", false)
+
+	if err = projectMock.ExpectationsWereMet(); err != nil {
+		t.Errorf("TestDiffSchema: Project DB queries failed expectations. Error: %s", err)
+	}
+
+	if err = mgmtMock.ExpectationsWereMet(); err != nil {
+		t.Errorf("TestDiffSchema: Management DB queries failed expectations. Error: %s", err)
+	}
 
 }
 
