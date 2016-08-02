@@ -32,6 +32,8 @@ func GetDiffCommand() (setup cli.Command) {
 		},
 		Action: func(ctx *cli.Context) error {
 
+			var forwardDiff table.Differences
+
 			// Parse global flags
 			parseGlobalFlags(ctx)
 
@@ -75,7 +77,7 @@ func GetDiffCommand() (setup cli.Command) {
 				return cli.NewExitError("Validation failed. Problems with Target Database Detected", problems)
 			}
 
-			forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
+			forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema)
 			mysql.GenerateAlters(forwardDiff)
 
 			completeMessage := "Diff completed successfully."

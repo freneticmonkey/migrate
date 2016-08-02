@@ -89,10 +89,16 @@ func GetCreateCommand() (setup cli.Command) {
 				return cli.NewExitError("Creation failed. Target Database Validation Errors Detected", problems)
 			}
 
-			forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
+			forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema)
+			if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
+				return cli.NewExitError("Create failed. Unable to generate a forward migration", 1)
+			}
 			forwardOps := mysql.GenerateAlters(forwardDiff)
 
-			backwardDiff := table.DiffTables(mysql.Schema, yaml.Schema)
+			backwardDiff, err := table.DiffTables(mysql.Schema, yaml.Schema)
+			if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
+				return cli.NewExitError("Create failed. Unable to generate a backward migration", 1)
+			}
 			backwardOps := mysql.GenerateAlters(backwardDiff)
 
 			ts, err = git.GetVersionTime(conf.Project.Name, conf.Project.Schema.Version)
