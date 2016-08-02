@@ -23,7 +23,7 @@ type Metadata struct {
 func (m *Metadata) Insert() error {
 	m.DB = targetDBID
 	if len(m.PropertyID) == 0 {
-		util.LogError("Inserting empty Metadata")
+		return fmt.Errorf("Inserting empty Metadata")
 	}
 	return mgmtDb.Insert(m)
 }

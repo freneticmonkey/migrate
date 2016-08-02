@@ -226,6 +226,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 
 func createMigration(conf config.Config, actionTitle string, dryrun bool, forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations) (m migration.Migration, err error) {
 	if !dryrun {
+		util.LogInfo(formatMessage(dryrun, "Sandbox Create Migration", "Inserting new Migration into the DB"))
 		// Create a temporary migration.  If there a way we can avoid this?
 		m, err = migration.New(migration.Param{
 			Project: conf.Project.Name,
@@ -242,9 +243,9 @@ func createMigration(conf config.Config, actionTitle string, dryrun bool, forwar
 
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. Unable to create new Migration in the management database", actionTitle)
+		} else {
+			util.LogInfof("%s: Created Migration with ID: %d", actionTitle, m.MID)
 		}
-
-		util.LogInfof("%s: Created Migration with ID: %d", actionTitle, m.MID)
 
 	} else {
 		util.LogInfof("(DRYRUN) Skipping Creating Migration")

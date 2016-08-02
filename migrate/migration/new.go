@@ -90,7 +90,10 @@ func New(p Param) (m Migration, err error) {
 			forward := p.Forwards[i]
 
 			// Insert the metadata
-			forward.Metadata.OnCreate()
+			err = forward.Metadata.OnCreate()
+			if util.ErrorCheckf(err, "Failed to insert Metadata for Migration.") {
+				return m, err
+			}
 
 			step := Step{
 				Forward:  forward.Statement,
@@ -104,11 +107,8 @@ func New(p Param) (m Migration, err error) {
 		}
 		util.LogWarn("Before insert")
 
-		if !p.Sandbox {
-			m.Insert()
-		} else {
-			util.LogWarnf("Sandbox Migration Detected. NOT adding to the database")
-		}
+		m.Insert()
+
 	}
 
 	return m, err

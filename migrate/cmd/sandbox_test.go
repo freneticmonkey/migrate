@@ -11,6 +11,7 @@ import (
 	"github.com/freneticmonkey/migrate/migrate/config"
 	"github.com/freneticmonkey/migrate/migrate/exec"
 	"github.com/freneticmonkey/migrate/migrate/metadata"
+	"github.com/freneticmonkey/migrate/migrate/migration"
 	"github.com/freneticmonkey/migrate/migrate/mysql"
 	"github.com/freneticmonkey/migrate/migrate/table"
 	"github.com/freneticmonkey/migrate/migrate/test"
@@ -130,18 +131,17 @@ func TestDiffSchema(t *testing.T) {
 
 	query = test.DBQueryMock{
 		Type:    test.QueryCmd,
-		Query:   "SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"",
 		Columns: []string{"count"},
 		Rows:    [][]driver.Value{{1}},
 	}
-	query.SetArgs(dogsTbl.Name)
+	query.FormatQuery("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", dogsTbl.Name)
 
 	test.ExpectDB(mgmtMock, query)
 
 	// Search Metadata for `dogs` table query - MySQL
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\"",
+		Type: test.QueryCmd,
+
 		Columns: []string{
 			"mdid",
 			"db",
@@ -155,12 +155,11 @@ func TestDiffSchema(t *testing.T) {
 			{1, 1, "tbl1", "", "Table", "dogs", 1},
 		},
 	}
-	query.SetArgs(dogsTbl.Name)
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\"", dogsTbl.Name)
 	test.ExpectDB(mgmtMock, query)
 
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Type: test.QueryCmd,
 		Columns: []string{
 			"mdid",
 			"db",
@@ -174,12 +173,11 @@ func TestDiffSchema(t *testing.T) {
 			{2, 1, "col1", "tbl1", "Column", "id", 1},
 		},
 	}
-	query.SetArgs("id", "tbl1")
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "id", "tbl1")
 	test.ExpectDB(mgmtMock, query)
 
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Type: test.QueryCmd,
 		Columns: []string{
 			"mdid",
 			"db",
@@ -193,13 +191,12 @@ func TestDiffSchema(t *testing.T) {
 			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
 		},
 	}
-	query.SetArgs("PrimaryKey", "tbl1")
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "PrimaryKey", "tbl1")
 	test.ExpectDB(mgmtMock, query)
 
 	// Search Metadata for `dogs` table query - YAML
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\"",
+		Type: test.QueryCmd,
 		Columns: []string{
 			"mdid",
 			"db",
@@ -213,12 +210,11 @@ func TestDiffSchema(t *testing.T) {
 			{1, 1, "tbl1", "", "Table", "dogs", 1},
 		},
 	}
-	query.SetArgs(dogsTbl.Name)
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\"", dogsTbl.Name)
 	test.ExpectDB(mgmtMock, query)
 
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Type: test.QueryCmd,
 		Columns: []string{
 			"mdid",
 			"db",
@@ -232,12 +228,11 @@ func TestDiffSchema(t *testing.T) {
 			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
 		},
 	}
-	query.SetArgs("PrimaryKey", "tbl1")
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "PrimaryKey", "tbl1")
 	test.ExpectDB(mgmtMock, query)
 
 	query = test.DBQueryMock{
-		Type:  test.QueryCmd,
-		Query: "SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"",
+		Type: test.QueryCmd,
 		Columns: []string{
 			"mdid",
 			"db",
@@ -251,7 +246,7 @@ func TestDiffSchema(t *testing.T) {
 			{2, 1, "col1", "tbl1", "Column", "id", 1},
 		},
 	}
-	query.SetArgs("id", "tbl1")
+	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "id", "tbl1")
 	test.ExpectDB(mgmtMock, query)
 
 	// Configure metadata
@@ -305,15 +300,14 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	// Configure expected project database refresh queries
 	query := test.DBQueryMock{
 		Type:   test.ExecCmd,
-		Query:  "DROP DATABASE `%s`",
 		Result: sqlmock.NewResult(0, 0),
 	}
-	query.SetArgs(testConfig.Project.DB.Database)
+	query.FormatQuery("DROP DATABASE `%s`", testConfig.Project.DB.Database)
 
 	test.ExpectDB(projectMock, query)
 
 	// Reuse the query object to define the create database
-	query.Query = "CREATE DATABASE `%s`"
+	query.FormatQuery("CREATE DATABASE `%s`", testConfig.Project.DB.Database)
 	test.ExpectDB(projectMock, query)
 
 	projectMock.ExpectClose()
@@ -327,6 +321,107 @@ func TestRecreateProjectDatabase(t *testing.T) {
 }
 
 func TestMigrateSandbox(t *testing.T) {
+
+	var mgmtDb *gorp.DbMap
+	var mgmtMock sqlmock.Sqlmock
+	var err error
+
+	var m migration.Migration
+
+	// Configure the Mock Managment DB
+
+	mgmtDb, mgmtMock, err = test.CreateMockDB()
+
+	if err != nil {
+		t.Errorf("TestMigrateSandbox: Setup Project DB Failed with Error: %v", err)
+	} else {
+		// Connect to Project DB
+		migration.Setup(mgmtDb, 1)
+	}
+
+	// Test Configuration
+	testConfig := config.Config{
+		Project: config.Project{
+			Name: "UnitTestProject",
+			Schema: config.Schema{
+				Version: "abc123",
+			},
+			DB: config.DB{
+				Database: "test",
+			},
+		},
+	}
+
+	query := test.DBQueryMock{
+		Type:    test.QueryCmd,
+		Query:   "select count(*) from migration",
+		Columns: []string{"count"},
+		Rows:    [][]driver.Value{{0}},
+	}
+
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:   test.ExecCmd,
+		Query:  "insert into `migration` (`mid`,`db`,`project`,`version`,`version_timestamp`,`version_description`,`status`) values (null,?,?,?,?,?,?);",
+		Result: sqlmock.NewResult(1, 1),
+	}
+	query.SetArgs(1, "UnitTestProject", "abc123", test.GetMySQLTimeNow(), "unit test", 0)
+
+	test.ExpectDB(mgmtMock, query)
+
+	query = test.DBQueryMock{
+		Type:   test.ExecCmd,
+		Query:  "insert into `migration_steps` (`sid`,`mid`,`op`,`mdid`,`name`,`forward`,`backward`,`output`,`status`) values (null,?,?,?,?,?,?,?,?);",
+		Result: sqlmock.NewResult(1, 1),
+	}
+	query.SetArgs(1, 0, 4, "address", "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;", "ALTER TABLE `dogs` DROP COLUMN `address`;", "", 0)
+
+	test.ExpectDB(mgmtMock, query)
+
+	forwardOps := mysql.SQLOperations{
+		mysql.SQLOperation{
+			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Op:        table.Add,
+			Name:      "address",
+			Metadata: metadata.Metadata{
+				MDID:       4,
+				DB:         1,
+				PropertyID: "col2",
+				ParentID:   "tbl1",
+				Name:       "address",
+			},
+		},
+	}
+
+	backwardOps := mysql.SQLOperations{
+		mysql.SQLOperation{
+			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+			Op:        table.Del,
+			Name:      "address",
+			Metadata: metadata.Metadata{
+				MDID:       4,
+				DB:         1,
+				PropertyID: "col2",
+				ParentID:   "tbl1",
+				Name:       "address",
+			},
+		},
+	}
+
+	m, err = createMigration(testConfig, "unit test", false, forwardOps, backwardOps)
+
+	if err != nil {
+		t.Errorf("TestMigrateSandbox Failed. Error: %v", err)
+	}
+
+	if m.MID == 0 {
+		t.Errorf("TestMigrateSandbox Failed. There was a problem inserting Migration into the DB.  Final Migration malformed")
+	}
+
+	if err = mgmtMock.ExpectationsWereMet(); err != nil {
+		t.Errorf("Test Recreate Database: Management DB queries failed expectations. Error: %s", err)
+	}
 
 }
 

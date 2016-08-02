@@ -32,19 +32,19 @@ func (m *Migration) AddStep(step Step) {
 func (m *Migration) Insert() (err error) {
 
 	// If not in the sandbox
-	if !m.Sandbox {
-		err = mgmtDb.Insert(m)
+	// if !m.Sandbox {
+	err = mgmtDb.Insert(m)
 
-		if !util.ErrorCheckf(err, "Inserting Migration into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
-			for i := 0; i < len(m.Steps); i++ {
-				m.Steps[i].MID = m.MID
-				err = m.Steps[i].Insert()
-				if util.ErrorCheckf(err, "Inserting Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
-					break
-				}
+	if !util.ErrorCheckf(err, "Inserting Migration into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
+		for i := 0; i < len(m.Steps); i++ {
+			m.Steps[i].MID = m.MID
+			err = m.Steps[i].Insert()
+			if util.ErrorCheckf(err, "Inserting Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
+				break
 			}
 		}
 	}
+	// }
 
 	return err
 }
