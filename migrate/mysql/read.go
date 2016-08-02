@@ -258,7 +258,6 @@ func buildTable(lines []string, tbl *table.Table) (err error) {
 func buildColumn(line string, tblPropertyID string, tblName string) (column table.Column, err error) {
 
 	var name string
-	var hasMetadata bool
 	var md metadata.Metadata
 
 	// Trim whitespace from the ends of the statement
@@ -456,20 +455,19 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	column.AutoInc = autoinc
 	column.Collation = collationValue
 
-	if hasMetadata {
-		// Retrieve Metadata for column
-		md, err = metadata.GetByName(name, tblPropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tblName) {
-			column.Metadata = md
-		} else {
-			return column, parseError(fmt.Sprintf("Failed to retrieve Column Metadata: [%s]", line))
-		}
-	} else {
+	// Retrieve Metadata for column
+	md, err = metadata.GetByName(name, tblPropertyID)
+	if util.ErrorCheckf(err, "Problem finding metadata for Column: [%s] in Table: [%s]", name, tblName) {
+		return column, parseError(fmt.Sprintf("Failed to retrieve Column Metadata: [%s]", line))
+	}
+
+	// If the Metadata doesn't have a name set, this Column hasn't been registered in the metadata table.
+	if md.Name == "" {
 		md.Name = column.Name
 		md.Type = "Column"
 		md.Exists = true
-		column.Metadata = md
 	}
+	column.Metadata = md
 
 	return column, err
 }
@@ -508,7 +506,6 @@ func buildIndexColumns(key string) (indexColumns []table.IndexColumn, err error)
 
 func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKey table.Index, err error) {
 
-	var hasMetadata bool
 	var md metadata.Metadata
 
 	// Format: PRIMARY KEY (`<COLUMN_1>`[(<size)], `<COLUMN_2>`[(<size)])
@@ -524,24 +521,22 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 	pk = strings.TrimPrefix(pk, "PRIMARY KEY")
 
 	primaryKey.Columns, err = buildIndexColumns(pk)
-
 	primaryKey.IsPrimary = true
 	primaryKey.Name = table.PrimaryKey
 
-	if hasMetadata {
-		// Retrieve Metadata for Primary Key
-		md, err = metadata.GetByName(table.PrimaryKey, tblPropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Primary Key in Table: [%s]", tblName) {
-			primaryKey.Metadata = md
-		} else {
-			return primaryKey, parseError(fmt.Sprintf("Failed to retrieve PrimaryKey Metadata: [%s]", pk))
-		}
-	} else {
-		md.Name = table.PrimaryKey
-		md.Type = table.PrimaryKey
-		md.Exists = true
-		primaryKey.Metadata = md
+	// Retrieve Metadata for PrimaryKey
+	md, err = metadata.GetByName("PrimaryKey", tblPropertyID)
+	if util.ErrorCheckf(err, "Problem finding metadata for Primary Key: [%s] in Table: [%s]", "PrimaryKey", tblName) {
+		return primaryKey, parseError(fmt.Sprintf("Failed to retrieve Primary Key Metadata: [%s]", pk))
 	}
+
+	// If the Metadata doesn't have a name set, this PrimaryKey hasn't been registered in the metadata table.
+	if md.Name == "" {
+		md.Name = primaryKey.Name
+		md.Type = "PrimaryKey"
+		md.Exists = true
+	}
+	primaryKey.Metadata = md
 
 	return primaryKey, err
 
@@ -550,7 +545,6 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 func buildIndex(key string, tblPropertyID string, tblName string) (index table.Index, err error) {
 	// Format: [UNIQUE] KEY `<NAME>` (`<COLUMN_1>`[(<size)],`<COLUMN_2>`[(<size)])
 
-	var hasMetadata bool
 	var md metadata.Metadata
 
 	if !strings.HasPrefix(key, "KEY") && !strings.HasPrefix(key, "UNIQUE KEY") {
@@ -576,20 +570,19 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 	// Extract Columns
 	index.Columns, err = buildIndexColumns(key)
 
-	if hasMetadata {
-		// Retrieve Metadata for index
-		md, err = metadata.GetByName(index.Name, tblPropertyID)
-		if !util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", index.Name, tblName) {
-			index.Metadata = md
-		} else {
-			return index, parseError(fmt.Sprintf("Failed to retrieve Index Metadata: [%s]", key))
-		}
-	} else {
+	// Retrieve Metadata for Index
+	md, err = metadata.GetByName(index.Name, tblPropertyID)
+	if util.ErrorCheckf(err, "Problem finding metadata for Index: [%s] in Table: [%s]", index.Name, tblName) {
+		return index, parseError(fmt.Sprintf("Failed to retrieve Index Metadata: [%s]", key))
+	}
+
+	// If the Metadata doesn't have a name set, this Index hasn't been registered in the metadata table.
+	if md.Name == "" {
 		md.Name = index.Name
 		md.Type = "Index"
 		md.Exists = true
-		index.Metadata = md
 	}
+	index.Metadata = md
 
 	return index, err
 }
@@ -696,7 +689,9 @@ func ReadTables() (err error) {
 	if pdb != nil {
 		rows, err = pdb.Query("show tables")
 
-		util.ErrorCheckf(err, "Problem retrieving tables")
+		if util.ErrorCheckf(err, "Problem retrieving tables") {
+			return err
+		}
 
 		defer rows.Close()
 
