@@ -195,31 +195,67 @@ func (t *Table) RemoveNamespace() {
 }
 
 // syncMetadata Check if the Metadata exists in the DB and insert it if it doesn't
-func syncMetadata(md *metadata.Metadata) {
-	// var dbmd metadata.Metadata
-	dbmd, err := metadata.GetByName(md.Name, md.ParentID)
-	if err != nil {
-		err = md.Insert()
-		util.ErrorCheckf(err, "Problem inserting %s Metdata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID)
-	} else {
+func syncMetadata(md *metadata.Metadata) (err error) {
+	var dbmd metadata.Metadata
+
+	// IF the Metadata ID hasn't yet been set
+	if md.MDID < 1 {
+		if len(md.Name) == 0 {
+			return fmt.Errorf("Cannot create or find Metadata without a name")
+		}
+
+		// var dbmd metadata.Metadata
+		dbmd, err = metadata.GetByName(md.Name, md.ParentID)
+
+		if err != nil {
+			util.ErrorCheckf(err, "Problem finding %s Metadata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID)
+			return err
+		}
+
+		if dbmd.MDID < 1 {
+			err = md.Insert()
+			if util.ErrorCheckf(err, "Problem inserting %s Metadata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID) {
+				return err
+			}
+		}
+
 		md.MDID = dbmd.MDID
 		md.DB = dbmd.DB
+		md.Type = dbmd.Type
 	}
+
+	return err
 }
 
 // SyncDBMetadata Helper function to insert new Metadata and retrieves existing Metadata from the DB
 func (t *Table) SyncDBMetadata() (err error) {
 
-	syncMetadata(&t.Metadata)
+	err = syncMetadata(&t.Metadata)
 
-	syncMetadata(&t.PrimaryIndex.Metadata)
+	if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s]", t.Name) {
+		return err
+	}
+
+	err = syncMetadata(&t.PrimaryIndex.Metadata)
+
+	if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Primary Key", t.Name) {
+		return err
+	}
 
 	for i := 0; i < len(t.Columns); i++ {
-		syncMetadata(&t.Columns[i].Metadata)
+		err = syncMetadata(&t.Columns[i].Metadata)
+
+		if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Column: [%s]", t.Name, t.Columns[i].Name) {
+			return err
+		}
 	}
 
 	for i := 0; i < len(t.SecondaryIndexes); i++ {
-		syncMetadata(&t.SecondaryIndexes[i].Metadata)
+		err = syncMetadata(&t.SecondaryIndexes[i].Metadata)
+
+		if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Index: [%s]", t.Name, t.SecondaryIndexes[i].Name) {
+			return err
+		}
 	}
 
 	return err

@@ -329,16 +329,22 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 
 // DiffTables Compare the toTables and fromTables Slices of Table structs and
 // return a Differences Slice containing all of the differences between the tables.
-func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
+func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences, err error) {
 	util.LogInfo("Starting Diff")
 
 	// Search through the input tables
-	for _, toTable := range toTables {
+	for i := 0; i < len(toTables); i++ {
+
+		toTable := toTables[i]
+
 		found := false
 
-		// Sync the metadata for the table and it's fields to the DB
-		err := toTable.SyncDBMetadata()
-		util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name)
+		// Sync the metadata for the table and it's fields to the DB so that it can be
+		// detected by the Migration when it executes
+		err = toTable.SyncDBMetadata()
+		if util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name) {
+			return tableDiffs, err
+		}
 
 		// match against mysql tables
 		for _, fromTable := range fromTables {
@@ -386,5 +392,5 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences) {
 		}
 	}
 
-	return tableDiffs
+	return tableDiffs, err
 }
