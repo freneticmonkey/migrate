@@ -175,6 +175,8 @@ func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (er
 
 func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
 
+	var forwardDiff table.Differences
+	var backwardDiff table.Differences
 	// Read the YAML schema
 	err = yaml.ReadTables(conf.Project.LocalSchema.Path)
 	if util.ErrorCheck(err) {
@@ -206,10 +208,16 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		}
 
 		// Generate Diffs
-		forwardDiff := table.DiffTables(yaml.Schema, mysql.Schema)
+		forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema)
+		if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
+			return forwardOps, backwardOps, err
+		}
 		forwardOps = mysql.GenerateAlters(forwardDiff)
 
-		backwardDiff := table.DiffTables(mysql.Schema, yaml.Schema)
+		backwardDiff, err = table.DiffTables(mysql.Schema, yaml.Schema)
+		if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
+			return forwardOps, backwardOps, err
+		}
 		backwardOps = mysql.GenerateAlters(backwardDiff)
 	}
 
