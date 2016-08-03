@@ -9,6 +9,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/migration"
+	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/go-gorp/gorp"
 )
@@ -84,6 +85,7 @@ func Setup(conf config.Config) (err error) {
 	}
 
 	if !util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database) {
+		mysql.Setup(conf, tdb.DBID)
 		metadata.Setup(mgmtDb, tdb.DBID)
 		migration.Setup(mgmtDb, tdb.DBID)
 		exec.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())

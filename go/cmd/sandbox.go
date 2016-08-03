@@ -192,7 +192,6 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		}
 
 		// Read the MySQL tables from the target database
-		mysql.Setup(conf)
 		err = mysql.ReadTables()
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. Unable to read MySQL Tables", actionTitle)

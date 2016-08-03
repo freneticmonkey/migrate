@@ -79,7 +79,6 @@ func GetCreateCommand() (setup cli.Command) {
 			}
 
 			// Read the MySQL tables from the target database
-			mysql.Setup(conf)
 			err = mysql.ReadTables()
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Creation failed. Unable to read MySQL Tables", 1)
