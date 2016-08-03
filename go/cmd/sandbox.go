@@ -157,6 +157,9 @@ func sandboxAction(conf config.Config, dryrun bool, recreate bool, actionTitle s
 
 func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (err error) {
 	util.LogInfof(formatMessage(dryrun, actionTitle, "Applying Schema"))
+
+	util.LogInfo(actionTitle)
+
 	exec.Exec(exec.Options{
 		Dryrun:           dryrun,
 		Force:            true,
