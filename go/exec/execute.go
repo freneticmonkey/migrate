@@ -100,7 +100,7 @@ func Exec(options Options) (err error) {
 		if isLatest && !migrationRunning || options.Sandbox {
 
 			// Flag the migration as running
-			if !dryrun {
+			if !dryrun && !m.Sandbox {
 				m.Status = migration.InProgress
 				m.Update()
 			}

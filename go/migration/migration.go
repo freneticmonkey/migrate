@@ -52,15 +52,12 @@ func (m *Migration) Insert() (err error) {
 // Update Update the Migration in the Management DB
 func (m *Migration) Update() (err error) {
 
-	// If not in the Sandbox
-	if !m.Sandbox {
-		_, err = mgmtDb.Update(m)
+	_, err = mgmtDb.Update(m)
 
-		for i := 0; i < len(m.Steps); i++ {
-			err = m.Steps[i].Update()
-			if !util.ErrorCheckf(err, "Updating Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
-				break
-			}
+	for i := 0; i < len(m.Steps); i++ {
+		err = m.Steps[i].Update()
+		if !util.ErrorCheckf(err, "Updating Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
+			break
 		}
 	}
 

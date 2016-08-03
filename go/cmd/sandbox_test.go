@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/metadata"
@@ -112,6 +114,26 @@ func TestDiffSchema(t *testing.T) {
 		false,
 	)
 
+	mgmtDB.MetadataSelectName(
+		"dogs",
+		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		false,
+	)
+
+	mgmtDB.MetadataSelectNameParent(
+		"PrimaryKey",
+		"tbl1",
+		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		false,
+	)
+
+	mgmtDB.MetadataSelectNameParent(
+		"id",
+		"tbl1",
+		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+		false,
+	)
+
 	// Configure metadata
 	metadata.Setup(mgmtDB.Db, 1)
 
@@ -188,7 +210,7 @@ func TestCreateMigration(t *testing.T) {
 		},
 	}
 
-	mgmtDb.MigrationCount(test.DBRow{0})
+	mgmtDb.MigrationCount(test.DBRow{0}, false)
 
 	mgmtDb.MigrationInsert(test.DBRow{1, "UnitTestProject", "abc123", mysql.GetTimeNow(), "unit test", 0})
 
@@ -235,6 +257,164 @@ func TestCreateMigration(t *testing.T) {
 	}
 
 	mgmtDb.ExpectionsMet("TestRecreateProjectDatabase", t)
+}
+
+func TestMigrateSandbox(t *testing.T) {
+	var projectDB test.ProjectDB
+	var mgmtDb test.ManagementDB
+	var err error
+
+	// Test Configuration
+	testConfig := config.Config{
+		Project: config.Project{
+			Name: "UnitTestProject",
+			Schema: config.Schema{
+				Version: "abc123",
+			},
+			DB: config.DB{
+				Database: "test",
+			},
+		},
+	}
+
+	m := migration.Migration{
+		MID:                1,
+		DB:                 1,
+		Project:            testConfig.Project.Name,
+		Version:            testConfig.Project.Schema.Version,
+		VersionTimestamp:   mysql.GetTimeNow(),
+		VersionDescription: "Testing a Migration",
+		Status:             migration.Unapproved,
+		Timestamp:          mysql.GetTimeNow(),
+		Steps: []migration.Step{
+			{
+				SID:      1,
+				MID:      1,
+				Op:       table.Add,
+				MDID:     1,
+				Name:     "address",
+				Forward:  "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+				Backward: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+				Output:   "",
+				Status:   migration.Unapproved,
+			},
+		},
+		Sandbox: true,
+	}
+
+	// Setup the mock project database
+	projectDB, err = test.CreateProjectDB("TestMigrateSandbox", t)
+
+	if err == nil {
+		// Connect to Project DB
+		exec.SetProjectDB(projectDB.Db)
+	}
+
+	// Configure the Mock Managment DB
+	mgmtDb, err = test.CreateManagementDB("TestMigrateSandbox", t)
+
+	if err == nil {
+		// migration.Setup(mgmtDb.Db, 1)
+		exec.Setup(mgmtDb.Db, 1, testConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDb.Db, 1)
+		metadata.Setup(mgmtDb.Db, 1)
+	}
+
+	// Check for running migrations
+	mgmtDb.MigrationGetStatus(
+		migration.InProgress,
+		[]test.DBRow{
+			{},
+		},
+		true,
+	)
+
+	// Set this migration to running
+	// mgmtDb.MigrationSetStatus(m.MID, migration.InProgress)
+
+	mgmtDb.MetadataGet(
+		1,
+		test.DBRow{1, 1, "col1", "tbl1", "Column", "address", 1},
+		false,
+	)
+	// mgmtDb.Mock.ExpectQuery("SELECT \\* FROM `metadata` WHERE mdid=1").WillReturnRows(rows driver.Rows)
+
+	// Set Step to InProgress
+	// mgmtDb.StepSetStatus(m.Steps[0].SID, migration.InProgress)
+
+	mgmtDb.Mock.ExpectExec("update `migration_steps`").WithArgs(
+		1,
+		table.Add,
+		1,
+		"address",
+		"ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+		"ALTER TABLE `dogs` DROP COLUMN `address`;",
+		"",
+		migration.InProgress,
+		1,
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	query := test.DBQueryMock{
+		Type:   test.ExecCmd,
+		Result: sqlmock.NewResult(1, 1),
+	}
+	query.FormatQuery("ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;")
+
+	projectDB.ExpectExec(query)
+
+	// Set Step to Forced
+	mgmtDb.Mock.ExpectExec("update `migration_steps`").WithArgs(
+		1,
+		table.Add,
+		1,
+		"address",
+		"ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+		"ALTER TABLE `dogs` DROP COLUMN `address`;",
+		"Row(s) Affected: 1",
+		migration.Forced,
+		1,
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	// Update Metadata
+	mgmtDb.MetadataGet(
+		1,
+		test.DBRow{1, 1, "col1", "tbl1", "Column", "address", 1},
+		false,
+	)
+
+	// Update Migrationt with completed
+	mgmtDb.Mock.ExpectExec("update `migration`").WithArgs(
+		1,
+		testConfig.Project.Name,
+		testConfig.Project.Schema.Version,
+		mysql.GetTimeNow(),
+		"Testing a Migration",
+		migration.Forced,
+		1,
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	// Update the MigrationStep with completed
+	mgmtDb.Mock.ExpectExec("update `migration_steps`").WithArgs(
+		1,
+		table.Add,
+		1,
+		"address",
+		"ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+		"ALTER TABLE `dogs` DROP COLUMN `address`;",
+		"Row(s) Affected: 1",
+		migration.Forced,
+		1,
+	).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	err = migrateSandbox("TestMigrateSandbox", false, &m)
+
+	if err != nil {
+		t.Errorf("TestMigrateSandbox Failed. There was a problem executing the Migration.")
+	}
+
+	mgmtDb.ExpectionsMet("TestMigrateSandbox", t)
+	projectDB.ExpectionsMet("TestMigrateSandbox", t)
+
 }
 
 func TestRefreshDatabase(t *testing.T) {
