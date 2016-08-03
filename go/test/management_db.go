@@ -34,6 +34,23 @@ var metadataColumns = []string{
 	"exists",
 }
 
+func (m *ManagementDB) MetadataGet(mid int, result DBRow, expectEmtpy bool) {
+
+	query := DBQueryMock{
+		Columns: metadataColumns,
+	}
+	if !expectEmtpy {
+		query.Rows = []DBRow{result}
+	}
+	query.FormatQuery("SELECT * FROM `metadata` WHERE mdid=%d", mid)
+
+	m.ExpectQuery(query)
+}
+
+//'select * from migration WHERE status = 6'
+
+//'select `mdid`,`db`,`property_id`,`parent_id`,`type`,`name`,`exists` from `metadata` where `mdid`=?;' with args [1] was not expected]
+
 func (m *ManagementDB) MetadataSelectName(name string, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{
 		Columns: metadataColumns,
@@ -98,16 +115,42 @@ var migrationStepsColumns = []string{
 var migrationValuesTemplate = " values (null,?,?,?,?,?,?)"
 var migrationStepsValuesTemplate = " values (null,?,?,?,?,?,?,?,?)"
 
-func (m *ManagementDB) MigrationCount(result DBRow) {
+func (m *ManagementDB) MigrationCount(result DBRow, expectEmpty bool) {
 
 	query := DBQueryMock{
 		Type:    QueryCmd,
 		Query:   "select count(*) from migration",
 		Columns: []string{"count"},
-		Rows:    []DBRow{result},
+	}
+	if !expectEmpty {
+		query.Rows = []DBRow{result}
 	}
 
 	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) MigrationGetStatus(status int, results []DBRow, expectEmpty bool) {
+
+	query := DBQueryMock{
+		Columns: migrationColumns,
+	}
+	if !expectEmpty {
+		query.Rows = results
+	}
+	query.FormatQuery("select * from migration WHERE status = %d", status)
+
+	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) MigrationSetStatus(mid int64, status int) {
+
+	query := DBQueryMock{
+		Columns: migrationColumns,
+		Result:  sqlmock.NewResult(0, 1),
+	}
+	query.FormatQuery("update migration WHERE mid = %d SET status = %d", mid, status)
+
+	m.ExpectExec(query)
 }
 
 func (m *ManagementDB) MigrationInsert(args DBRow) {
@@ -130,6 +173,17 @@ func (m *ManagementDB) MigrationInsertStep(args DBRow) {
 	}
 	query.FormatQuery("insert into `migration_steps` (`%s`)%s", strings.Join(migrationStepsColumns, "`,`"), migrationStepsValuesTemplate)
 	query.SetArgs(args...)
+
+	m.ExpectExec(query)
+}
+
+func (m *ManagementDB) StepSetStatus(sid int64, status int) {
+
+	query := DBQueryMock{
+		Columns: migrationStepsColumns,
+		Result:  sqlmock.NewResult(0, 1),
+	}
+	query.FormatQuery("update migration_steps WHERE sid = %d SET status = %d", sid, status)
 
 	m.ExpectExec(query)
 }
