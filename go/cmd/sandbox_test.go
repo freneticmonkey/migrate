@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"database/sql/driver"
 	"strings"
 	"testing"
-
-	"github.com/go-gorp/gorp"
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/exec"
@@ -19,15 +15,15 @@ import (
 )
 
 func TestDiffSchema(t *testing.T) {
-	var pdb *gorp.DbMap
-	var projectMock sqlmock.Sqlmock
+	var projectDB test.ProjectDB
+	var mgmtDB test.ManagementDB
 	var err error
 
 	// Test Configuration
 	testConfig := config.Config{
 		Project: config.Project{
 			DB: config.DB{
-				Database: "test",
+				Database: "project",
 			},
 			LocalSchema: config.LocalSchema{
 				Path: "ignore",
@@ -84,197 +80,88 @@ func TestDiffSchema(t *testing.T) {
 	yaml.Schema = append(yaml.Schema, dogsTbl)
 
 	// Setup the mock project database
-	pdb, projectMock, err = test.CreateMockDB()
-
-	if err != nil {
-		t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
-	}
+	projectDB, err = test.CreateProjectDB("TestDiffSchema", t)
 
 	// Configure the MySQL Read Tables queries
 
 	// SHOW TABLES Query
-	query := test.DBQueryMock{
-		Type:    test.QueryCmd,
-		Query:   "show tables",
-		Columns: []string{"table"},
-		Rows: [][]driver.Value{
-			{
-				dogsTbl.Name,
-			},
-		},
-	}
-
-	test.ExpectDB(projectMock, query)
+	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}})
 
 	// SHOW CREATE TABLE Query
-	query = test.DBQueryMock{
-		Type:    test.QueryCmd,
-		Query:   "show create table dogs",
-		Columns: []string{"name", "create_table"},
-		Rows: [][]driver.Value{
-			{
-				dogsTbl.Name,
-				dogsTableStr,
-			},
-		},
-	}
-
-	test.ExpectDB(projectMock, query)
+	projectDB.ShowCreateTable(dogsTbl.Name, dogsTableStr)
 
 	// Configure the Mock Managment DB
 
-	mgmtDb, mgmtMock, err := test.CreateMockDB()
+	// Setup the mock Managment DB
+	mgmtDB, err = test.CreateManagementDB("TestDiffSchema", t)
+
+	// mgmtDb, mgmtMock, err := test.CreateMockDB()
 
 	if err != nil {
 		t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
 	}
 
-	query = test.DBQueryMock{
+	query := test.DBQueryMock{
 		Type:    test.QueryCmd,
 		Columns: []string{"count"},
-		Rows:    [][]driver.Value{{1}},
+		Rows:    []test.DBRow{{1}},
 	}
 	query.FormatQuery("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", dogsTbl.Name)
 
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.ExpectQuery(query)
 
 	// Search Metadata for `dogs` table query - MySQL
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
+	mgmtDB.MetadataSelectName(
+		dogsTbl.Name,
+		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+	)
 
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{1, 1, "tbl1", "", "Table", "dogs", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\"", dogsTbl.Name)
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.MetadataSelectNameParent(
+		"id",
+		"tbl1",
+		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+	)
 
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{2, 1, "col1", "tbl1", "Column", "id", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "id", "tbl1")
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.MetadataSelectNameParent(
+		"PrimaryKey",
+		"tbl1",
+		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+	)
 
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "PrimaryKey", "tbl1")
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.MetadataSelectName(
+		dogsTbl.Name,
+		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+	)
 
-	// Search Metadata for `dogs` table query - YAML
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{1, 1, "tbl1", "", "Table", "dogs", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\"", dogsTbl.Name)
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.MetadataSelectNameParent(
+		"PrimaryKey",
+		"tbl1",
+		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+	)
 
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "PrimaryKey", "tbl1")
-	test.ExpectDB(mgmtMock, query)
-
-	query = test.DBQueryMock{
-		Type: test.QueryCmd,
-		Columns: []string{
-			"mdid",
-			"db",
-			"property_id",
-			"parent_id",
-			"type",
-			"name",
-			"exists",
-		},
-		Rows: [][]driver.Value{
-			{2, 1, "col1", "tbl1", "Column", "id", 1},
-		},
-	}
-	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", "id", "tbl1")
-	test.ExpectDB(mgmtMock, query)
+	mgmtDB.MetadataSelectNameParent(
+		"id",
+		"tbl1",
+		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+	)
 
 	// Configure metadata
-	metadata.Setup(mgmtDb, 1)
+	metadata.Setup(mgmtDB.Db, 1)
 
 	// Connect to Project DB
-	mysql.SetProjectDB(pdb.Db)
+	mysql.SetProjectDB(projectDB.Db.Db)
 
 	// Execute the schema diff
 	diffSchema(testConfig, "Unit Test", false)
 
-	if err = projectMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("TestDiffSchema: Project DB queries failed expectations. Error: %s", err)
-	}
+	projectDB.ExpectionsMet("TestDiffSchema", t)
 
-	if err = mgmtMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("TestDiffSchema: Management DB queries failed expectations. Error: %s", err)
-	}
-
-}
-
-func TestCreateMigration(t *testing.T) {
+	mgmtDB.ExpectionsMet("TestDiffSchema", t)
 
 }
 
 func TestRecreateProjectDatabase(t *testing.T) {
-	var pdb *gorp.DbMap
-	var projectMock sqlmock.Sqlmock
+	var projectDB test.ProjectDB
 
 	var err error
 
@@ -282,61 +169,43 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	testConfig := config.Config{
 		Project: config.Project{
 			DB: config.DB{
-				Database: "test",
+				Database: "project",
 			},
 		},
 	}
 
 	// Setup the mock project database
-	pdb, projectMock, err = test.CreateMockDB()
+	projectDB, err = test.CreateProjectDB("TestDiffSchema", t)
 
-	if err != nil {
-		t.Errorf("Test Recreate Project Database: Setup Project DB Failed with Error: %v", err)
-	} else {
+	if err == nil {
 		// Connect to Project DB
-		exec.SetProjectDB(pdb)
+		exec.SetProjectDB(projectDB.Db)
 	}
 
-	// Configure expected project database refresh queries
-	query := test.DBQueryMock{
-		Type:   test.ExecCmd,
-		Result: sqlmock.NewResult(0, 0),
-	}
-	query.FormatQuery("DROP DATABASE `%s`", testConfig.Project.DB.Database)
-
-	test.ExpectDB(projectMock, query)
+	projectDB.DropDatabase()
 
 	// Reuse the query object to define the create database
-	query.FormatQuery("CREATE DATABASE `%s`", testConfig.Project.DB.Database)
-	test.ExpectDB(projectMock, query)
+	projectDB.CreateDatabase()
 
-	projectMock.ExpectClose()
+	projectDB.Close()
 
 	// Execute the recreation!
 	recreateProjectDatabase(testConfig, false)
 
-	if err = projectMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("Test Recreate Database: Project DB queries failed expectations. Error: %s", err)
-	}
+	projectDB.ExpectionsMet("Test Recreate Database", t)
 }
 
-func TestMigrateSandbox(t *testing.T) {
+func TestCreateMigration(t *testing.T) {
 
-	var mgmtDb *gorp.DbMap
-	var mgmtMock sqlmock.Sqlmock
+	var mgmtDb test.ManagementDB
 	var err error
 
 	var m migration.Migration
 
 	// Configure the Mock Managment DB
-
-	mgmtDb, mgmtMock, err = test.CreateMockDB()
-
-	if err != nil {
-		t.Errorf("TestMigrateSandbox: Setup Project DB Failed with Error: %v", err)
-	} else {
-		// Connect to Project DB
-		migration.Setup(mgmtDb, 1)
+	mgmtDb, err = test.CreateManagementDB("TestCreateMigration", t)
+	if err == nil {
+		migration.Setup(mgmtDb.Db, 1)
 	}
 
 	// Test Configuration
@@ -352,32 +221,11 @@ func TestMigrateSandbox(t *testing.T) {
 		},
 	}
 
-	query := test.DBQueryMock{
-		Type:    test.QueryCmd,
-		Query:   "select count(*) from migration",
-		Columns: []string{"count"},
-		Rows:    [][]driver.Value{{0}},
-	}
+	mgmtDb.MigrationCount(test.DBRow{0})
 
-	test.ExpectDB(mgmtMock, query)
+	mgmtDb.MigrationInsert(test.DBRow{1, "UnitTestProject", "abc123", mysql.GetTimeNow(), "unit test", 0})
 
-	query = test.DBQueryMock{
-		Type:   test.ExecCmd,
-		Query:  "insert into `migration` (`mid`,`db`,`project`,`version`,`version_timestamp`,`version_description`,`status`) values (null,?,?,?,?,?,?);",
-		Result: sqlmock.NewResult(1, 1),
-	}
-	query.SetArgs(1, "UnitTestProject", "abc123", mysql.GetTimeNow(), "unit test", 0)
-
-	test.ExpectDB(mgmtMock, query)
-
-	query = test.DBQueryMock{
-		Type:   test.ExecCmd,
-		Query:  "insert into `migration_steps` (`sid`,`mid`,`op`,`mdid`,`name`,`forward`,`backward`,`output`,`status`) values (null,?,?,?,?,?,?,?,?);",
-		Result: sqlmock.NewResult(1, 1),
-	}
-	query.SetArgs(1, 0, 4, "address", "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;", "ALTER TABLE `dogs` DROP COLUMN `address`;", "", 0)
-
-	test.ExpectDB(mgmtMock, query)
+	mgmtDb.MigrationInsertStep(test.DBRow{1, 0, 4, "address", "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;", "ALTER TABLE `dogs` DROP COLUMN `address`;", "", 0})
 
 	forwardOps := mysql.SQLOperations{
 		mysql.SQLOperation{
@@ -419,10 +267,7 @@ func TestMigrateSandbox(t *testing.T) {
 		t.Errorf("TestMigrateSandbox Failed. There was a problem inserting Migration into the DB.  Final Migration malformed")
 	}
 
-	if err = mgmtMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("Test Recreate Database: Management DB queries failed expectations. Error: %s", err)
-	}
-
+	mgmtDb.ExpectionsMet("TestRecreateProjectDatabase", t)
 }
 
 func TestRefreshDatabase(t *testing.T) {
