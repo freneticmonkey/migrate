@@ -1,6 +1,10 @@
 package metadata
 
-import "github.com/go-gorp/gorp"
+import (
+	"fmt"
+
+	"github.com/go-gorp/gorp"
+)
 
 var mgmtDb *gorp.DbMap
 var targetDBID int
@@ -19,4 +23,12 @@ func Setup(db *gorp.DbMap, targetDatabaseID int) {
 // first
 func CreateTables() {
 
+}
+
+// configured Internal Helper function for checking database validity
+func configured() error {
+	if mgmtDb != nil && mgmtDb.Db != nil {
+		return nil
+	}
+	return fmt.Errorf("Metadata: Database not configured.")
 }
