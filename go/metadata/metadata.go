@@ -70,12 +70,15 @@ func (m *Metadata) OnCreate() error {
 
 // Load Uses the valud of MDID to load from the Management DB
 func Load(mdid int64) (m *Metadata, err error) {
+	var md Metadata
 	if err = configured(); err != nil {
 		return m, err
 	}
-	md, err := mgmtDb.Get(Metadata{}, mdid)
-	if md != nil {
-		m = md.(*Metadata)
+	query := fmt.Sprintf("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
+	err = mgmtDb.SelectOne(&md, query)
+
+	if err == nil {
+		m = &md
 	}
 	return m, err
 }
