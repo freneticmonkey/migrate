@@ -60,6 +60,22 @@ func LogWarnf(format string, warn ...interface{}) {
 	}
 }
 
+func LogAlert(alert ...interface{}) {
+	if verbose {
+		color.Set(color.FgRed)
+		log.Printf("ALERT: %s", fmt.Sprintln(alert...))
+		color.Unset()
+	}
+}
+
+func LogAlertf(format string, alert ...interface{}) {
+	if verbose {
+		color.Set(color.FgRed)
+		log.Printf("ALERT: %s", fmt.Sprintf(format, alert...))
+		color.Unset()
+	}
+}
+
 func LogError(err ...interface{}) {
 	color.Set(color.FgHiRed)
 	log.Printf("ERROR: %s", fmt.Sprintln(err...))
