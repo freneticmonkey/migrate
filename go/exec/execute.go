@@ -106,7 +106,8 @@ func Exec(options Options) (err error) {
 			}
 
 			// for each step in the migration
-			for _, step := range m.Steps {
+			for i := 0; i < len(m.Steps); i++ {
+				step := m.Steps[i]
 
 				var md *metadata.Metadata
 				isDestructive := (step.Op != table.Add)
@@ -155,14 +156,17 @@ func Exec(options Options) (err error) {
 						} else {
 							// If the change is destructive and it hasn't been approved, skip it
 							if !allowDestructive && isDestructive {
-								step.Output = fmt.Sprintf("Skipping Destructive Migration Step: [%d]: Unapproved destructive change", step.SID)
-								step.Status = migration.Skipped
+								m.Steps[i].Output = fmt.Sprintf("Skipping Destructive Migration Step: [%d]: Unapproved destructive change", step.SID)
+								m.Steps[i].Status = migration.Skipped
 
 							} else {
 
 								// Indicate that the step is going to be applied
-								step.Status = migration.InProgress
-								step.Update()
+								m.Steps[i].Status = migration.InProgress
+								err = m.Steps[i].Update()
+								if util.ErrorCheck(err) {
+									return err
+								}
 
 								// execute the migration
 								if usePTO {
@@ -175,12 +179,12 @@ func Exec(options Options) (err error) {
 
 								if !util.ErrorCheckf(err, "Migration Step: [%d] Apply Failed with ERROR: ", output) {
 									// Record the result into the step table
-									step.Output = output
+									m.Steps[i].Output = output
 
 									if force {
-										step.Status = migration.Forced
+										m.Steps[i].Status = migration.Forced
 									} else {
-										step.Status = migration.Complete
+										m.Steps[i].Status = migration.Complete
 									}
 
 									// Message that the migration step was successful
@@ -190,8 +194,8 @@ func Exec(options Options) (err error) {
 
 									// Record the step failure into the DB
 									failReason = fmt.Sprintf("Failed with Error: %v", err)
-									step.Output = failReason
-									step.Status = migration.Failed
+									m.Steps[i].Output = failReason
+									m.Steps[i].Status = migration.Failed
 									step.Update()
 
 									failReason = fmt.Sprintf("Step: [%d] ", step.SID) + failReason
@@ -209,10 +213,10 @@ func Exec(options Options) (err error) {
 							}
 
 							// Record the result of the migration
-							step.Update()
+							m.Steps[i].Update()
 
 							// If necessary, update the Metadata in the database
-							step.UpdateMetadata()
+							m.Steps[i].UpdateMetadata()
 
 						}
 					} else {
