@@ -5,6 +5,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -491,6 +492,8 @@ var genTableAlterTests = []SQLGenTest{
 func TestGenerateAlters(t *testing.T) {
 	var results SQLOperations
 
+	mgmtDb, _ := test.CreateManagementDB("TestGenerateAlters", t)
+
 	for _, test := range genTableAlterTests {
 
 		switch test.TestType {
@@ -518,4 +521,7 @@ func TestGenerateAlters(t *testing.T) {
 			t.Errorf("%s FAILED. No Generated Statements", test.Description)
 		}
 	}
+
+	mgmtDb.ExpectionsMet("TestGenerateAlters", t)
+
 }

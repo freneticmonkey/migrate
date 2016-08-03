@@ -4,8 +4,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -561,61 +563,61 @@ func TestColumnParse(t *testing.T) {
 	var err error
 	var result table.Column
 
-	// mgmtDb, mgmtMock, err := test.CreateMockDB()
-	//
-	// if err != nil {
-	// 	t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
-	// }
-	//
-	// // Configure metadata
-	// metadata.Setup(mgmtDb, 1)
+	// Test Configuration
+	testConfig := config.Config{
+		Project: config.Project{
+			DB: config.DB{
+				Database: "project",
+			},
+			LocalSchema: config.LocalSchema{
+				Path: "ignore",
+			},
+		},
+	}
+
+	mgmtDb, err := test.CreateManagementDB("TestColumnParse", t)
+
+	Setup(testConfig, 1)
+	metadata.Setup(mgmtDb.Db, 1)
 
 	for _, tst := range colTests {
-
-		// // Search Metadata for `dogs` table query - MySQL
-		// query := test.DBQueryMock{
-		// 	Type: test.QueryCmd,
-		//
-		// 	Columns: []string{
-		// 		"mdid",
-		// 		"db",
-		// 		"property_id",
-		// 		"parent_id",
-		// 		"type",
-		// 		"name",
-		// 		"exists",
-		// 	},
-		// 	Rows: [][]driver.Value{
-		// 		{1, 1, "tbl1", "", "Table", "dogs", 1},
-		// 	},
-		// }
-		//
-		// query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", tst.Expected.(table.Column).Name, "testtbl")
-		// test.ExpectDB(mgmtMock, query)
 
 		result, err = buildColumn(tst.Str, tblPropertyID, tblName)
 		validateResult(tst, result, err, t)
 	}
+
+	mgmtDb.ExpectionsMet("TestColumnParse", t)
 }
 
 func TestIndexParse(t *testing.T) {
+
 	var err error
 	var result table.Index
+
+	mgmtDb, err := test.CreateManagementDB("TestIndexParse", t)
+
+	metadata.Setup(mgmtDb.Db, 1)
 
 	for _, test := range indexTests {
 
 		result, err = buildIndex(test.Str, tblPropertyID, tblName)
 		validateResult(test, result, err, t)
 	}
+	mgmtDb.ExpectionsMet("TestIndexParse", t)
 }
 
 func TestPKParse(t *testing.T) {
 	var err error
 	var result table.Index
 
+	mgmtDb, err := test.CreateManagementDB("TestPKParse", t)
+
+	metadata.Setup(mgmtDb.Db, 1)
+
 	for _, test := range pkTests {
 
 		result, err = buildPrimaryKey(test.Str, tblPropertyID, tblName)
 		validateResult(test, result, err, t)
 	}
+	mgmtDb.ExpectionsMet("TestPKParse", t)
 }

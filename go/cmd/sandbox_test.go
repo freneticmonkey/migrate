@@ -17,7 +17,6 @@ import (
 func TestDiffSchema(t *testing.T) {
 	var projectDB test.ProjectDB
 	var mgmtDB test.ManagementDB
-	var err error
 
 	// Test Configuration
 	testConfig := config.Config{
@@ -80,7 +79,7 @@ func TestDiffSchema(t *testing.T) {
 	yaml.Schema = append(yaml.Schema, dogsTbl)
 
 	// Setup the mock project database
-	projectDB, err = test.CreateProjectDB("TestDiffSchema", t)
+	projectDB, _ = test.CreateProjectDB("TestDiffSchema", t)
 
 	// Configure the MySQL Read Tables queries
 
@@ -93,56 +92,24 @@ func TestDiffSchema(t *testing.T) {
 	// Configure the Mock Managment DB
 
 	// Setup the mock Managment DB
-	mgmtDB, err = test.CreateManagementDB("TestDiffSchema", t)
+	mgmtDB, _ = test.CreateManagementDB("TestDiffSchema", t)
 
-	// mgmtDb, mgmtMock, err := test.CreateMockDB()
-
-	if err != nil {
-		t.Errorf("TestDiffSchema: Setup Project DB Failed with Error: %v", err)
-	}
-
-	query := test.DBQueryMock{
-		Type:    test.QueryCmd,
-		Columns: []string{"count"},
-		Rows:    []test.DBRow{{1}},
-	}
-	query.FormatQuery("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", dogsTbl.Name)
-
-	mgmtDB.ExpectQuery(query)
-
-	// Search Metadata for `dogs` table query - MySQL
-	mgmtDB.MetadataSelectName(
-		dogsTbl.Name,
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-	)
-
-	mgmtDB.MetadataSelectNameParent(
-		"id",
-		"tbl1",
-		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-	)
-
-	mgmtDB.MetadataSelectNameParent(
-		"PrimaryKey",
-		"tbl1",
-		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
-	)
+	mysql.Setup(testConfig, 1)
 
 	mgmtDB.MetadataSelectName(
-		dogsTbl.Name,
+		"dogs",
 		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		false,
 	)
 
-	mgmtDB.MetadataSelectNameParent(
-		"PrimaryKey",
-		"tbl1",
-		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
-	)
-
-	mgmtDB.MetadataSelectNameParent(
-		"id",
-		"tbl1",
-		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+		1,
+		[]test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
+		false,
 	)
 
 	// Configure metadata

@@ -34,26 +34,39 @@ var metadataColumns = []string{
 	"exists",
 }
 
-func (m *ManagementDB) MetadataSelectName(name string, result DBRow) {
+func (m *ManagementDB) MetadataSelectName(name string, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{
 		Columns: metadataColumns,
-		Rows: []DBRow{
-			result,
-		},
 	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
+	}
+
 	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\"", name)
 
 	m.ExpectQuery(query)
 }
 
-func (m *ManagementDB) MetadataSelectNameParent(name string, parentId string, result DBRow) {
+func (m *ManagementDB) MetadataSelectNameParent(name string, parentId string, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{
 		Columns: metadataColumns,
-		Rows: []DBRow{
-			result,
-		},
+	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
 	}
 	query.FormatQuery("SELECT * FROM metadata WHERE name=\"%s\" AND parent_id=\"%s\"", name, parentId)
+
+	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) MetadataLoadAllTableMetadata(tblPropertyID string, dbID int64, results []DBRow, expectEmpty bool) {
+	query := DBQueryMock{
+		Columns: metadataColumns,
+	}
+	if !expectEmpty {
+		query.Rows = results
+	}
+	query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblPropertyID, tblPropertyID, dbID)
 
 	m.ExpectQuery(query)
 }

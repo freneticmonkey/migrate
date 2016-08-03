@@ -14,11 +14,13 @@ import (
 
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
 type SQLParseCTTest struct {
 	CTStatement []string
+	Metadata    []test.DBRow
 	Expected    table.Table
 	ExpectFail  bool
 	Description string
@@ -38,6 +40,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"KEY `idx_id_name` (`id`,`name`)",
 			") ENGINE=InnoDB DEFAULT CHARSET=latin1",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "test", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+			test.DBRow{3, 1, "col2", "tbl1", "Column", "name", 1},
+			test.DBRow{4, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.DBRow{5, 1, "idx1", "tbl1", "Index", "idx_id_name", 1},
+		},
 		Expected: table.Table{
 			Name:    "test",
 			Engine:  "InnoDB",
@@ -48,9 +57,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -58,9 +71,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "varchar",
 					Size: []int{64},
 					Metadata: metadata.Metadata{
-						Name:   "name",
-						Type:   "Column",
-						Exists: true,
+						MDID:       3,
+						DB:         1,
+						PropertyID: "col2",
+						ParentID:   "tbl1",
+						Name:       "name",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -73,9 +90,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       4,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			SecondaryIndexes: []table.Index{
@@ -90,17 +111,25 @@ var parseCreateTableTests = []SQLParseCTTest{
 						},
 					},
 					Metadata: metadata.Metadata{
-						Name:   "idx_id_name",
-						Type:   "Index",
-						Exists: true,
+						MDID:       5,
+						DB:         1,
+						PropertyID: "idx1",
+						ParentID:   "tbl1",
+						Name:       "idx_id_name",
+						Type:       "Index",
+						Exists:     true,
 					},
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "test",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "test",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -113,6 +142,11 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"`id` int(11) NOT NULL AUTO_INCREMENT, ",
 			"PRIMARY KEY (`id`), ",
 			") ENGINE=InnoDB AUTO_INCREMENT=1234 ROW_FORMAT=DYNAMIC DEFAULT COLLATE=utf8_bin DEFAULT CHARSET=latin1",
+		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "test", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
 		},
 		Expected: table.Table{
 			Name:      "test",
@@ -128,9 +162,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					AutoInc: true,
 					Metadata: metadata.Metadata{
-						Name:   "id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -143,16 +181,24 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       3,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "test",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "test",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -173,6 +219,18 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"KEY `idx_game_id_parameter_id` (`game_id`,`parameter_id`)",
 			") ENGINE=InnoDB AUTO_INCREMENT=1014",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "devicetierparameter", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "parameter_id", 1},
+			test.DBRow{3, 1, "col2", "tbl1", "Column", "game_id", 1},
+			test.DBRow{4, 1, "col3", "tbl1", "Column", "name", 1},
+			test.DBRow{5, 1, "col4", "tbl1", "Column", "type", 1},
+			test.DBRow{6, 1, "col5", "tbl1", "Column", "default_value", 1},
+			test.DBRow{7, 1, "col6", "tbl1", "Column", "order", 1},
+			test.DBRow{8, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.DBRow{9, 1, "idx1", "tbl1", "Index", "idx_game_id_name", 1},
+			test.DBRow{10, 1, "idx2", "tbl1", "Index", "idx_game_id_parameter_id", 1},
+		},
 		Expected: table.Table{
 			Name:    "devicetierparameter",
 			Engine:  "InnoDB",
@@ -184,9 +242,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					AutoInc: true,
 					Metadata: metadata.Metadata{
-						Name:   "parameter_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "parameter_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -194,9 +256,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "game_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       3,
+						DB:         1,
+						PropertyID: "col2",
+						ParentID:   "tbl1",
+						Name:       "game_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -204,9 +270,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "varchar",
 					Size: []int{255},
 					Metadata: metadata.Metadata{
-						Name:   "name",
-						Type:   "Column",
-						Exists: true,
+						MDID:       4,
+						DB:         1,
+						PropertyID: "col3",
+						ParentID:   "tbl1",
+						Name:       "name",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -214,9 +284,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "type",
-						Type:   "Column",
-						Exists: true,
+						MDID:       5,
+						DB:         1,
+						PropertyID: "col4",
+						ParentID:   "tbl1",
+						Name:       "type",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -224,9 +298,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "varchar",
 					Size: []int{255},
 					Metadata: metadata.Metadata{
-						Name:   "default_value",
-						Type:   "Column",
-						Exists: true,
+						MDID:       6,
+						DB:         1,
+						PropertyID: "col5",
+						ParentID:   "tbl1",
+						Name:       "default_value",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -234,9 +312,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "order",
-						Type:   "Column",
-						Exists: true,
+						MDID:       7,
+						DB:         1,
+						PropertyID: "col6",
+						ParentID:   "tbl1",
+						Name:       "order",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -249,9 +331,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       8,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			SecondaryIndexes: []table.Index{
@@ -267,9 +353,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 						},
 					},
 					Metadata: metadata.Metadata{
-						Name:   "idx_game_id_name",
-						Type:   "Index",
-						Exists: true,
+						MDID:       9,
+						DB:         1,
+						PropertyID: "idx1",
+						ParentID:   "tbl1",
+						Name:       "idx_game_id_name",
+						Type:       "Index",
+						Exists:     true,
 					},
 				},
 				{
@@ -283,17 +373,25 @@ var parseCreateTableTests = []SQLParseCTTest{
 						},
 					},
 					Metadata: metadata.Metadata{
-						Name:   "idx_game_id_parameter_id",
-						Type:   "Index",
-						Exists: true,
+						MDID:       10,
+						DB:         1,
+						PropertyID: "idx2",
+						ParentID:   "tbl1",
+						Name:       "idx_game_id_parameter_id",
+						Type:       "Index",
+						Exists:     true,
 					},
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "devicetierparameter",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "devicetierparameter",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -310,6 +408,14 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"PRIMARY KEY (`file_id`)",
 			") ENGINE=InnoDB",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "storeproductfile", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "file_id", 1},
+			test.DBRow{3, 1, "col2", "tbl1", "Column", "game_id", 1},
+			test.DBRow{4, 1, "col3", "tbl1", "Column", "file", 1},
+			test.DBRow{5, 1, "col4", "tbl1", "Column", "order", 1},
+			test.DBRow{6, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
 		Expected: table.Table{
 			Name:   "storeproductfile",
 			Engine: "InnoDB",
@@ -320,9 +426,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					AutoInc: true,
 					Metadata: metadata.Metadata{
-						Name:   "file_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "file_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -330,18 +440,26 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "game_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       3,
+						DB:         1,
+						PropertyID: "col2",
+						ParentID:   "tbl1",
+						Name:       "game_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
 					Name: "file",
 					Type: "longblob",
 					Metadata: metadata.Metadata{
-						Name:   "file",
-						Type:   "Column",
-						Exists: true,
+						MDID:       4,
+						DB:         1,
+						PropertyID: "col3",
+						ParentID:   "tbl1",
+						Name:       "file",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -349,9 +467,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "order",
-						Type:   "Column",
-						Exists: true,
+						MDID:       5,
+						DB:         1,
+						PropertyID: "col4",
+						ParentID:   "tbl1",
+						Name:       "order",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -364,16 +486,24 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       6,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "storeproductfile",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "storeproductfile",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -390,6 +520,14 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"PRIMARY KEY (`file_id`)",
 			") ENGINE=InnoDB",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "storeproductfile", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "file_id", 1},
+			test.DBRow{3, 1, "col2", "tbl1", "Column", "game_id", 1},
+			test.DBRow{4, 1, "col3", "tbl1", "Column", "file", 1},
+			test.DBRow{5, 1, "col4", "tbl1", "Column", "order", 1},
+			test.DBRow{6, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
 		Expected: table.Table{
 			Name:   "storeproductfile",
 			Engine: "InnoDB",
@@ -400,9 +538,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					AutoInc: true,
 					Metadata: metadata.Metadata{
-						Name:   "file_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "file_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -411,18 +553,26 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					Default: "34",
 					Metadata: metadata.Metadata{
-						Name:   "game_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       3,
+						DB:         1,
+						PropertyID: "col2",
+						ParentID:   "tbl1",
+						Name:       "game_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
 					Name: "file",
 					Type: "longblob",
 					Metadata: metadata.Metadata{
-						Name:   "file",
-						Type:   "Column",
-						Exists: true,
+						MDID:       4,
+						DB:         1,
+						PropertyID: "col3",
+						ParentID:   "tbl1",
+						Name:       "file",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 				{
@@ -430,9 +580,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "int",
 					Size: []int{11},
 					Metadata: metadata.Metadata{
-						Name:   "order",
-						Type:   "Column",
-						Exists: true,
+						MDID:       5,
+						DB:         1,
+						PropertyID: "col4",
+						ParentID:   "tbl1",
+						Name:       "order",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -445,16 +599,24 @@ var parseCreateTableTests = []SQLParseCTTest{
 				},
 				IsPrimary: true,
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       6,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "storeproductfile",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "storeproductfile",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -468,6 +630,11 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"KEY `file id`(`file_id`)",
 			") ENGINE=InnoDB",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "storeproductfile", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "file_id", 1},
+			test.DBRow{3, 1, "idx1", "tbl1", "Index", "file id", 1},
+		},
 		Expected: table.Table{
 			Name:   "storeproductfile",
 			Engine: "InnoDB",
@@ -478,9 +645,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Size:    []int{11},
 					AutoInc: true,
 					Metadata: metadata.Metadata{
-						Name:   "file_id",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "file_id",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -493,17 +664,25 @@ var parseCreateTableTests = []SQLParseCTTest{
 						},
 					},
 					Metadata: metadata.Metadata{
-						Name:   "file id",
-						Type:   "Index",
-						Exists: true,
+						MDID:       3,
+						DB:         1,
+						PropertyID: "idx1",
+						ParentID:   "tbl1",
+						Name:       "file id",
+						Type:       "Index",
+						Exists:     true,
 					},
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "storeproductfile",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "storeproductfile",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -517,6 +696,11 @@ var parseCreateTableTests = []SQLParseCTTest{
 			"PRIMARY KEY (`name`(20))",
 			") ENGINE=InnoDB",
 		},
+		Metadata: []test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "storeproductfile", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "name", 1},
+			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
 		Expected: table.Table{
 			Name:   "storeproductfile",
 			Engine: "InnoDB",
@@ -526,9 +710,13 @@ var parseCreateTableTests = []SQLParseCTTest{
 					Type: "varchar",
 					Size: []int{64},
 					Metadata: metadata.Metadata{
-						Name:   "name",
-						Type:   "Column",
-						Exists: true,
+						MDID:       2,
+						DB:         1,
+						PropertyID: "col1",
+						ParentID:   "tbl1",
+						Name:       "name",
+						Type:       "Column",
+						Exists:     true,
 					},
 				},
 			},
@@ -542,16 +730,24 @@ var parseCreateTableTests = []SQLParseCTTest{
 					},
 				},
 				Metadata: metadata.Metadata{
-					Name:   "PrimaryKey",
-					Type:   "PrimaryKey",
-					Exists: true,
+					MDID:       3,
+					DB:         1,
+					PropertyID: "pi",
+					ParentID:   "tbl1",
+					Name:       "PrimaryKey",
+					Type:       "PrimaryKey",
+					Exists:     true,
 				},
 			},
 			Filename: "DB",
 			Metadata: metadata.Metadata{
-				Name:   "storeproductfile",
-				Type:   "Table",
-				Exists: true,
+				MDID:       1,
+				DB:         1,
+				PropertyID: "tbl1",
+				ParentID:   "",
+				Name:       "storeproductfile",
+				Type:       "Table",
+				Exists:     true,
 			},
 		},
 		ExpectFail:  false,
@@ -588,48 +784,47 @@ func dbTearDown() {
 
 func TestParseCreateTable(t *testing.T) {
 
-	// Mock Database Setup
-	db, err := dbSetup()
-	if err != nil {
-		t.Fatal(fmt.Sprintf("Failed due to mock database setup with error: %v", err))
-	}
-	defer dbTearDown()
+	mgmtDB, _ := test.CreateManagementDB("TestParseCreateTable", t)
 
-	// Configure metadata
-	metadata.Setup(db, 1)
+	metadata.Setup(mgmtDB.Db, 1)
 
-	for _, test := range parseCreateTableTests {
+	for _, tst := range parseCreateTableTests {
 
-		query := fmt.Sprintf("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", test.Expected.Name)
-		query = regexp.QuoteMeta(query)
+		// mgmtDB.MetadataSelectName(
+		// 	tst.Expected.Name,
+		// 	test.DBRow{},
+		// 	true,
+		// )
 
-		mock.ExpectQuery(query).
-			WillReturnRows(sqlmock.NewRows([]string{
-				"count",
-			}).AddRow(0))
+		mgmtDB.MetadataSelectName(
+			tst.Expected.Name,
+			tst.Metadata[0],
+			false,
+		)
 
-		result, err := ParseCreateTable(test.Statement())
+		mgmtDB.MetadataLoadAllTableMetadata(tst.Metadata[0][2].(string), 1, tst.Metadata, false)
 
-		if err != nil || !reflect.DeepEqual(result, test.Expected) {
+		result, err := ParseCreateTable(tst.Statement())
+
+		if err != nil || !reflect.DeepEqual(result, tst.Expected) {
 
 			context := ""
 			if err != nil {
-				util.LogWarnf("%s FAILED with error: %v", test.Description, err)
+				util.LogWarnf("%s FAILED with error: %v", tst.Description, err)
 				context = "Errors while parsing CREATE TABLE statement"
 			} else {
-				util.LogWarnf("%s FAILED.", test.Description)
+				util.LogWarnf("%s FAILED.", tst.Description)
 				context = "Parsed Table doesn't match"
-				util.DebugDumpDiff(test.Expected, result)
+				util.DebugDumpDiff(tst.Expected, result)
 			}
 
-			// we make sure that all expectations were met
-			if err = mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("Metadata was not queried for table name:%s Error: %s", test.Expected.Name, err)
-			}
+			t.Errorf("%s FAILED. %s", tst.Description, context)
 
-			t.Errorf("%s FAILED. %s", test.Description, context)
 		}
+
 	}
+
+	mgmtDB.ExpectionsMet("TestParseCreateTable", t)
 }
 
 func DisableTestParseDump(t *testing.T) {
