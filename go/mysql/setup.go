@@ -8,6 +8,7 @@ import (
 
 var projectDB *sql.DB
 var projectDBConn string
+var projectDBID int
 
 // SetProjectDB Directly set the Project DB Connection.  For unit testing.
 func SetProjectDB(pdb *sql.DB) {
@@ -15,8 +16,9 @@ func SetProjectDB(pdb *sql.DB) {
 }
 
 // Setup Configure the Project DB Connection
-func Setup(conf config.Config) {
+func Setup(conf config.Config, dbID int) {
 	projectDBConn = conf.Project.DB.ConnectString()
+	projectDBID = dbID
 }
 
 func connectProjectDB() (pdb *sql.DB, err error) {
