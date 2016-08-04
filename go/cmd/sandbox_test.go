@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -19,20 +20,15 @@ import (
 
 func TestDiffSchema(t *testing.T) {
 
+	var err error
 	var projectDB test.ProjectDB
 	var mgmtDB test.ManagementDB
 
+	var forwards mysql.SQLOperations
+	var backwards mysql.SQLOperations
+
 	// Test Configuration
-	testConfig := config.Config{
-		Project: config.Project{
-			DB: config.DB{
-				Database: "project",
-			},
-			LocalSchema: config.LocalSchema{
-				Path: "ignore",
-			},
-		},
-	}
+	testConfig := GetTestConfig()
 
 	// Mock MySQL
 	var dogsTable = []string{
@@ -57,6 +53,18 @@ func TestDiffSchema(t *testing.T) {
 					PropertyID: "col1",
 					ParentID:   "tbl1",
 					Name:       "id",
+					Type:       "Column",
+				},
+			},
+			{
+				Name: "address",
+				Type: "varchar",
+				Size: []int{128},
+				Metadata: metadata.Metadata{
+					PropertyID: "col2",
+					ParentID:   "tbl1",
+					Name:       "address",
+					Type:       "Column",
 				},
 			},
 		},
@@ -71,11 +79,45 @@ func TestDiffSchema(t *testing.T) {
 				PropertyID: "pi",
 				ParentID:   "tbl1",
 				Name:       "PrimaryKey",
+				Type:       "PrimaryKey",
 			},
 		},
 		Metadata: metadata.Metadata{
 			PropertyID: "tbl1",
 			Name:       "dogs",
+			Type:       "Table",
+		},
+	}
+
+	expectedForwards := mysql.SQLOperations{
+		mysql.SQLOperation{
+			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Op:        table.Add,
+			Name:      "address",
+			Metadata: metadata.Metadata{
+				MDID:       4,
+				DB:         1,
+				PropertyID: "col2",
+				ParentID:   "tbl1",
+				Name:       "address",
+				Type:       "Column",
+			},
+		},
+	}
+
+	expectedBackwards := mysql.SQLOperations{
+		mysql.SQLOperation{
+			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+			Op:        table.Del,
+			Name:      "address",
+			Metadata: metadata.Metadata{
+				MDID:       4,
+				DB:         1,
+				PropertyID: "col2",
+				ParentID:   "tbl1",
+				Name:       "address",
+				Type:       "Column",
+			},
 		},
 	}
 
@@ -122,17 +164,37 @@ func TestDiffSchema(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataSelectNameParent(
-		"PrimaryKey",
-		"tbl1",
-		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+	// Diff will also sync metadata for the YAML Schema
+	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+		1,
+		[]test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
 		false,
 	)
 
-	mgmtDB.MetadataSelectNameParent(
-		"id",
-		"tbl1",
-		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+	// Expect an insert for Metadata for the new column
+	mgmtDB.MetadataInsert(
+		test.DBRow{1, "col2", "tbl1", "Column", "address", false},
+		4,
+		1,
+	)
+
+	mgmtDB.MetadataSelectName(
+		"dogs",
+		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		false,
+	)
+
+	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+		1,
+		[]test.DBRow{
+			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
+			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		},
 		false,
 	)
 
@@ -143,11 +205,26 @@ func TestDiffSchema(t *testing.T) {
 	mysql.SetProjectDB(projectDB.Db.Db)
 
 	// Execute the schema diff
-	diffSchema(testConfig, "Unit Test", false)
+	forwards, backwards, err = diffSchema(testConfig, "Unit Test", false)
+
+	if err != nil {
+		t.Errorf("TestDiffSchema: Failed with Error: %v", err)
+	}
+
+	if !reflect.DeepEqual(expectedForwards, forwards) {
+		util.DebugDumpDiff(expectedForwards, forwards)
+		t.Error("TestDiffSchema: Forwards Operation differs from expected.")
+	}
+
+	if !reflect.DeepEqual(expectedBackwards, backwards) {
+		util.DebugDumpDiff(expectedBackwards, backwards)
+		t.Error("TestDiffSchema: Backwards Operation differs from expected.")
+	}
 
 	projectDB.ExpectionsMet("TestDiffSchema", t)
 
 	mgmtDB.ExpectionsMet("TestDiffSchema", t)
+	util.SetVerbose(false)
 
 }
 
@@ -157,13 +234,7 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	var err error
 
 	// Test Configuration
-	testConfig := config.Config{
-		Project: config.Project{
-			DB: config.DB{
-				Database: "project",
-			},
-		},
-	}
+	testConfig := GetTestConfig()
 
 	// Setup the mock project database
 	projectDB, err = test.CreateProjectDB("TestDiffSchema", t)
@@ -214,9 +285,9 @@ func TestCreateMigration(t *testing.T) {
 
 	mgmtDb.MigrationCount(test.DBRow{0}, false)
 
-	mgmtDb.MigrationInsert(test.DBRow{1, "UnitTestProject", "abc123", mysql.GetTimeNow(), "unit test", 0})
+	mgmtDb.MigrationInsert(test.DBRow{1, "UnitTestProject", "abc123", mysql.GetTimeNow(), "unit test", 0}, 1, 1)
 
-	mgmtDb.MigrationInsertStep(test.DBRow{1, 0, 4, "address", "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;", "ALTER TABLE `dogs` DROP COLUMN `address`;", "", 0})
+	mgmtDb.MigrationInsertStep(test.DBRow{1, 0, 4, "address", "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;", "ALTER TABLE `dogs` DROP COLUMN `address`;", "", 0}, 1, 1)
 
 	forwardOps := mysql.SQLOperations{
 		mysql.SQLOperation{
@@ -266,20 +337,8 @@ func TestMigrateSandbox(t *testing.T) {
 	var mgmtDb test.ManagementDB
 	var err error
 
-	util.SetVerbose(true)
-
 	// Test Configuration
-	testConfig := config.Config{
-		Project: config.Project{
-			Name: "UnitTestProject",
-			Schema: config.Schema{
-				Version: "abc123",
-			},
-			DB: config.DB{
-				Database: "test",
-			},
-		},
-	}
+	testConfig := GetTestConfig()
 
 	m := migration.Migration{
 		MID:                1,
@@ -334,18 +393,13 @@ func TestMigrateSandbox(t *testing.T) {
 	)
 
 	// Set this migration to running
-	// mgmtDb.MigrationSetStatus(m.MID, migration.InProgress)
-
 	mgmtDb.MetadataGet(
 		1,
 		test.DBRow{1, 1, "col1", "tbl1", "Column", "address", 1},
 		false,
 	)
-	// mgmtDb.Mock.ExpectQuery("SELECT \\* FROM `metadata` WHERE mdid=1").WillReturnRows(rows driver.Rows)
 
 	// Set Step to InProgress
-	// mgmtDb.StepSetStatus(m.Steps[0].SID, migration.InProgress)
-
 	mgmtDb.Mock.ExpectExec("update `migration_steps`").WithArgs(
 		1,
 		table.Add,
