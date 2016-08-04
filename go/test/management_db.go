@@ -47,6 +47,18 @@ func (m *ManagementDB) MetadataGet(mid int, result DBRow, expectEmtpy bool) {
 	m.ExpectQuery(query)
 }
 
+func (m *ManagementDB) MetadataInsert(args DBRow, lastInsert int64, rowsAffected int64) {
+
+	query := DBQueryMock{
+		Type:   ExecCmd,
+		Result: sqlmock.NewResult(lastInsert, rowsAffected),
+	}
+	query.FormatQuery("insert into `metadata` (`%s`)%s", strings.Join(metadataColumns, "`,`"), migrationValuesTemplate)
+	query.SetArgs(args...)
+
+	m.ExpectExec(query)
+}
+
 //'select * from migration WHERE status = 6'
 
 //'select `mdid`,`db`,`property_id`,`parent_id`,`type`,`name`,`exists` from `metadata` where `mdid`=?;' with args [1] was not expected]
@@ -153,11 +165,11 @@ func (m *ManagementDB) MigrationSetStatus(mid int64, status int) {
 	m.ExpectExec(query)
 }
 
-func (m *ManagementDB) MigrationInsert(args DBRow) {
+func (m *ManagementDB) MigrationInsert(args DBRow, lastInsert int64, rowsAffected int64) {
 
 	query := DBQueryMock{
 		Type:   ExecCmd,
-		Result: sqlmock.NewResult(1, 1),
+		Result: sqlmock.NewResult(lastInsert, rowsAffected),
 	}
 	query.FormatQuery("insert into `migration` (`%s`)%s", strings.Join(migrationColumns, "`,`"), migrationValuesTemplate)
 	query.SetArgs(args...)
@@ -165,11 +177,11 @@ func (m *ManagementDB) MigrationInsert(args DBRow) {
 	m.ExpectExec(query)
 }
 
-func (m *ManagementDB) MigrationInsertStep(args DBRow) {
+func (m *ManagementDB) MigrationInsertStep(args DBRow, lastInsert int64, rowsAffected int64) {
 
 	query := DBQueryMock{
 		Type:   ExecCmd,
-		Result: sqlmock.NewResult(1, 1),
+		Result: sqlmock.NewResult(lastInsert, rowsAffected),
 	}
 	query.FormatQuery("insert into `migration_steps` (`%s`)%s", strings.Join(migrationStepsColumns, "`,`"), migrationStepsValuesTemplate)
 	query.SetArgs(args...)
