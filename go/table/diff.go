@@ -342,6 +342,7 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences, e
 		// Sync the metadata for the table and it's fields to the DB so that it can be
 		// detected by the Migration when it executes
 		err = toTable.SyncDBMetadata()
+
 		if util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name) {
 			return tableDiffs, err
 		}

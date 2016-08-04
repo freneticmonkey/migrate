@@ -194,34 +194,41 @@ func (t *Table) RemoveNamespace() {
 	t.Name = ns[len(ns)-1]
 }
 
-// syncMetadata Check if the Metadata exists in the DB and insert it if it doesn't
-func syncMetadata(md *metadata.Metadata) (err error) {
-	var dbmd metadata.Metadata
+// LoadDBMetadata Populate the Metadata for this table with data from the database
+func (t *Table) LoadDBMetadata() (err error) {
 
-	// IF the Metadata ID hasn't yet been set
-	if md.MDID < 1 {
-		if len(md.Name) == 0 {
-			return fmt.Errorf("Cannot create or find Metadata without a name")
+	var mds []metadata.Metadata
+
+	mds, err = metadata.LoadAllTableMetadata(t.Name)
+
+	for _, md := range mds {
+		// Table
+		if md.ParentID == "" && md.Type == "Table" {
+			t.Metadata = md
 		}
 
-		// var dbmd metadata.Metadata
-		dbmd, err = metadata.GetByName(md.Name, md.ParentID)
-
-		if err != nil {
-			util.ErrorCheckf(err, "Problem finding %s Metadata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID)
-			return err
-		}
-
-		if dbmd.MDID < 1 {
-			err = md.Insert()
-			if util.ErrorCheckf(err, "Problem inserting %s Metadata for %s for with PropertyID: [%s]", md.Type, md.Name, md.PropertyID) {
-				return err
+		// Columns
+		if md.Type == "Column" {
+			for i := 0; i < len(t.Columns); i++ {
+				if md.Name == t.Columns[i].Name {
+					t.Columns[i].Metadata = md
+				}
 			}
 		}
 
-		md.MDID = dbmd.MDID
-		md.DB = dbmd.DB
-		md.Type = dbmd.Type
+		// Primary Key
+		if md.Type == "PrimaryKey" {
+			t.PrimaryIndex.Metadata = md
+		}
+
+		// Indexes
+		if md.Type == "Index" {
+			for i := 0; i < len(t.SecondaryIndexes); i++ {
+				if md.Name == t.SecondaryIndexes[i].Name {
+					t.SecondaryIndexes[i].Metadata = md
+				}
+			}
+		}
 	}
 
 	return err
@@ -230,20 +237,47 @@ func syncMetadata(md *metadata.Metadata) (err error) {
 // SyncDBMetadata Helper function to insert new Metadata and retrieves existing Metadata from the DB
 func (t *Table) SyncDBMetadata() (err error) {
 
-	err = syncMetadata(&t.Metadata)
+	// If the Table Metadata object doesn't have a Metadata Id
+	// then it hasn't been loaded from the DB (it's been built from YAML)
+
+	// Load the DB Metadata state to the table.
+	t.LoadDBMetadata()
+
+	// Search for Metadata that still doesn't have a Metadata Id.
+	// This will mean that they are new Table fields and need to be recorded in
+	// the DB so that they will be detected and correctly validated when the
+	// migration adding them to the DB is executed.
+
+	// Creating a simple anon function for inserting any new Metadata
+	syncDB := func(md *metadata.Metadata) error {
+		// Double check that the DB doesn't know about this Metadata
+		if md.MDID < 1 {
+			// Ensure that a name has been set
+			if len(md.Name) == 0 {
+				return fmt.Errorf("Cannot create or find Metadata without a name")
+			}
+			// Update the DB
+			return md.Insert()
+		}
+		// Already exists in the DB
+		return nil
+	}
+
+	// Process the Table, then Columns, then PrimaryKey, and finally the Indexes
+	err = syncDB(&t.Metadata)
 
 	if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s]", t.Name) {
 		return err
 	}
 
-	err = syncMetadata(&t.PrimaryIndex.Metadata)
+	err = syncDB(&t.PrimaryIndex.Metadata)
 
 	if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Primary Key", t.Name) {
 		return err
 	}
 
 	for i := 0; i < len(t.Columns); i++ {
-		err = syncMetadata(&t.Columns[i].Metadata)
+		err = syncDB(&t.Columns[i].Metadata)
 
 		if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Column: [%s]", t.Name, t.Columns[i].Name) {
 			return err
@@ -251,7 +285,7 @@ func (t *Table) SyncDBMetadata() (err error) {
 	}
 
 	for i := 0; i < len(t.SecondaryIndexes); i++ {
-		err = syncMetadata(&t.SecondaryIndexes[i].Metadata)
+		err = syncDB(&t.SecondaryIndexes[i].Metadata)
 
 		if util.ErrorCheckf(err, "Failed to sync Metadata for Table: [%s] Index: [%s]", t.Name, t.SecondaryIndexes[i].Name) {
 			return err

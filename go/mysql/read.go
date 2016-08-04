@@ -545,45 +545,6 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 	return index, err
 }
 
-// retrieveTableMetadata Retrieve the metadata for the Table and all of its properties
-func retrieveTableMetadata(tbl *table.Table) (err error) {
-	var mds []metadata.Metadata
-
-	mds, err = metadata.LoadAllTableMetadata(tbl.Name)
-
-	for _, md := range mds {
-		// Table
-		if md.ParentID == "" && md.Type == "Table" {
-			tbl.Metadata = md
-		}
-
-		// Columns
-		if md.Type == "Column" {
-			for i := 0; i < len(tbl.Columns); i++ {
-				if md.Name == tbl.Columns[i].Name {
-					tbl.Columns[i].Metadata = md
-				}
-			}
-		}
-
-		// Primary Key
-		if md.Type == "PrimaryKey" {
-			tbl.PrimaryIndex.Metadata = md
-		}
-
-		// Indexes
-		if md.Type == "Index" {
-			for i := 0; i < len(tbl.SecondaryIndexes); i++ {
-				if md.Name == tbl.SecondaryIndexes[i].Name {
-					tbl.SecondaryIndexes[i].Metadata = md
-				}
-			}
-		}
-	}
-
-	return err
-}
-
 // ParseCreateTable Parses a MySQL Create Table statement into a table.Table struct
 func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 
@@ -657,7 +618,7 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 	}
 
 	// Retrieve any Metadata from the Management DB
-	retrieveTableMetadata(&tbl)
+	tbl.LoadDBMetadata()
 
 	return tbl, err
 }
