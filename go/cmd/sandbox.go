@@ -177,6 +177,7 @@ func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (er
 }
 
 func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardOps mysql.SQLOperations, backwardOps mysql.SQLOperations, err error) {
+	util.LogInfo(formatMessage(false, "Sandbox Diff Schema", "Comparing MySQL and YAML Schemas"))
 
 	var forwardDiff table.Differences
 	var backwardDiff table.Differences
