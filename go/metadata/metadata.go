@@ -97,7 +97,7 @@ func TableRegistered(name string) (reg bool, err error) {
 
 // LoadAllTableMetadata Load all of the Metadata rows for a table with the
 // matching Property and Database IDs
-func LoadAllTableMetadata(name string, db int) (md []Metadata, err error) {
+func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 	var tblMd Metadata
 
 	tblMd, err = GetTableByName(name)
@@ -105,7 +105,7 @@ func LoadAllTableMetadata(name string, db int) (md []Metadata, err error) {
 		return md, err
 	}
 
-	query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.PropertyID, tblMd.PropertyID, db)
+	query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.PropertyID, tblMd.PropertyID, targetDBID)
 	_, err = mgmtDb.Select(&md, query)
 
 	util.ErrorCheckf(err, "There was a problem retrieving Metadata for Table with Name: [%s] and PropertyID: [%s]", name, tblMd.PropertyID)

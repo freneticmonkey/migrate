@@ -549,7 +549,7 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 func retrieveTableMetadata(tbl *table.Table) (err error) {
 	var mds []metadata.Metadata
 
-	mds, err = metadata.LoadAllTableMetadata(tbl.Name, projectDBID)
+	mds, err = metadata.LoadAllTableMetadata(tbl.Name)
 
 	for _, md := range mds {
 		// Table

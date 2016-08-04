@@ -85,7 +85,7 @@ func Setup(conf config.Config) (err error) {
 	}
 
 	if !util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database) {
-		mysql.Setup(conf, tdb.DBID)
+		mysql.Setup(conf)
 		metadata.Setup(mgmtDb, tdb.DBID)
 		migration.Setup(mgmtDb, tdb.DBID)
 		exec.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())

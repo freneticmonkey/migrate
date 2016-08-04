@@ -98,7 +98,7 @@ func TestDiffSchema(t *testing.T) {
 	// Setup the mock Managment DB
 	mgmtDB, _ = test.CreateManagementDB("TestDiffSchema", t)
 
-	mysql.Setup(testConfig, 1)
+	mysql.Setup(testConfig)
 
 	mgmtDB.MetadataSelectName(
 		"dogs",
