@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/freneticmonkey/migrate/go/config"
@@ -120,6 +121,12 @@ func sandboxAction(conf config.Config, dryrun bool, recreate bool, actionTitle s
 
 	// Kick off a migration to recreate the db
 
+	// If a clean migration
+	if recreate {
+		// Recreate the Sandbox Database
+		recreateProjectDatabase(conf, dryrun)
+	}
+
 	// Check that a local schema exists
 	forwardOps, backwardOps, err := diffSchema(conf, actionTitle, recreate)
 
@@ -132,12 +139,6 @@ func sandboxAction(conf config.Config, dryrun bool, recreate bool, actionTitle s
 
 	if util.ErrorCheck(err) {
 		return successmsg, err
-	}
-
-	// If a clean migration
-	if recreate {
-		// Recreate the Sandbox Database
-		recreateProjectDatabase(conf, dryrun)
 	}
 
 	// Apply the migration to the sandbox
@@ -259,28 +260,29 @@ func createMigration(conf config.Config, actionTitle string, dryrun bool, forwar
 
 func recreateProjectDatabase(conf config.Config, dryrun bool) (err error) {
 	var output string
+	var tables []string
 
-	dropCommand := fmt.Sprintf("DROP DATABASE `%s`", conf.Project.DB.Database)
-	createCommand := fmt.Sprintf("CREATE DATABASE `%s`", conf.Project.DB.Database)
+	tables, err = mysql.ReadTableNames()
 
-	util.LogInfo(formatMessage(dryrun, "Sandbox Recreation", "Recreating Database"))
-	if !dryrun {
-		output, err = exec.ExecuteSQL(dropCommand, false)
-		if util.ErrorCheckf(err, "Problem dropping DATABASE for Project: [%s] SQL: [%s] Output: [%s]", conf.Project.Name, dropCommand, output) {
-			return cli.NewExitError("Sandbox Recreation failed. Couldn't DROP Project Database", 1)
+	if len(tables) > 0 {
+		dropTables := fmt.Sprintf("DROP TABLE `%s`", strings.Join(tables, "`,`"))
+
+		util.LogInfo(formatMessage(dryrun, "Sandbox Recreation", "Recreating Database"))
+		if !dryrun {
+			output, err = exec.ExecuteSQL(dropTables, false)
+			if util.ErrorCheckf(err, "Problem dropping ALL TABLES for Project: [%s] SQL: [%s] Output: [%s]", conf.Project.Name, dropTables, output) {
+				return cli.NewExitError("Sandbox Recreation failed. Couldn't DROP ALL TABLES for Project Database", 1)
+			}
+
+			// Force a Reconnect to the database because the DB was just recreated
+			// exec.ConnectProjectDB(true)
+
+			// Emptying the MySQL Schema
+
+			mysql.Schema = []table.Table{}
+		} else {
+			util.LogInfof("(DRYRUN) Exec SQL: %s", dropTables)
 		}
-
-		output, err = exec.ExecuteSQL(createCommand, false)
-		if util.ErrorCheckf(err, "Problem creating DATABASE for Project: [%s] SQL: [%s] Output: [%s]", conf.Project.Name, createCommand, output) {
-			return cli.NewExitError("Sandbox Recreation failed. Couldn't Create Project Database", 1)
-		}
-
-		// Force a Reconnect to the database because the DB was just recreated
-		exec.ConnectProjectDB(true)
-
-	} else {
-		util.LogInfof("(DRYRUN) Exec SQL: %s", dropCommand)
-		util.LogInfof("(DRYRUN) Exec SQL: %s", createCommand)
 	}
 
 	return err
