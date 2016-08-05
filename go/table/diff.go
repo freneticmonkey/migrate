@@ -2,7 +2,6 @@ package table
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/fatih/color"
@@ -18,23 +17,20 @@ const (
 )
 
 // FormatOperation Formats the difference in a human readable git style for console output
-func FormatOperation(input string, op int) string {
-	var prefix string
+func FormatOperation(input string, op int) (fmtStr string) {
 	switch op {
 	case Add:
-		prefix = "+++"
+		fmtStr = "+++ " + input
+		util.LogGreen(fmtStr)
 		color.Set(color.FgGreen)
 	case Del:
-		prefix = "---"
-		color.Set(color.FgRed)
+		fmtStr = "--- " + input
+		util.LogRed(fmtStr)
 	case Mod:
-		prefix = " M "
+		fmtStr = " M  " + input
+		util.LogYellow(fmtStr)
 		color.Set(color.FgYellow)
 	}
-	fmtStr := fmt.Sprintf("%s %s", prefix, input)
-	log.Println(fmtStr)
-	color.Unset()
-
 	return fmtStr
 }
 
