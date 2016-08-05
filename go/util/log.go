@@ -14,78 +14,94 @@ func SetVerbose(v bool) {
 	verbose = v
 }
 
+func LogColour(out string, attr color.Attribute) {
+	if verbose {
+		color.Set(attr)
+		log.Printf(out)
+		color.Unset()
+	}
+}
+
+func LogGreen(out string) {
+	LogColour(out, color.FgGreen)
+}
+
+func LogWhite(out string) {
+	LogColour(out, color.FgWhite)
+}
+
+func LogMagenta(out string) {
+	LogColour(out, color.FgMagenta)
+}
+
+func LogYellow(out string) {
+	LogColour(out, color.FgYellow)
+}
+
+func LogCyan(out string) {
+	LogColour(out, color.FgCyan)
+}
+
+func LogRed(out string) {
+	LogColour(out, color.FgRed)
+}
+
+func LogRedBright(out string) {
+	LogColour(out, color.FgHiRed)
+}
+
 func LogInfo(info ...interface{}) {
-	color.Set(color.FgWhite)
-	log.Printf("INFO: %s", fmt.Sprintln(info...))
-	color.Unset()
+	LogWhite("INFO:  " + fmt.Sprintln(info...))
 }
 
 func LogInfof(format string, info ...interface{}) {
-	if verbose {
-		color.Set(color.FgWhite)
-		log.Printf("INFO: %s", fmt.Sprintf(format, info...))
-		color.Unset()
-	}
+	LogWhite("INFO:  " + fmt.Sprintf(format, info...))
+}
+
+func LogOk(info ...interface{}) {
+	LogGreen("OK:    " + fmt.Sprintln(info...))
+}
+
+func LogOkf(format string, info ...interface{}) {
+	LogGreen("OK:    " + fmt.Sprintf(format, info...))
 }
 
 func LogAttention(info ...interface{}) {
-	if verbose {
-		color.Set(color.FgYellow)
-		log.Printf("INFO: %s", fmt.Sprintln(info...))
-		color.Unset()
-	}
+	LogYellow("ATTN:  " + fmt.Sprintln(info...))
 }
 
 func LogAttentionf(format string, info ...interface{}) {
-	if verbose {
-		color.Set(color.FgYellow)
-		log.Printf("INFO: %s", fmt.Sprintf(format, info...))
-		color.Unset()
-	}
+	LogYellow("ATTN:  " + fmt.Sprintf(format, info...))
 }
 
 func LogWarn(warn ...interface{}) {
-	if verbose {
-		color.Set(color.FgMagenta)
-		log.Printf("WARN: %s", fmt.Sprintln(warn...))
-		color.Unset()
-	}
+	LogMagenta("WARN:  " + fmt.Sprintln(warn...))
 }
 
 func LogWarnf(format string, warn ...interface{}) {
-	if verbose {
-		color.Set(color.FgMagenta)
-		log.Printf("WARN: %s", fmt.Sprintf(format, warn...))
-		color.Unset()
-	}
+	LogMagenta("WARN:  " + fmt.Sprintf(format, warn...))
 }
 
 func LogAlert(alert ...interface{}) {
-	if verbose {
-		color.Set(color.FgCyan)
-		log.Printf("ALERT: %s", fmt.Sprintln(alert...))
-		color.Unset()
-	}
+	LogCyan("ALERT: " + fmt.Sprintln(alert...))
 }
 
 func LogAlertf(format string, alert ...interface{}) {
-	if verbose {
-		color.Set(color.FgCyan)
-		log.Printf("ALERT: %s", fmt.Sprintf(format, alert...))
-		color.Unset()
-	}
+	LogCyan("ALERT: " + fmt.Sprintf(format, alert...))
 }
 
 func LogError(err ...interface{}) {
-	color.Set(color.FgHiRed)
-	log.Printf("ERROR: %s", fmt.Sprintln(err...))
-	color.Unset()
+	orig := verbose
+	verbose = true
+	LogRed("ERROR: " + fmt.Sprintln(err...))
+	verbose = orig
 }
 
 func LogErrorf(format string, err ...interface{}) {
-	color.Set(color.FgHiRed)
-	log.Printf("ERROR: %s", fmt.Sprintf(format, err...))
-	color.Unset()
+	orig := verbose
+	verbose = true
+	LogRed("ERROR: " + fmt.Sprintf(format, err...))
+	verbose = orig
 }
 
 func LogFatal(code int, err ...interface{}) {
