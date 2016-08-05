@@ -25,7 +25,8 @@ func GetTestConfig() config.Config {
 				Path: "ignore",
 			},
 			DB: config.DB{
-				Database: "project",
+				Database:    "project",
+				Environment: "SANDBOX",
 			},
 		},
 	}
