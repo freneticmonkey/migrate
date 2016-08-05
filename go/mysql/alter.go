@@ -106,6 +106,7 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 	var builder StatementBuilder
 
 	operation.Op = table.Add
+	operation.Name = tbl.Name
 
 	// tableTemplate := "CREATE TABLE `%s` (%s%s) ENGINE=%s%s DEFAULT CHARSET=%s;"
 
@@ -160,7 +161,6 @@ func generateCreateTable(tbl table.Table) (operation SQLOperation) {
 	if len(tbl.Collation) > 0 {
 		builder.AddFormat("COLLATE=%s", tbl.Collation)
 	}
-
 	operation.Statement = builder.Format()
 	operation.Metadata = tbl.Metadata
 	return operation
