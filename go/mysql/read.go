@@ -623,6 +623,42 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 	return tbl, err
 }
 
+func ReadTableNames() (tables []string, err error) {
+	var rows *sql.Rows
+	var pdb *sql.DB
+
+	// Connect to the Project database
+	pdb, err = connectProjectDB()
+
+	// Ensure that the connection is cleaned up
+	// defer pdb.Close()
+	if util.ErrorCheckf(err, "Problem opening connection to target database") {
+		return tables, err
+	}
+
+	// If the Database connection exists
+	if pdb != nil {
+		rows, err = pdb.Query("show tables")
+
+		if util.ErrorCheckf(err, "Problem retrieving tables") {
+			return tables, err
+		}
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var name string
+			err = rows.Scan(&name)
+			if util.ErrorCheckf(err, "Could not parse name from database tables") {
+				return tables, err
+			}
+			tables = append(tables, name)
+		}
+	}
+
+	return tables, err
+}
+
 // ReadTables Reads the database for the project parameter and parses the
 // show create table result for each into table.Table structs
 func ReadTables() (err error) {
@@ -635,34 +671,23 @@ func ReadTables() (err error) {
 	var rows *sql.Rows
 	var pdb *sql.DB
 	var tables []CreateTable
+	var tableNames []string
 	var tbl table.Table
 
 	// Connect to the Project database
 	pdb, err = connectProjectDB()
 
 	// Ensure that the connection is cleaned up
-	defer pdb.Close()
 	if util.ErrorCheckf(err, "Problem opening connection to target database") {
 		return err
 	}
 
 	// If the Database connection exists
 	if pdb != nil {
-		rows, err = pdb.Query("show tables")
+		tableNames, err = ReadTableNames()
 
-		if util.ErrorCheckf(err, "Problem retrieving tables") {
-			return err
-		}
-
-		defer rows.Close()
-
-		for rows.Next() {
-			var name string
-			err = rows.Scan(&name)
-			if util.ErrorCheckf(err, "Could not parse name from database tables") {
-				return err
-			}
-			tables = append(tables, CreateTable{name, ""})
+		for _, tableName := range tableNames {
+			tables = append(tables, CreateTable{tableName, ""})
 		}
 
 		// Extract the Create Table Statements
