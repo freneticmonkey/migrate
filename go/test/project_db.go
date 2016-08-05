@@ -17,13 +17,17 @@ func CreateProjectDB(context string, t *testing.T) (p ProjectDB, err error) {
 	return p, nil
 }
 
-func (m *ProjectDB) ShowTables(results []DBRow) {
+func (m *ProjectDB) ShowTables(results []DBRow, expectEmpty bool) {
 
-	m.ExpectQuery(DBQueryMock{
+	query := DBQueryMock{
 		Query:   "show tables",
 		Columns: []string{"table"},
-		Rows:    results,
-	})
+	}
+
+	if !expectEmpty {
+		query.Rows = results
+	}
+	m.ExpectQuery(query)
 }
 
 func (m *ProjectDB) ShowCreateTable(name string, createStatement string) {

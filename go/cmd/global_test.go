@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/metadata"
+	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -24,6 +27,128 @@ func GetTestConfig() config.Config {
 			DB: config.DB{
 				Database: "project",
 			},
+		},
+	}
+}
+
+func GetMySQLCreateTableDogs() string {
+	var dogsTable = []string{
+		"CREATE TABLE `dogs` (",
+		"`id` int(11) NOT NULL,",
+		" PRIMARY KEY (`id`)",
+		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+	}
+	return strings.Join(dogsTable, "\n")
+}
+
+func GetCreateTableDogs() string {
+	var dogsTable = []string{
+		"CREATE TABLE `dogs` (",
+		"`id` int(11) NOT NULL,",
+		" PRIMARY KEY (`id`)",
+		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+	}
+	return strings.Join(dogsTable, "")
+}
+
+func GetCreateTableAddressColumnDogs() string {
+	var dogsTable = []string{
+		"CREATE TABLE `dogs` (",
+		"`id` int(11) NOT NULL,",
+		"`address` varchar(128) NOT NULL,",
+		" PRIMARY KEY (`id`)",
+		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+	}
+	return strings.Join(dogsTable, "")
+}
+
+func GetTableDogs() table.Table {
+	return table.Table{
+		Name:    "dogs",
+		Engine:  "InnoDB",
+		CharSet: "latin1",
+		Columns: []table.Column{
+			{
+				Name: "id",
+				Type: "int",
+				Size: []int{11},
+				Metadata: metadata.Metadata{
+					PropertyID: "col1",
+					ParentID:   "tbl1",
+					Name:       "id",
+					Type:       "Column",
+				},
+			},
+		},
+		PrimaryIndex: table.Index{
+			IsPrimary: true,
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "pi",
+				ParentID:   "tbl1",
+				Name:       "PrimaryKey",
+				Type:       "PrimaryKey",
+			},
+		},
+		Metadata: metadata.Metadata{
+			PropertyID: "tbl1",
+			Name:       "dogs",
+			Type:       "Table",
+		},
+	}
+}
+
+func GetTableAddressDogs() table.Table {
+	return table.Table{
+		Name:    "dogs",
+		Engine:  "InnoDB",
+		CharSet: "latin1",
+		Columns: []table.Column{
+			{
+				Name: "id",
+				Type: "int",
+				Size: []int{11},
+				Metadata: metadata.Metadata{
+					PropertyID: "col1",
+					ParentID:   "tbl1",
+					Name:       "id",
+					Type:       "Column",
+				},
+			},
+			{
+				Name: "address",
+				Type: "varchar",
+				Size: []int{128},
+				Metadata: metadata.Metadata{
+					PropertyID: "col2",
+					ParentID:   "tbl1",
+					Name:       "address",
+					Type:       "Column",
+				},
+			},
+		},
+		PrimaryIndex: table.Index{
+			IsPrimary: true,
+			Columns: []table.IndexColumn{
+				{
+					Name: "id",
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "pi",
+				ParentID:   "tbl1",
+				Name:       "PrimaryKey",
+				Type:       "PrimaryKey",
+			},
+		},
+		Metadata: metadata.Metadata{
+			PropertyID: "tbl1",
+			Name:       "dogs",
+			Type:       "Table",
 		},
 	}
 }
