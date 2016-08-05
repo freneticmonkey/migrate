@@ -62,7 +62,7 @@ func LogWarnf(format string, warn ...interface{}) {
 
 func LogAlert(alert ...interface{}) {
 	if verbose {
-		color.Set(color.FgRed)
+		color.Set(color.FgCyan)
 		log.Printf("ALERT: %s", fmt.Sprintln(alert...))
 		color.Unset()
 	}
@@ -70,7 +70,7 @@ func LogAlert(alert ...interface{}) {
 
 func LogAlertf(format string, alert ...interface{}) {
 	if verbose {
-		color.Set(color.FgRed)
+		color.Set(color.FgCyan)
 		log.Printf("ALERT: %s", fmt.Sprintf(format, alert...))
 		color.Unset()
 	}
