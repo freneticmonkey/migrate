@@ -22,6 +22,41 @@ func CreateManagementDB(context string, t *testing.T) (p ManagementDB, err error
 	return p, nil
 }
 
+func (m *ManagementDB) ShowTables(results []DBRow, expectEmpty bool) {
+
+	query := DBQueryMock{
+		Query:   "SHOW TABLES IN management",
+		Columns: []string{"table"},
+	}
+
+	if !expectEmpty {
+		query.Rows = results
+	}
+	m.ExpectQuery(query)
+}
+
+// Database Helpers
+
+var databaseColumns = []string{
+	"dbid",
+	"project",
+	"name",
+	"env",
+}
+
+func (m *ManagementDB) DatabaseGet(project string, name string, env string, result DBRow, expectEmtpy bool) {
+
+	query := DBQueryMock{
+		Columns: databaseColumns,
+	}
+	if !expectEmtpy {
+		query.Rows = []DBRow{result}
+	}
+	query.FormatQuery("SELECT * FROM target_database WHERE project=\"%s\" AND name=\"%s\" AND env=\"%s\"", project, name, env)
+
+	m.ExpectQuery(query)
+}
+
 // Metadata Helpers
 
 var metadataColumns = []string{
