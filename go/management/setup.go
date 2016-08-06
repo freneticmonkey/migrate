@@ -113,13 +113,22 @@ func BuildSchema(conf config.Config) (err error) {
 		migration.Setup(mgmtDb, 0)
 
 		// If the Tables haven't been created, create them now.
-		metadata.CreateTables()
-		migration.CreateTables()
-
-		err = mgmtDb.CreateTablesIfNotExists()
-		if !util.ErrorCheckf(err, "Failed to create tables in the management DB") {
-			util.LogInfo("Successfully Created Management database schema.")
+		_, err = metadata.CreateTables()
+		if util.ErrorCheckf(err, "Failed to create Metadata table in the management DB") {
+			return err
 		}
+		_, err = migration.CreateTables()
+		if util.ErrorCheckf(err, "Failed to create Migration and Migration Steps tables in the management DB") {
+			return err
+		}
+
+		_, err = database.CreateTables()
+		if util.ErrorCheckf(err, "Failed to create Database table in the management DB") {
+			return err
+		}
+
+		util.LogInfo("Successfully Created Management database schema.")
+
 	} else {
 		err = fmt.Errorf("Management Schema Detected.  Schema creation cancelled.")
 	}
