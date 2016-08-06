@@ -1,6 +1,7 @@
 package test
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -57,6 +58,23 @@ func (m *ManagementDB) DatabaseGet(project string, name string, env string, resu
 	m.ExpectQuery(query)
 }
 
+func (m *ManagementDB) DatabaseCreateTable() {
+
+	ct := []string{
+		"CREATE TABLE `target_database` (",
+		" `dbid` int(11) NOT NULL AUTO_INCREMENT,",
+		" `project` varchar(255) DEFAULT NULL,",
+		" `name` varchar(255) DEFAULT NULL,",
+		" `env` varchar(255) DEFAULT NULL,",
+		" PRIMARY KEY (`dbid`) ",
+		") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+	}
+
+	ctStr := strings.Join(ct, "")
+	ctStr = regexp.QuoteMeta(ctStr)
+	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
+}
+
 // Metadata Helpers
 
 var metadataColumns = []string{
@@ -94,10 +112,6 @@ func (m *ManagementDB) MetadataInsert(args DBRow, lastInsert int64, rowsAffected
 	m.ExpectExec(query)
 }
 
-//'select * from migration WHERE status = 6'
-
-//'select `mdid`,`db`,`property_id`,`parent_id`,`type`,`name`,`exists` from `metadata` where `mdid`=?;' with args [1] was not expected]
-
 func (m *ManagementDB) MetadataSelectName(name string, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{
 		Columns: metadataColumns,
@@ -133,6 +147,26 @@ func (m *ManagementDB) MetadataLoadAllTableMetadata(tblPropertyID string, dbID i
 	query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblPropertyID, tblPropertyID, dbID)
 
 	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) MetadataCreateTable() {
+
+	ct := []string{
+		"CREATE TABLE `metadata` (",
+		" `mdid` bigint(20) NOT NULL AUTO_INCREMENT,",
+		" `db` int(11) DEFAULT NULL,",
+		" `property_id` varchar(255) DEFAULT NULL,",
+		" `parent_id` varchar(255) DEFAULT NULL,",
+		" `type` varchar(255) DEFAULT NULL,",
+		" `name` varchar(255) DEFAULT NULL,",
+		" `exists` tinyint(1) DEFAULT NULL,",
+		" PRIMARY KEY (`mdid`)",
+		") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+	}
+
+	ctStr := strings.Join(ct, "")
+	ctStr = regexp.QuoteMeta(ctStr)
+	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
 }
 
 // Migration Helpers
@@ -224,6 +258,30 @@ func (m *ManagementDB) MigrationInsertStep(args DBRow, lastInsert int64, rowsAff
 	m.ExpectExec(query)
 }
 
+func (m *ManagementDB) MigrationCreateTable() {
+
+	ct := []string{
+		"CREATE TABLE `migration` (",
+		" `mid` bigint(20) NOT NULL AUTO_INCREMENT,",
+		" `db` int(11) NOT NULL,",
+		" `project` varchar(255) NOT NULL,",
+		" `version` varchar(255) NOT NULL,",
+		" `version_timestamp` datetime NOT NULL,",
+		" `version_description` text,",
+		" `status` int(11) NOT NULL,",
+		" `timestamp` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+		" PRIMARY KEY (`mid`) ",
+		") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+	}
+
+	ctStr := strings.Join(ct, "")
+	ctStr = regexp.QuoteMeta(ctStr)
+	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
+
+}
+
+// Migration Steps Helpers
+
 func (m *ManagementDB) StepSetStatus(sid int64, status int) {
 
 	query := DBQueryMock{
@@ -233,4 +291,27 @@ func (m *ManagementDB) StepSetStatus(sid int64, status int) {
 	query.FormatQuery("update migration_steps WHERE sid = %d SET status = %d", sid, status)
 
 	m.ExpectExec(query)
+}
+
+func (m *ManagementDB) MigrationStepCreateTable() {
+
+	ct := []string{
+		"CREATE TABLE `migration_steps` (",
+		" `sid` bigint(20) NOT NULL AUTO_INCREMENT,",
+		" `mid` bigint(20) DEFAULT NULL,",
+		" `op` int(11) DEFAULT NULL,",
+		" `mdid` bigint(20) DEFAULT NULL,",
+		" `name` varchar(255) DEFAULT NULL,",
+		" `forward` varchar(255) DEFAULT NULL,",
+		" `backward` varchar(255) DEFAULT NULL,",
+		" `output` text,",
+		" `status` int(11) DEFAULT NULL,",
+		" PRIMARY KEY (`sid`) ",
+		") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+	}
+
+	ctStr := strings.Join(ct, "")
+	ctStr = regexp.QuoteMeta(ctStr)
+	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
+
 }
