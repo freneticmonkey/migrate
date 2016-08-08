@@ -67,6 +67,16 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 	return err
 }
 
+func ReadFile(file string) (data []byte, err error) {
+
+	return ioutil.ReadFile(file)
+
+}
+
+func WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return ioutil.WriteFile(filename, data, 0644)
+}
+
 // cleanUp is a helper function which empties the target folder
 func CleanPath(path string) (err error) {
 

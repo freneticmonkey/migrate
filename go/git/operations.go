@@ -2,7 +2,6 @@ package git
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -113,7 +112,7 @@ func Clone(project config.Project) (err error) {
 
 		// Write the folders into the git sparse-checkout info file
 		sparseFile := fmt.Sprintf("%s/.git/info/sparse-checkout", path)
-		err = ioutil.WriteFile(sparseFile, []byte(filedata), 0644)
+		err = util.WriteFile(sparseFile, []byte(filedata), 0644)
 	}
 
 	// Build the checkout command

@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -729,7 +728,7 @@ func ReadDump(filename string) (statements []string, err error) {
 
 	var dump []byte
 	// Read the Dump file.
-	dump, err = ioutil.ReadFile(filename)
+	dump, err = util.ReadFile(filename)
 
 	lines := strings.Split(string(dump), "\n")
 
@@ -781,7 +780,7 @@ func ReadDump(filename string) (statements []string, err error) {
 // 	//
 // 	// util.LogInfo("Write SQL file: " + file)
 // 	//
-// 	// err = ioutil.WriteFile(file, []byte(createTable), 0644)
+// 	// err = util.WriteFile(file, []byte(createTable), 0644)
 // 	//
 // 	// util.ErrorCheck(err)
 //

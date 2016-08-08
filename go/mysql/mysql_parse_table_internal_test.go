@@ -3,7 +3,6 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"reflect"
 	"regexp"
 	"strings"
@@ -892,6 +891,6 @@ func DisableTestParseDump(t *testing.T) {
 
 	util.LogAttentionf("Successfully parsed %d tables", successCount)
 
-	ioutil.WriteFile("output.sql", []byte(strings.Join(output, "\n")), 0644)
+	util.WriteFile("output.sql", []byte(strings.Join(output, "\n")), 0644)
 
 }

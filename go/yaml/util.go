@@ -1,8 +1,7 @@
 package yaml
 
 import (
-	"io/ioutil"
-
+	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
 
@@ -11,13 +10,11 @@ import (
 
 func ReadFile(file string, out interface{}) (err error) {
 
-	data, err := ioutil.ReadFile(file)
+	data, err := util.ReadFile(file)
 
 	util.ErrorCheck(err)
 
-	err = yaml.Unmarshal(data, out)
-
-	util.ErrorCheck(err)
+	err = ReadData(data, out)
 
 	return err
 
@@ -41,9 +38,44 @@ func WriteFile(file string, tbl table.Table) (err error) {
 
 	util.ErrorCheck(err)
 
-	err = ioutil.WriteFile(file, filedata, 0644)
+	err = util.WriteFile(file, filedata, 0644)
 
 	util.ErrorCheck(err)
 
 	return err
+}
+
+// Postprocess the loaded YAML table for it's Metadata
+func processMetadata(t *table.Table) {
+	t.Metadata = metadata.Metadata{
+		PropertyID: t.ID,
+		Name:       t.Name,
+		Type:       "Table",
+	}
+
+	for i, col := range t.Columns {
+		t.Columns[i].Metadata = metadata.Metadata{
+			PropertyID: col.ID,
+			ParentID:   t.ID,
+			Name:       col.Name,
+			Type:       "Column",
+		}
+	}
+
+	pk := t.PrimaryIndex
+	t.PrimaryIndex.Metadata = metadata.Metadata{
+		PropertyID: pk.ID,
+		ParentID:   t.ID,
+		Name:       "PrimaryKey",
+		Type:       "Index",
+	}
+
+	for i, index := range t.SecondaryIndexes {
+		t.SecondaryIndexes[i].Metadata = metadata.Metadata{
+			PropertyID: index.ID,
+			ParentID:   t.ID,
+			Name:       index.Name,
+			Type:       "Index",
+		}
+	}
 }

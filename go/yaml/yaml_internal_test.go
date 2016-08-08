@@ -265,12 +265,11 @@ func validateResult(test ParseTest, result interface{}, err error, t *testing.T)
 func TestYAMLParse(t *testing.T) {
 
 	var err error
-	var result table.Table
 
 	for _, test := range yamlTests {
+		var result table.Table
 
-		result, err = ReadYAML(test.Str, "unittest")
-
+		err = ReadData([]byte(test.Str), &result)
 		validateResult(test, result, err, t)
 	}
 
