@@ -29,7 +29,6 @@ const (
 	DEFAULT_COLLATE = "DEFAULT COLLATE"
 )
 
-var Schema table.Tables
 var alters []string
 
 var datatypes = []string{

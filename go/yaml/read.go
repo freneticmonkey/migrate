@@ -8,9 +8,6 @@ import (
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
-// Schema The parsed from the YAML tables
-var Schema table.Tables
-
 var schemaList []string
 
 // ReadTables Read all of the files at path that have the extension 'yml' and parse them

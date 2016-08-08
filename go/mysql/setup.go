@@ -4,7 +4,11 @@ import (
 	"database/sql"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/table"
 )
+
+// Schema MySQL Table Schema
+var Schema table.Tables
 
 var projectDB *sql.DB
 var projectDBConn string
