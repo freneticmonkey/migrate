@@ -88,7 +88,7 @@ func setupExistingDB(conf config.Config) error {
 	// action, err = util.SelectAction(actionMsg, []string{YES, NO})
 	action = YES
 
-	if !util.ErrorCheckf(err, "There was a determining how to proceed. Cancelling setup.") {
+	if !util.ErrorCheckf(err, "There was a error while determining how to proceed. Cancelling setup.") {
 		if action == YES {
 
 			path := util.WorkingSubDir(conf.Project.Name)
