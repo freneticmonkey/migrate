@@ -154,7 +154,7 @@ func GetTableAddressDogs() table.Table {
 	}
 }
 
-func DisableTestConfigReadURL(t *testing.T) {
+func TestConfigReadURL(t *testing.T) {
 
 	// TODO: Provide config
 	var remoteConfig = `

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -93,7 +92,7 @@ func loadConfig(configURL, configFile string) (targetConfig config.Config, err e
 			// Read the response body
 			var data []byte
 			defer response.Body.Close()
-			data, err = ioutil.ReadAll(response.Body)
+			data, err = util.ReadAll(response.Body)
 
 			if !util.ErrorCheckf(err, "Problem reading the response for the config-url request") {
 				// Unmarshal the YAML config
