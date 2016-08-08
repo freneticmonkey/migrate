@@ -577,7 +577,7 @@ func TestColumnParse(t *testing.T) {
 
 	mgmtDb, err := test.CreateManagementDB("TestColumnParse", t)
 
-	Setup(testConfig, 1)
+	Setup(testConfig)
 	metadata.Setup(mgmtDb.Db, 1)
 
 	for _, tst := range colTests {
