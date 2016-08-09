@@ -1,0 +1,141 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "LHsgNpSQvCobkFsI1ccVonT/W7s=",
+			"path": "github.com/aryann/difflib",
+			"revision": "035af7c09b120b0909dd998c92745b82f61e0b1c",
+			"revisionTime": "2012-11-23T05:17:04Z"
+		},
+		{
+			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"revisionTime": "2015-11-05T21:09:06Z"
+		},
+		{
+			"checksumSHA1": "gkRIq2AsG0e/ngNfqW+IF/zr9o8=",
+			"path": "github.com/fatih/color",
+			"revision": "533cd7fd8a85905f67a1753afb4deddc85ea174f",
+			"revisionTime": "2016-03-17T09:31:53Z"
+		},
+		{
+			"checksumSHA1": "t1EqVeLhxpXwXk9H9R/ZJoEgHUs=",
+			"path": "github.com/go-gorp/gorp",
+			"revision": "6a3c8a87d0457cf700e57046c41e19b7cf3c44fa",
+			"revisionTime": "2016-02-22T07:34:40Z"
+		},
+		{
+			"checksumSHA1": "AzOt34C4RJ42Vak7A+iME7luE6c=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "66312f7fe2678aa0f5ec770f96702f4c4ec5aa8e",
+			"revisionTime": "2016-03-10T22:28:42Z"
+		},
+		{
+			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
+			"path": "github.com/gorilla/context",
+			"revision": "215affda49addc4c8ef7e2534915df2c8c35c6cd",
+			"revisionTime": "2014-12-17T16:02:51Z"
+		},
+		{
+			"checksumSHA1": "1GO/QR64haSUMt3eE592uufS1iU=",
+			"path": "github.com/gorilla/mux",
+			"revision": "47e8f450ef38c857cdd922ec08862ca9d65a1c6d",
+			"revisionTime": "2015-05-30T19:53:56Z"
+		},
+		{
+			"checksumSHA1": "KQhA4EQp4Ldwj9nJZnEURlE6aQw=",
+			"path": "github.com/kr/fs",
+			"revision": "2788f0dbd16903de03cb8186e5c7d97b69ad387b",
+			"revisionTime": "2013-11-06T22:25:44Z"
+		},
+		{
+			"checksumSHA1": "rCffFCN6TpDAN3Jylyo8RFzhQ9E=",
+			"origin": "github.com/fatih/color/vendor/github.com/mattn/go-colorable",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "533cd7fd8a85905f67a1753afb4deddc85ea174f",
+			"revisionTime": "2016-03-17T09:31:53Z"
+		},
+		{
+			"checksumSHA1": "NkbetqlpWBi3gP08JDneC+axTKw=",
+			"origin": "github.com/fatih/color/vendor/github.com/mattn/go-isatty",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "533cd7fd8a85905f67a1753afb4deddc85ea174f",
+			"revisionTime": "2016-03-17T09:31:53Z"
+		},
+		{
+			"checksumSHA1": "2HSjyUZ4IMkCeA34TjJ0/f+Kk/k=",
+			"path": "github.com/pkg/errors",
+			"revision": "2a9be18ecd8c148be18be08a811e33809206da19",
+			"revisionTime": "2016-08-01T10:26:19Z"
+		},
+		{
+			"checksumSHA1": "FJIb/zcGEYhYUo33wSzX3T6hwGU=",
+			"path": "github.com/pkg/sftp",
+			"revision": "a71e8f580e3b622ebff585309160b1cc549ef4d2",
+			"revisionTime": "2016-07-21T23:14:53Z"
+		},
+		{
+			"checksumSHA1": "Eqqfq9sidPELWayIuFe4Y4Pmm40=",
+			"path": "github.com/spf13/afero",
+			"revision": "cc9c21814bb945440253108c4d3c65c85aac3c68",
+			"revisionTime": "2016-07-18T21:47:36Z"
+		},
+		{
+			"checksumSHA1": "ZoU9aRjKQcb8i+8nCzIr94bcRmI=",
+			"path": "github.com/spf13/afero/mem",
+			"revision": "cc9c21814bb945440253108c4d3c65c85aac3c68",
+			"revisionTime": "2016-07-18T21:47:36Z"
+		},
+		{
+			"checksumSHA1": "sLyAUiIT7V0DNVp6yBhW4Ms5BEs=",
+			"path": "github.com/spf13/afero/sftp",
+			"revision": "cc9c21814bb945440253108c4d3c65c85aac3c68",
+			"revisionTime": "2016-07-18T21:47:36Z"
+		},
+		{
+			"checksumSHA1": "l0h7xesS0Qe3qGWcMf+MnEQnja8=",
+			"path": "github.com/urfave/cli",
+			"revision": "595ba45e735c1e9c1f9ddc9e2ef21997fca893f2",
+			"revisionTime": "2016-05-24T20:27:12Z"
+		},
+		{
+			"checksumSHA1": "h+pFYiRHBogczS8/F1NoN3Ata44=",
+			"path": "golang.org/x/crypto/curve25519",
+			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
+			"revisionTime": "2015-07-28T17:55:38Z"
+		},
+		{
+			"checksumSHA1": "F+IWo4eUUVqVhpm2qEIbLQm+ugM=",
+			"path": "golang.org/x/crypto/ssh",
+			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
+			"revisionTime": "2015-07-28T17:55:38Z"
+		},
+		{
+			"checksumSHA1": "TZDHZj3zWDc5LKqpoLamOKt6Nmo=",
+			"path": "golang.org/x/text/transform",
+			"revision": "2910a502d2bf9e43193af9d68ca516529614eed3",
+			"revisionTime": "2016-07-21T22:28:28Z"
+		},
+		{
+			"checksumSHA1": "pDDMc5yLVQ2xeR9CajcgIJODPcw=",
+			"path": "golang.org/x/text/unicode/norm",
+			"revision": "2910a502d2bf9e43193af9d68ca516529614eed3",
+			"revisionTime": "2016-07-21T22:28:28Z"
+		},
+		{
+			"checksumSHA1": "Y35MHhSfkpeVLQuiVQggArnXpQI=",
+			"path": "gopkg.in/DATA-DOG/go-sqlmock.v1",
+			"revision": "9958e5c69de03e97ec215b23f6fcae1f600c3fb6",
+			"revisionTime": "2016-02-26T19:13:42Z"
+		},
+		{
+			"checksumSHA1": "+OgOXBoiQ+X+C2dsAeiOHwBIEH0=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
+			"revisionTime": "2016-03-01T20:40:22Z"
+		}
+	],
+	"rootPath": "github.com/freneticmonkey/migrate"
+}
