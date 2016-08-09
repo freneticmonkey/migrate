@@ -27,7 +27,12 @@ func DebugDumpDiff(left interface{}, right interface{}) {
 
 //DebugDiffString Diff two strings
 func DebugDiffString(l, r string) {
-	DebugDiffStrings([]string{l}, []string{r})
+	// If the string contains a newline, then split on newlines first
+	if strings.Contains(l, "\n") {
+		DebugDiffStrings(strings.Split(l, "\n"), strings.Split(r, "\n"))
+	} else {
+		DebugDiffStrings([]string{l}, []string{r})
+	}
 }
 
 // DebugDiffStrings Diff two arrays of strings
