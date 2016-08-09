@@ -63,6 +63,25 @@ func GetCreateTableAddressColumnDogs() string {
 	return strings.Join(dogsTable, "")
 }
 
+func GetYAMLTableDogs() string {
+	return `id: table_dogs
+name: dogs
+engine: InnoDB
+charset: latin1
+columns:
+- id: dogs_col_id
+  name: id
+  type: int
+  size: [11]
+primaryindex:
+  id: dogs_primarykey
+  name: PrimaryKey
+  columns:
+  - name: id
+  isprimary: true
+`
+}
+
 func GetTableDogs() table.Table {
 	return table.Table{
 		Name:    "dogs",
