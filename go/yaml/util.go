@@ -36,11 +36,9 @@ func WriteFile(file string, tbl table.Table) (err error) {
 
 	filedata, err := yaml.Marshal(tbl)
 
-	util.ErrorCheck(err)
-
-	err = util.WriteFile(file, filedata, 0644)
-
-	util.ErrorCheck(err)
+	if !util.ErrorCheck(err) {
+		err = util.WriteFile(file, filedata, 0644)
+	}
 
 	return err
 }
