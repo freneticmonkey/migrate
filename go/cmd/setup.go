@@ -26,7 +26,7 @@ func GetSetupCommand() (setup cli.Command) {
 				Usage: "Read the target database and generate a YAML schema including PropertyIds",
 			},
 		},
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx *cli.Context) *cli.ExitError {
 
 			// Parse global flags
 			parseGlobalFlags(ctx)
@@ -63,7 +63,7 @@ func GetSetupCommand() (setup cli.Command) {
 	return setup
 }
 
-func setupExistingDB(conf config.Config) error {
+func setupExistingDB(conf config.Config) *cli.ExitError {
 
 	const YES, NO = "yes", "no"
 	action := NO
@@ -99,9 +99,16 @@ func setupExistingDB(conf config.Config) error {
 				tbl.GeneratePropertyIDs()
 
 				// Generate YAML from the Tables and write to the working folder
-				yaml.WriteTable(path, *tbl)
+				err = yaml.WriteTable(path, *tbl)
 
-				tbl.InsertMetadata()
+				if err != nil {
+					return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to create YAML Table: %s due to error: %v", path, err), 1)
+				}
+
+				err = tbl.InsertMetadata()
+				if err != nil {
+					return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to insert metdata for Table: %s due to error: %v", tbl.Name, err), 1)
+				}
 				util.LogInfof("Registering Table for migrations: %s", mysql.Schema[i].Name)
 			}
 

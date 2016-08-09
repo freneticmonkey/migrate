@@ -18,7 +18,7 @@ var WorkingPathAbs string
 var fs afero.Fs
 var isTesting bool
 
-func ConfigTesting() {
+func SetConfigTesting() {
 	isTesting = true
 }
 
@@ -82,6 +82,10 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 	}
 
 	return err
+}
+
+func FileExists(path string) (bool, error) {
+	return afero.Exists(fs, path)
 }
 
 func ReadAll(r io.Reader) ([]byte, error) {

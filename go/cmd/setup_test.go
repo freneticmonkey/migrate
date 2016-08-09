@@ -1,19 +1,24 @@
 package cmd
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/freneticmonkey/migrate/go/management"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/util"
+	"github.com/urfave/cli"
 )
 
 func TestManagementSetup(t *testing.T) {
 	var mgmtDB test.ManagementDB
 	var err error
 
-	testName := "TestSetupManagementDB"
+	testName := "TestManagementSetup"
+
+	util.LogAlert(testName)
 
 	// Configuration
 	testConfig := GetTestConfig()
@@ -122,11 +127,19 @@ func TestSetupExistingDB(t *testing.T) {
 	var mgmtDB test.ManagementDB
 	var projectDB test.ProjectDB
 	var err error
+	var exists bool
+	var data []byte
 
-	testName := "TestSetupManagementDB"
+	util.SetConfigTesting()
+
+	testName := "TestSetupExistingDB"
+
+	util.LogAlert(testName)
 
 	// Configuration
 	testConfig := GetTestConfig()
+
+	util.Config(testConfig)
 
 	dogsTbl := GetTableDogs()
 
@@ -171,26 +184,63 @@ func TestSetupExistingDB(t *testing.T) {
 
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "tbl1", "", "Table", "dogs", 1},
+		test.DBRow{1, "table_dogs", "", "Table", "dogs", true},
 		1,
 		1,
 	)
 
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "col1", "tbl1", "Column", "id", 1},
+		test.DBRow{1, "dogs_col_id", "table_dogs", "Column", "id", true},
 		2,
 		1,
 	)
 
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+		test.DBRow{1, "dogs_primarykey", "table_dogs", "PrimaryKey", "PrimaryKey", true},
 		3,
 		1,
 	)
 
-	if err != nil {
+	// Run the Config
+	var result *cli.ExitError
+	result = setupExistingDB(testConfig)
+
+	if result != nil && result.ExitCode() > 0 {
 		t.Errorf("%s FAILED with err: %v", testName, err)
+	}
+
+	// Verify that the generated YAML is in the correct path and in the expected format
+	filepath := util.WorkingSubDir(filepath.Join(testConfig.Project.Name, "dogs.yml"))
+	exists, err = util.FileExists(filepath)
+
+	failed := true
+
+	if !exists {
+		t.Errorf("%s FAILED YAML Not exported!", testName)
+	} else {
+		data, err = util.ReadFile(filepath)
+
+		if err != nil {
+			t.Errorf("%s FAILED to read exporter YAML with err: %v", testName, err)
+		} else {
+			tblStr := string(data)
+
+			expectedTblStr := GetYAMLTableDogs()
+
+			if tblStr != expectedTblStr {
+				util.DebugDiffString(expectedTblStr, tblStr)
+				t.Errorf("%s FAILED generated YAML doesn't match expected YAML", testName)
+			} else {
+				failed = false
+			}
+		}
+	}
+
+	if !failed {
+		// verify that the DB processed all of the expected requests
+		mgmtDB.ExpectionsMet(testName, t)
+		projectDB.ExpectionsMet(testName, t)
 	}
 }
