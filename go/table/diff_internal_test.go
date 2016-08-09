@@ -1297,7 +1297,6 @@ var diffTests = []DiffTest{
 func TestDifferences(t *testing.T) {
 
 	for _, test := range diffTests {
-		util.LogErrorf("STARTING NEW: %s", test.Description)
 		if hasDiff, difference := diffTable(test.To, test.From); hasDiff {
 			diffs := difference.Slice
 
