@@ -22,8 +22,8 @@ func WriteTable(path string, tbl table.Table) (err error) {
 	filename := strings.ToLower(tbl.Name) + ".yml"
 	filepath := filepath.Join(path, filename)
 
-	util.LogErrorf("Writing Table YAML to file: %s", filepath)
-	WriteFile(filepath, tbl)
+	util.LogInfof("Writing Table YAML to file: %s", filepath)
+	err = WriteFile(filepath, tbl)
 
 	return err
 }
