@@ -29,7 +29,6 @@ func setupRecreateDBSchema(projectDB *test.ProjectDB, result []test.DBRow, table
 }
 
 func TestDiffSchema(t *testing.T) {
-	util.SetVerbose(true)
 	util.LogAlert("TestDiffSchema")
 
 	var forwards mysql.SQLOperations
@@ -461,8 +460,6 @@ func TestRefreshDatabase(t *testing.T) {
 	var projectDB test.ProjectDB
 	var mgmtDb test.ManagementDB
 	var err error
-
-	util.SetVerbose(true)
 
 	util.LogAlert("Starting Refresh Database")
 
