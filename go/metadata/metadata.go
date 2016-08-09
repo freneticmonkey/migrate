@@ -134,7 +134,6 @@ func GetByName(name string, parentID string) (md Metadata, err error) {
 	}
 
 	err = mgmtDb.SelectOne(&md, query)
-	util.ErrorCheckf(err, errString)
 
 	return md, err
 }
