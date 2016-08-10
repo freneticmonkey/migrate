@@ -117,8 +117,10 @@ func GetTableAddressDogs() table.Table {
 				Type: "int",
 				Size: []int{11},
 				Metadata: metadata.Metadata{
-					PropertyID: "col1",
-					ParentID:   "tbl1",
+					MDID:       2,
+					DB:         1,
+					PropertyID: "dogs_col_id",
+					ParentID:   "table_dogs",
 					Name:       "id",
 					Type:       "Column",
 				},
@@ -128,8 +130,14 @@ func GetTableAddressDogs() table.Table {
 				Type: "varchar",
 				Size: []int{128},
 				Metadata: metadata.Metadata{
-					PropertyID: "col2",
-					ParentID:   "tbl1",
+					// MDID is not defined here as this
+					// instance is typically used to test diffing,
+					// during which this column needs to be inserted
+					// into the DB and as such, the trigger for
+					// insertion is MDID < 1
+					DB:         1,
+					PropertyID: "dogs_col_address",
+					ParentID:   "table_dogs",
 					Name:       "address",
 					Type:       "Column",
 				},
@@ -143,14 +151,18 @@ func GetTableAddressDogs() table.Table {
 				},
 			},
 			Metadata: metadata.Metadata{
-				PropertyID: "pi",
-				ParentID:   "tbl1",
+				MDID:       3,
+				DB:         1,
+				PropertyID: "dogs_primarykey",
+				ParentID:   "table_dogs",
 				Name:       "PrimaryKey",
 				Type:       "PrimaryKey",
 			},
 		},
 		Metadata: metadata.Metadata{
-			PropertyID: "tbl1",
+			MDID:       1,
+			DB:         1,
+			PropertyID: "table_dogs",
 			Name:       "dogs",
 			Type:       "Table",
 		},

@@ -31,6 +31,8 @@ func setupRecreateDBSchema(projectDB *test.ProjectDB, result []test.DBRow, table
 func TestDiffSchema(t *testing.T) {
 	util.LogAlert("TestDiffSchema")
 
+	util.SetVerbose(true)
+
 	var forwards mysql.SQLOperations
 	var backwards mysql.SQLOperations
 	var err error
@@ -48,19 +50,16 @@ func TestDiffSchema(t *testing.T) {
 	// Mock Table structs - with the new Address Column
 	dogsTbl := GetTableAddressDogs()
 
+	// Configuring the expected MDID for the new Column
+	expectedAddressMetadata := dogsTbl.Columns[1].Metadata
+	expectedAddressMetadata.MDID = 4
+
 	expectedForwards := mysql.SQLOperations{
 		mysql.SQLOperation{
 			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
 			Op:        table.Add,
 			Name:      "address",
-			Metadata: metadata.Metadata{
-				MDID:       4,
-				DB:         1,
-				PropertyID: "col2",
-				ParentID:   "tbl1",
-				Name:       "address",
-				Type:       "Column",
-			},
+			Metadata:  expectedAddressMetadata,
 		},
 	}
 
@@ -69,14 +68,7 @@ func TestDiffSchema(t *testing.T) {
 			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
 			Op:        table.Del,
 			Name:      "address",
-			Metadata: metadata.Metadata{
-				MDID:       4,
-				DB:         1,
-				PropertyID: "col2",
-				ParentID:   "tbl1",
-				Name:       "address",
-				Type:       "Column",
-			},
+			Metadata:  expectedAddressMetadata,
 		},
 	}
 
@@ -106,57 +98,64 @@ func TestDiffSchema(t *testing.T) {
 	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
 
 	mgmtDB.MetadataSelectName(
-		"dogs",
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		dogsTbl.Name,
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.GetDBRowMetadata(dogsTbl.Metadata),
+			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
+			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
 		},
 		false,
 	)
 
 	mgmtDB.MetadataSelectName(
-		"dogs",
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		dogsTbl.Name,
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		false,
 	)
 
 	// Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.GetDBRowMetadata(dogsTbl.Metadata),
+			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
+			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
 		},
 		false,
 	)
 
 	// Expect an insert for Metadata for the new column
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "col2", "tbl1", "Column", "address", false},
-		4,
+		test.DBRow{
+			dogsTbl.Columns[1].Metadata.DB,
+			dogsTbl.Columns[1].Metadata.PropertyID,
+			dogsTbl.Columns[1].Metadata.ParentID,
+			dogsTbl.Columns[1].Metadata.Type,
+			dogsTbl.Columns[1].Metadata.Name,
+			false,
+		},
+		expectedAddressMetadata.MDID,
 		1,
 	)
 
 	mgmtDB.MetadataSelectName(
-		"dogs",
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		dogsTbl.Name,
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata("tbl1",
+	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-			test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.GetDBRowMetadata(dogsTbl.Metadata),
+			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
+			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
 		},
 		false,
 	)
