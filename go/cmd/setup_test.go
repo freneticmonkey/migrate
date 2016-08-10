@@ -21,7 +21,7 @@ func TestManagementSetup(t *testing.T) {
 	util.LogAlert(testName)
 
 	// Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	// Setup the mock Managment DB
 	mgmtDB, err = test.CreateManagementDB(testName, t)
@@ -69,7 +69,7 @@ func TestBuildSchema(t *testing.T) {
 	testName := "TestSetupManagementDB"
 
 	// Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	// Setup the mock Managment DB
 	mgmtDB, err = test.CreateManagementDB(testName, t)
@@ -137,7 +137,7 @@ func TestSetupExistingDB(t *testing.T) {
 	util.LogAlert(testName)
 
 	// Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	util.Config(testConfig)
 

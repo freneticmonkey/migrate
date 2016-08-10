@@ -41,7 +41,7 @@ func TestDiffSchema(t *testing.T) {
 	testName := "TestDiffSchema"
 
 	// Test Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	// Mock MySQL
 
@@ -189,7 +189,7 @@ func TestCreateMigration(t *testing.T) {
 	var err error
 	var m migration.Migration
 
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 	testName := "TestCreateMigration"
 
 	forwards := mysql.SQLOperations{
@@ -287,7 +287,7 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	var projectDB test.ProjectDB
 
 	// Test Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	// Setup the mock project database
 	projectDB, err = test.CreateProjectDB(testName, t)
@@ -312,7 +312,7 @@ func TestMigrateSandbox(t *testing.T) {
 	var err error
 
 	// Test Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	testName := "TestMigrateSandbox"
 
@@ -466,7 +466,7 @@ func TestRefreshDatabase(t *testing.T) {
 	testName := "TestRefreshDatabase"
 
 	// Test Configuration
-	testConfig := GetTestConfig()
+	testConfig := test.GetTestConfig()
 
 	// Configure the Test Datadata
 
