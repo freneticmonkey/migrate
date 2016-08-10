@@ -9,7 +9,6 @@ import (
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/util"
-	"github.com/freneticmonkey/migrate/go/util/shell"
 )
 
 // GetVersionTime Reads the Git repository in the working sub directory (project)
@@ -137,6 +136,10 @@ func Clone(project config.Project) (err error) {
 // gitCmd is a helper function for executing git commands within the project
 // WorkingPath folder
 func gitCmd(path string, cmd []string) (out string, err error) {
+
+	shell := util.GetShell()
+	shell.SetPrefix("git")
+
 	params := []string{
 		"-C",
 		path,
@@ -146,7 +149,7 @@ func gitCmd(path string, cmd []string) (out string, err error) {
 		params = append(params, piece)
 	}
 	util.LogInfof("Running git command: git %s", strings.Join(params, " "))
-	out, err = shell.Run("git", "git:", params)
+	out, err = shell.Run("git", params...)
 	util.ErrorCheckf(err, out)
 	return out, err
 }

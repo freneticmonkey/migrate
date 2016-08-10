@@ -8,37 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/spf13/afero"
 )
-
-// WorkingPathAbs This is determined using the current working directory and
-// the value of Config.Options.WorkingPath
-var WorkingPathAbs string
-var fs afero.Fs
-var isTesting bool
-
-func SetConfigTesting() {
-	isTesting = true
-}
-
-func Config(conf config.Config) afero.Fs {
-
-	// Make path absolute
-	cwd, err := os.Getwd()
-	ErrorCheck(err)
-
-	WorkingPathAbs = filepath.Join(cwd, conf.Options.WorkingPath)
-
-	// Configure the file system depending on whether we are running unit tests
-	if !isTesting {
-		fs = afero.NewOsFs()
-	} else {
-		fs = afero.NewMemMapFs()
-	}
-
-	return fs
-}
 
 func WorkingSubDir(subDir string) string {
 	return filepath.Join(WorkingPathAbs, subDir)
