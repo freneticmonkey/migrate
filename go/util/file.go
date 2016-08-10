@@ -55,6 +55,10 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 	return err
 }
 
+func Stat(path string) (os.FileInfo, error) {
+	return fs.Stat(path)
+}
+
 func FileExists(path string) (bool, error) {
 	return afero.Exists(fs, path)
 }
@@ -69,6 +73,10 @@ func ReadFile(file string) (data []byte, err error) {
 
 func WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return afero.WriteFile(fs, filename, data, 0644)
+}
+
+func Mkdir(path string, perm os.FileMode) error {
+	return fs.Mkdir(path, perm)
 }
 
 // cleanUp is a helper function which empties the target folder
