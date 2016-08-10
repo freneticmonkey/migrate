@@ -59,9 +59,10 @@ func (e ShellExecutor) Run(command string, args ...string) (out string, err erro
 		for scanner.Scan() {
 			text := scanner.Text()
 			if e.prefix != "" {
-				text = e.prefix + ": " + text
+				LogInfo(e.prefix + ": " + text)
+			} else {
+				LogInfo(text)
 			}
-			LogInfo(text)
 			cmdout = append(cmdout, text)
 		}
 	}()
@@ -72,9 +73,10 @@ func (e ShellExecutor) Run(command string, args ...string) (out string, err erro
 		for errScanner.Scan() {
 			text := errScanner.Text()
 			if e.prefix != "" {
-				text = e.prefix + ": " + text
+				LogInfo(e.prefix + ": " + text)
+			} else {
+				LogInfo(text)
 			}
-			LogInfo(text)
 			errout = append(errout, text)
 		}
 	}()
@@ -134,7 +136,7 @@ func (c ExpectedCommand) GetResult(prefix string) string {
 	if len(prefix) > 0 {
 		lines := strings.Split(c.result, "\n")
 		joiner := fmt.Sprintf("\n%s: ", prefix)
-		return fmt.Sprintf("%s: %s", prefix, strings.Join(lines, joiner))
+		LogInfof("%s: %s", prefix, strings.Join(lines, joiner))
 	}
 	return c.result
 }
@@ -145,6 +147,10 @@ type MockShellExecutor struct {
 	prefix       string
 	expectations []ExpectedCommand
 	next         *ExpectedCommand
+}
+
+func (e MockShellExecutor) Count() int {
+	return len(e.expectations)
 }
 
 // ExpectExec Create a expected command
@@ -168,11 +174,13 @@ func (e *MockShellExecutor) Run(cmd string, args ...string) (out string, err err
 	var expected *ExpectedCommand
 	var fulfilled int
 
-	for _, next := range e.expectations {
+	for i, next := range e.expectations {
 		if next.Triggered {
 			fulfilled++
 			continue
 		}
+		expected = &e.expectations[i]
+		break
 	}
 	if expected == nil {
 		msg := "ExpectedCommand: [%s] with Args [%+v], was not expected"
@@ -188,10 +196,18 @@ func (e *MockShellExecutor) Run(cmd string, args ...string) (out string, err err
 
 	expected.Triggered = true
 	LogAlert("Mock ExpectedCommand >> DETECTED: ###> [" + expected.String() + "]\n\n")
-
 	if expected.err != nil {
 		return "", expected.err // mocked to return error
 	}
 
 	return expected.GetResult(e.prefix), err
+}
+
+func (e *MockShellExecutor) ExpectationsWereMet() error {
+	for _, ex := range e.expectations {
+		if !ex.Triggered {
+			return fmt.Errorf("there is a remaining expectation which was not matched: %s", ex)
+		}
+	}
+	return nil
 }
