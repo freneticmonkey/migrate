@@ -20,8 +20,12 @@ func GetVersionTime(project string, version string) (timestamp string, err error
 	timestamp, err = gitCmd(path, []string{
 		"show",
 		"-s",
-		"--format=%cI",
+		"--format=%%cI",
 	})
+
+	if err != nil {
+		return "", err
+	}
 
 	// 2006-01-02T15:04:05-07:00 		 - Example Git Time
 	// Mon Jan 2 15:04:05 -0700 MST 2006 - Go Time format baseline
@@ -40,7 +44,7 @@ func GetVersion(project string) (version string, err error) {
 	version, err = gitCmd(path, []string{
 		"show",
 		"-s",
-		"--format=%H",
+		"--format=%%H",
 	})
 
 	return version, err
@@ -71,10 +75,12 @@ func Clone(project config.Project) (err error) {
 	// The steps to checkout
 
 	// mkdir <working_dir>
-	if _, err = os.Stat(path); os.IsNotExist(err) {
+	if _, err = util.Stat(path); os.IsNotExist(err) {
 		util.LogInfof("Creating Path %s", path)
-		err = os.Mkdir(path, 0755)
-		util.ErrorCheckf(err, "Could not create git working folder: "+path)
+		err = util.Mkdir(path, 0755)
+		if util.ErrorCheckf(err, "Could not create git working folder: "+path) {
+			return err
+		}
 	}
 
 	// git init
