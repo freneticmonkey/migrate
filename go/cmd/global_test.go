@@ -9,12 +9,31 @@ import (
 	"testing"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/management"
 	"github.com/freneticmonkey/migrate/go/metadata"
+	"github.com/freneticmonkey/migrate/go/migration"
+	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
+	"github.com/freneticmonkey/migrate/go/yaml"
 )
+
+func Teardown() {
+	// Empty Schema
+	yaml.Schema = []table.Table{}
+	mysql.Schema = []table.Table{}
+
+	// Disassociate Test Databases
+	// Connect to Project DB
+	exec.SetProjectDB(nil)
+	management.SetManagementDB(nil)
+	mysql.SetProjectDB(nil)
+	exec.Setup(nil, 0, "")
+	migration.Setup(nil, 1)
+	metadata.Setup(nil, 1)
+}
 
 func GetMySQLCreateTableDogs() string {
 	var dogsTable = []string{
@@ -279,6 +298,8 @@ func TestConfigReadFile(t *testing.T) {
 		util.LogWarn("Config Read File FAILED. Returned config does not match.")
 		util.DebugDumpDiff(expectedConfig, fileConfig)
 	}
+
+	Teardown()
 }
 
 func TestConfigReadURL(t *testing.T) {
@@ -348,4 +369,6 @@ func TestConfigReadURL(t *testing.T) {
 		util.LogWarn("Config Read URL FAILED. Returned config does not match.")
 		util.DebugDumpDiff(expectedConfig, urlConfig)
 	}
+
+	Teardown()
 }

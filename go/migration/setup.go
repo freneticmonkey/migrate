@@ -15,11 +15,12 @@ func Setup(db *gorp.DbMap, projectDatabaseID int) {
 	mgmtDb = db
 	projectDBID = projectDatabaseID
 
-	// Configure the Metadata table
-	table := mgmtDb.AddTableWithName(Migration{}, "migration").SetKeys(true, "MID")
-	table.ColMap("Timestamp").SetTransient(true)
-	mgmtDb.AddTableWithName(Step{}, "migration_steps").SetKeys(true, "SID")
-
+	if mgmtDb != nil {
+		// Configure the Metadata table
+		table := mgmtDb.AddTableWithName(Migration{}, "migration").SetKeys(true, "MID")
+		table.ColMap("Timestamp").SetTransient(true)
+		mgmtDb.AddTableWithName(Step{}, "migration_steps").SetKeys(true, "SID")
+	}
 }
 
 // CreateTables Create the table for the Migration table as it needs some

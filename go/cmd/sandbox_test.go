@@ -31,8 +31,6 @@ func setupRecreateDBSchema(projectDB *test.ProjectDB, result []test.DBRow, table
 func TestDiffSchema(t *testing.T) {
 	util.LogAlert("TestDiffSchema")
 
-	util.SetVerbose(true)
-
 	var forwards mysql.SQLOperations
 	var backwards mysql.SQLOperations
 	var err error
@@ -275,6 +273,7 @@ func TestCreateMigration(t *testing.T) {
 	// Validate the DB access
 	mgmtDb.ExpectionsMet(testName, t)
 
+	Teardown()
 }
 
 func TestRecreateProjectDatabase(t *testing.T) {
@@ -303,6 +302,8 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	recreateProjectDatabase(testConfig, false)
 
 	projectDB.ExpectionsMet(testName, t)
+
+	Teardown()
 
 }
 
@@ -453,6 +454,8 @@ func TestMigrateSandbox(t *testing.T) {
 
 	mgmtDb.ExpectionsMet(testName, t)
 	projectDB.ExpectionsMet(testName, t)
+
+	Teardown()
 }
 
 func TestRefreshDatabase(t *testing.T) {
@@ -724,14 +727,18 @@ func TestRefreshDatabase(t *testing.T) {
 
 	mgmtDb.ExpectionsMet(testName, t)
 	projectDB.ExpectionsMet(testName, t)
+
+	Teardown()
 }
 
 func TestNewTableApplyImmediately(t *testing.T) {
 	util.LogAlert("TestNewTableApplyImmediately")
+	Teardown()
 
 }
 
 func TestNewColumnApplyImmediately(t *testing.T) {
 	util.LogAlert("TestNewColumnApplyImmediately")
 
+	Teardown()
 }

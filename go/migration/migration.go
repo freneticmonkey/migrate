@@ -104,7 +104,6 @@ func LoadList(start int64, count int64) (migrations []Migration, end int64, tota
 
 		if !util.ErrorCheck(err) {
 			// If there wasn't any issues retrieving the Migrations, calculate the Migration Id of the end of the slice
-			util.DebugDump(migrations)
 			end = migrations[len(migrations)-1].MID
 		}
 	}

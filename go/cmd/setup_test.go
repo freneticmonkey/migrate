@@ -59,7 +59,7 @@ func TestManagementSetup(t *testing.T) {
 	}
 
 	mgmtDB.ExpectionsMet(testName, t)
-
+	Teardown()
 }
 
 func TestBuildSchema(t *testing.T) {
@@ -120,6 +120,7 @@ func TestBuildSchema(t *testing.T) {
 	}
 
 	mgmtDB.ExpectionsMet(testName, t)
+	Teardown()
 
 }
 
@@ -243,4 +244,5 @@ func TestSetupExistingDB(t *testing.T) {
 		mgmtDB.ExpectionsMet(testName, t)
 		projectDB.ExpectionsMet(testName, t)
 	}
+	Teardown()
 }
