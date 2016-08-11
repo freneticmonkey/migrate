@@ -29,12 +29,12 @@ func (p *Properties) Add(id string, ptype string, name string, tname string, fil
 func (p Properties) Exists(pid string, name string, tname string, filename string) bool {
 	for i, id := range p.PropertyIds {
 		if pid == id {
-			util.LogErrorf(idConflictTemplate, pid, tname, name, filename, p.Table[i], p.Name[i], p.Type[i], p.Filename[i])
+			util.LogErrorf(idConflictTemplate, pid, tname, name, filename, p.Table[i], p.Name[i], p.Type[i], p.PropertyIds[i], p.Filename[i])
 			return true
 		}
 
 		if name == p.Name[i] {
-			util.LogErrorf(nameConflictTemplate, name, tname, pid, filename, p.Table[i], p.Name[i], p.Type[i], p.Filename[i])
+			util.LogErrorf(nameConflictTemplate, name, tname, pid, filename, p.Table[i], p.Name[i], p.Type[i], p.PropertyIds[i], p.Filename[i])
 			return true
 		}
 	}
@@ -65,7 +65,6 @@ func validate(propertyID string, ptype string, name string, tname string, filena
 // Ids and names cannot be shared between tables and the properties of
 // individual tables
 func ValidateSchema(tables table.Tables, schemaName string) (result int, err error) {
-
 	var tableIds Properties
 
 	// Check each table for unique table ids

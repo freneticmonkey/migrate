@@ -14,7 +14,12 @@ func GetTestConfig() config.Config {
 		Project: config.Project{
 			Name: "UnitTestProject",
 			Schema: config.Schema{
+				Url:     "http://git.test.com/test/repo",
 				Version: "abc123",
+				Folders: []string{
+					"schema",
+					"schemaTwo",
+				},
 			},
 			LocalSchema: config.LocalSchema{
 				Path: "ignore",

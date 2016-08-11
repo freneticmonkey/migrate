@@ -10,6 +10,7 @@ ID already assigned to:
 Table:[%s]
 Name: [%s]
 Type: [%s]
+ID: [%s]
 File: [%s]
 =============
 `
@@ -24,6 +25,7 @@ Name already assigned to:
 Table: [%s]
 Name: [%s]
 Type: [%s]
+ID: [%s]
 File: [%s]
 =============
 `
