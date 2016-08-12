@@ -3,6 +3,7 @@ package util
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/spf13/afero"
@@ -34,7 +35,8 @@ func Config(conf config.Config) afero.Fs {
 	cwd, err := os.Getwd()
 	ErrorCheck(err)
 
-	WorkingPathAbs = filepath.Join(cwd, conf.Options.WorkingPath)
+	// Configure the working path, ensuring the it's lowercase
+	WorkingPathAbs = filepath.Join(cwd, strings.ToLower(conf.Options.WorkingPath))
 
 	// Configure the file system depending on whether we are running unit tests
 	if !isTesting {

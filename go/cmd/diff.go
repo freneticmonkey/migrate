@@ -98,6 +98,9 @@ func diff(project, version string, conf config.Config) *cli.ExitError {
 	}
 
 	forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema)
+	if util.ErrorCheck(err) {
+		return cli.NewExitError("Validation failed. Problems determining differences", 1)
+	}
 	mysql.GenerateAlters(forwardDiff)
 
 	completeMessage := "Diff completed successfully."

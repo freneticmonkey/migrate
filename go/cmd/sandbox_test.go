@@ -54,7 +54,7 @@ func TestDiffSchema(t *testing.T) {
 
 	expectedForwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
 			Op:        table.Add,
 			Name:      "address",
 			Metadata:  expectedAddressMetadata,
@@ -63,7 +63,7 @@ func TestDiffSchema(t *testing.T) {
 
 	expectedBackwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+			Statement: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
 			Op:        table.Del,
 			Name:      "address",
 			Metadata:  expectedAddressMetadata,
@@ -191,7 +191,7 @@ func TestCreateMigration(t *testing.T) {
 
 	forwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
 			Op:        table.Add,
 			Name:      "address",
 			Metadata: metadata.Metadata{
@@ -206,7 +206,7 @@ func TestCreateMigration(t *testing.T) {
 
 	backwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+			Statement: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
 			Op:        table.Del,
 			Name:      "address",
 			Metadata: metadata.Metadata{
@@ -332,8 +332,8 @@ func TestMigrateSandbox(t *testing.T) {
 				Op:       table.Add,
 				MDID:     1,
 				Name:     "address",
-				Forward:  "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
-				Backward: "ALTER TABLE `dogs` DROP COLUMN `address`;",
+				Forward:  "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+				Backward: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
 				Output:   "",
 				Status:   migration.Unapproved,
 			},
@@ -398,7 +398,7 @@ func TestMigrateSandbox(t *testing.T) {
 		Type:   test.ExecCmd,
 		Result: sqlmock.NewResult(1, 1),
 	}
-	query.FormatQuery("ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;")
+	query.FormatQuery("ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;")
 
 	projectDB.ExpectExec(query)
 
@@ -472,10 +472,11 @@ func TestRefreshDatabase(t *testing.T) {
 
 	// Configure the Test Datadata
 
-	dogsTable := GetTableDogs()
+	dogsTbl := GetTableDogs()
+	dogsAddressTbl := GetTableAddressDogs()
 
 	// Push Dogs table into YAML Schema
-	yaml.Schema = []table.Table{dogsTable}
+	yaml.Schema = []table.Table{dogsTbl}
 
 	// The recreation Migration
 	m := migration.Migration{
@@ -493,9 +494,9 @@ func TestRefreshDatabase(t *testing.T) {
 				MID:      1,
 				Op:       table.Add,
 				MDID:     1,
-				Name:     "dogs",
+				Name:     "unittestproject_dogs",
 				Forward:  GetCreateTableDogs(),
-				Backward: "DROP TABLE `dogs`;",
+				Backward: "DROP TABLE `unittestproject_dogs`;",
 				Output:   "",
 				Status:   migration.Unapproved,
 			},
@@ -512,7 +513,7 @@ func TestRefreshDatabase(t *testing.T) {
 			Metadata: metadata.Metadata{
 				MDID:       step.MDID,
 				DB:         m.DB,
-				PropertyID: "tbl1",
+				PropertyID: "table_dogs",
 				ParentID:   "",
 				Name:       step.Name,
 				Type:       "Table",
@@ -528,7 +529,7 @@ func TestRefreshDatabase(t *testing.T) {
 			Metadata: metadata.Metadata{
 				MDID:       step.MDID,
 				DB:         m.DB,
-				PropertyID: "tbl1",
+				PropertyID: "table_dogs",
 				ParentID:   "",
 				Name:       step.Name,
 				Type:       "Table",
@@ -573,19 +574,19 @@ func TestRefreshDatabase(t *testing.T) {
 	// Sync Metadata
 
 	mgmtDb.MetadataSelectName(
-		"dogs",
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		dogsAddressTbl.Name,
+		test.GetDBRowMetadata(dogsAddressTbl.Metadata),
 		false,
 	)
 
 	// Diff will also sync metadata for the YAML Schema
-	mgmtDb.MetadataLoadAllTableMetadata("tbl1",
+	mgmtDb.MetadataLoadAllTableMetadata(dogsAddressTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-			test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-			test.DBRow{3, 1, "col2", "tbl1", "Column", "address", 1},
-			test.DBRow{4, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
+			test.GetDBRowMetadata(dogsAddressTbl.Metadata),
+			test.GetDBRowMetadata(dogsAddressTbl.Columns[0].Metadata),
+			test.GetDBRowMetadata(dogsAddressTbl.Columns[1].Metadata),
+			test.GetDBRowMetadata(dogsAddressTbl.PrimaryIndex.Metadata),
 		},
 		false,
 	)
@@ -642,7 +643,7 @@ func TestRefreshDatabase(t *testing.T) {
 	// Set this migration to running
 	mgmtDb.MetadataGet(
 		1,
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		false,
 	)
 
@@ -683,12 +684,12 @@ func TestRefreshDatabase(t *testing.T) {
 	// Load the Metadata for the Step
 	mgmtDb.MetadataGet(
 		1,
-		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		false,
 	)
 
 	// Update Metadata to Exists
-	md := dogsTable.Metadata
+	md := dogsTbl.Metadata
 	mgmtDb.Mock.ExpectExec("update `metadata`").WithArgs(
 		1,
 		md.PropertyID,

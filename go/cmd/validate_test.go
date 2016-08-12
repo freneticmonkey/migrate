@@ -19,8 +19,12 @@ func TestValidate(t *testing.T) {
 	var projectDB test.ProjectDB
 	var mgmtDB test.ManagementDB
 
-	// Teardown()
+	// Test Configuration
+	testConfig := test.GetTestConfig()
+
+	// Teardown() - Pre test cleanup
 	util.SetConfigTesting()
+	util.Config(testConfig)
 
 	testName := "TestValidate"
 
@@ -29,7 +33,6 @@ func TestValidate(t *testing.T) {
 	version := ""
 
 	// Configure testing data
-	testConfig := test.GetTestConfig()
 	dogsTbl := GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
@@ -37,7 +40,7 @@ func TestValidate(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"animals/dogs.yml",
+		"UnitTestProject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
@@ -120,8 +123,12 @@ func TestValidateYAML(t *testing.T) {
 	var err error
 	var result *cli.ExitError
 
-	// Teardown()
+	// Test Configuration
+	testConfig := test.GetTestConfig()
+
+	// Teardown() - Pre test cleanup
 	util.SetConfigTesting()
+	util.Config(testConfig)
 
 	testName := "TestValidate"
 
@@ -129,15 +136,12 @@ func TestValidateYAML(t *testing.T) {
 	project := ""
 	version := ""
 
-	// Configure testing data
-	testConfig := test.GetTestConfig()
-
 	////////////////////////////////////////////////////////
 	// Configure source YAML files for Schema validation
 	//
 
 	test.WriteFile(
-		"animals/dogs.yml",
+		"UnitTestProject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
@@ -164,8 +168,12 @@ func TestValidateMySQL(t *testing.T) {
 	var projectDB test.ProjectDB
 	var mgmtDB test.ManagementDB
 
-	// Teardown()
+	// Test Configuration
+	testConfig := test.GetTestConfig()
+
+	// Teardown() - Pre test cleanup
 	util.SetConfigTesting()
+	util.Config(testConfig)
 
 	testName := "TestValidate"
 
@@ -174,7 +182,6 @@ func TestValidateMySQL(t *testing.T) {
 	version := ""
 
 	// Configure testing data
-	testConfig := test.GetTestConfig()
 	dogsTbl := GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
@@ -259,7 +266,7 @@ func TestGitCloneValidate(t *testing.T) {
 	testName := "TestValidate"
 
 	// No project or version for this test
-	project := "animals"
+	project := "UnitTestProject"
 	version := "abc123"
 
 	// Configure testing data
@@ -332,7 +339,7 @@ schemaTwo/*`
 	//
 
 	test.WriteFile(
-		"animals/dogs.yml",
+		"UnitTestProject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
@@ -399,7 +406,7 @@ schemaTwo/*`
 	result = validate(project, version, "both", testConfig)
 
 	if result.ExitCode() > 0 {
-		t.Errorf("TestValidate failed with error: %v", err)
+		t.Errorf("TestValidate failed with error: %v", result.Error())
 		return
 	}
 

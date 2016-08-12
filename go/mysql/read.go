@@ -616,7 +616,7 @@ func ParseCreateTable(createTable string) (tbl table.Table, err error) {
 	}
 
 	// Retrieve any Metadata from the Management DB
-	tbl.LoadDBMetadata()
+	err = tbl.LoadDBMetadata()
 
 	return tbl, err
 }
@@ -711,7 +711,7 @@ func ReadTables() (err error) {
 		// Process the Create Table Statements into Tables
 		for _, ct := range tables {
 			tbl, err = ParseCreateTable(ct.CreateStatement)
-			if util.ErrorCheck(err) {
+			if err != nil {
 				return err
 			}
 			Schema = append(Schema, tbl)

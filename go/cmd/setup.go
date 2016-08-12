@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/management"
@@ -91,7 +92,7 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 	if !util.ErrorCheckf(err, "There was a error while determining how to proceed. Cancelling setup.") {
 		if action == YES {
 
-			path := util.WorkingSubDir(conf.Project.Name)
+			path := util.WorkingSubDir(strings.ToLower(conf.Project.Name))
 
 			// Generate PropertyIds for all Database properties
 			for i := 0; i < len(mysql.Schema); i++ {

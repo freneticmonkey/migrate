@@ -3,7 +3,6 @@ package util
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,7 +36,7 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 		return err
 	}
 
-	dirInfo, err := ioutil.ReadDir(path)
+	dirInfo, err := afero.ReadDir(fs, path)
 	ErrorCheck(err)
 
 	for _, fileinfo := range dirInfo {
@@ -47,11 +46,21 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 		} else {
 			// Check if the file is a YAML file
 			if strings.ToLower(filepath.Ext(path)) == "."+fileType {
-				*files = append(*files, path)
+				alreadyFound := false
+
+				// Verify file isn't already in the path first
+				for _, f := range *files {
+					if f == path {
+						alreadyFound = true
+						break
+					}
+				}
+				if !alreadyFound {
+					*files = append(*files, path)
+				}
 			}
 		}
 	}
-
 	return err
 }
 
@@ -67,11 +76,17 @@ func ReadAll(r io.Reader) ([]byte, error) {
 	return afero.ReadAll(r)
 }
 
-func ReadFile(file string) (data []byte, err error) {
-	return afero.ReadFile(fs, file)
+func ReadFile(filename string) (data []byte, err error) {
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(WorkingPathAbs, filename)
+	}
+	return afero.ReadFile(fs, filename)
 }
 
 func WriteFile(filename string, data []byte, perm os.FileMode) error {
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(WorkingPathAbs, filename)
+	}
 	return afero.WriteFile(fs, filename, data, 0644)
 }
 

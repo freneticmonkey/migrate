@@ -33,11 +33,13 @@ func Teardown() {
 	exec.Setup(nil, 0, "")
 	migration.Setup(nil, 1)
 	metadata.Setup(nil, 1)
+
+	util.SetVerbose(false)
 }
 
 func GetMySQLCreateTableDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `dogs` (",
+		"CREATE TABLE `unittestproject_dogs` (",
 		"`id` int(11) NOT NULL,",
 		" PRIMARY KEY (`id`)",
 		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
@@ -47,7 +49,7 @@ func GetMySQLCreateTableDogs() string {
 
 func GetCreateTableDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `dogs` (",
+		"CREATE TABLE `unittestproject_dogs` (",
 		"`id` int(11) NOT NULL,",
 		" PRIMARY KEY (`id`)",
 		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
@@ -57,7 +59,7 @@ func GetCreateTableDogs() string {
 
 func GetCreateTableAddressColumnDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `dogs` (",
+		"CREATE TABLE `unittestproject_dogs` (",
 		"`id` int(11) NOT NULL,",
 		"`address` varchar(128) NOT NULL,",
 		" PRIMARY KEY (`id`)",
@@ -67,17 +69,17 @@ func GetCreateTableAddressColumnDogs() string {
 }
 
 func GetYAMLTableDogs() string {
-	return `id: table_dogs
+	return `id: table_unittestproject_dogs
 name: dogs
 engine: InnoDB
 charset: latin1
 columns:
-- id: dogs_col_id
+- id: unittestproject_dogs_col_id
   name: id
   type: int
   size: [11]
 primaryindex:
-  id: dogs_primarykey
+  id: unittestproject_dogs_primarykey
   name: PrimaryKey
   columns:
   - name: id
@@ -87,7 +89,7 @@ primaryindex:
 
 func GetTableDogs() table.Table {
 	return table.Table{
-		Name:    "dogs",
+		Name:    "unittestproject_dogs",
 		Engine:  "InnoDB",
 		CharSet: "latin1",
 		Columns: []table.Column{
@@ -96,8 +98,10 @@ func GetTableDogs() table.Table {
 				Type: "int",
 				Size: []int{11},
 				Metadata: metadata.Metadata{
-					PropertyID: "col1",
-					ParentID:   "tbl1",
+					MDID:       2,
+					DB:         1,
+					PropertyID: "unittestproject_dogs_col_id",
+					ParentID:   "table_unittestproject_dogs",
 					Name:       "id",
 					Type:       "Column",
 				},
@@ -111,15 +115,19 @@ func GetTableDogs() table.Table {
 				},
 			},
 			Metadata: metadata.Metadata{
-				PropertyID: "pi",
-				ParentID:   "tbl1",
+				MDID:       3,
+				DB:         1,
+				PropertyID: "unittestproject_dogs_primarykey",
+				ParentID:   "table_unittestproject_dogs",
 				Name:       "PrimaryKey",
 				Type:       "PrimaryKey",
 			},
 		},
 		Metadata: metadata.Metadata{
-			PropertyID: "tbl1",
-			Name:       "dogs",
+			MDID:       1,
+			DB:         1,
+			PropertyID: "table_unittestproject_dogs",
+			Name:       "unittestproject_dogs",
 			Type:       "Table",
 		},
 	}
@@ -127,7 +135,7 @@ func GetTableDogs() table.Table {
 
 func GetTableAddressDogs() table.Table {
 	return table.Table{
-		Name:    "dogs",
+		Name:    "unittestproject_dogs",
 		Engine:  "InnoDB",
 		CharSet: "latin1",
 		Columns: []table.Column{
@@ -138,8 +146,8 @@ func GetTableAddressDogs() table.Table {
 				Metadata: metadata.Metadata{
 					MDID:       2,
 					DB:         1,
-					PropertyID: "dogs_col_id",
-					ParentID:   "table_dogs",
+					PropertyID: "unittestproject_dogs_col_id",
+					ParentID:   "table_unittestproject_dogs",
 					Name:       "id",
 					Type:       "Column",
 				},
@@ -155,8 +163,8 @@ func GetTableAddressDogs() table.Table {
 					// into the DB and as such, the trigger for
 					// insertion is MDID < 1
 					DB:         1,
-					PropertyID: "dogs_col_address",
-					ParentID:   "table_dogs",
+					PropertyID: "unittestproject_dogs_col_address",
+					ParentID:   "table_unittestproject_dogs",
 					Name:       "address",
 					Type:       "Column",
 				},
@@ -172,8 +180,8 @@ func GetTableAddressDogs() table.Table {
 			Metadata: metadata.Metadata{
 				MDID:       3,
 				DB:         1,
-				PropertyID: "dogs_primarykey",
-				ParentID:   "table_dogs",
+				PropertyID: "unittestproject_dogs_primarykey",
+				ParentID:   "table_unittestproject_dogs",
 				Name:       "PrimaryKey",
 				Type:       "PrimaryKey",
 			},
@@ -181,8 +189,8 @@ func GetTableAddressDogs() table.Table {
 		Metadata: metadata.Metadata{
 			MDID:       1,
 			DB:         1,
-			PropertyID: "table_dogs",
-			Name:       "dogs",
+			PropertyID: "table_unittestproject_dogs",
+			Name:       "unittestproject_dogs",
 			Type:       "Table",
 		},
 	}

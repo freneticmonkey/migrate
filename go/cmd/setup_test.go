@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/freneticmonkey/migrate/go/management"
@@ -167,40 +168,50 @@ func TestSetupExistingDB(t *testing.T) {
 
 	// Load Table Metadata - Expect empty because this is a new database
 	mgmtDB.MetadataSelectName(
-		"dogs",
-		test.DBRow{},
-		// test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
+		dogsTbl.Name,
+		test.GetDBRowMetadata(dogsTbl.Metadata),
 		true,
 	)
 
-	// mgmtDB.MetadataLoadAllTableMetadata("tbl1",
-	// 	1,
-	// 	[]test.DBRow{
-	// 		test.DBRow{1, 1, "tbl1", "", "Table", "dogs", 1},
-	// 		test.DBRow{2, 1, "col1", "tbl1", "Column", "id", 1},
-	// 		test.DBRow{3, 1, "pi", "tbl1", "PrimaryKey", "PrimaryKey", 1},
-	// 	},
-	// 	false,
-	// )
-
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "table_dogs", "", "Table", "dogs", true},
+		test.DBRow{
+			dogsTbl.Metadata.DB,
+			dogsTbl.Metadata.PropertyID,
+			dogsTbl.Metadata.ParentID,
+			dogsTbl.Metadata.Type,
+			dogsTbl.Metadata.Name,
+			true,
+		},
 		1,
 		1,
 	)
 
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "dogs_col_id", "table_dogs", "Column", "id", true},
-		2,
+		test.DBRow{
+			dogsTbl.Columns[0].Metadata.DB,
+			dogsTbl.Columns[0].Metadata.PropertyID,
+			dogsTbl.Columns[0].Metadata.ParentID,
+			dogsTbl.Columns[0].Metadata.Type,
+			dogsTbl.Columns[0].Metadata.Name,
+			true,
+		},
+		dogsTbl.Columns[0].Metadata.MDID,
 		1,
 	)
 
 	// metadata insert
 	mgmtDB.MetadataInsert(
-		test.DBRow{1, "dogs_primarykey", "table_dogs", "PrimaryKey", "PrimaryKey", true},
-		3,
+		test.DBRow{
+			dogsTbl.PrimaryIndex.Metadata.DB,
+			dogsTbl.PrimaryIndex.Metadata.PropertyID,
+			dogsTbl.PrimaryIndex.Metadata.ParentID,
+			dogsTbl.PrimaryIndex.Metadata.Type,
+			dogsTbl.PrimaryIndex.Metadata.Name,
+			true,
+		},
+		dogsTbl.PrimaryIndex.Metadata.MDID,
 		1,
 	)
 
@@ -213,7 +224,13 @@ func TestSetupExistingDB(t *testing.T) {
 	}
 
 	// Verify that the generated YAML is in the correct path and in the expected format
-	filepath := util.WorkingSubDir(filepath.Join(testConfig.Project.Name, "dogs.yml"))
+	filepath := util.WorkingSubDir(
+		filepath.Join(
+			strings.ToLower(testConfig.Project.Name),
+			"dogs.yml",
+		),
+	)
+	util.LogAttention("Trying Filepath: " + filepath)
 	exists, err = util.FileExists(filepath)
 
 	failed := true

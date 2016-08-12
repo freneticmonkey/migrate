@@ -1,6 +1,7 @@
 package table
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -176,12 +177,14 @@ func (t *Table) SetNamespace(path string, filename string) (err error) {
 	var ns []string
 
 	if len(dir) > 0 {
-		// TODO: Cross platform support
-		ns = strings.Split(dir, "/")
+		ns = strings.Split(dir, fmt.Sprintf("%c", os.PathSeparator))
 		t.namespace = ns[:len(ns)-1]
 
 		// rewrite tablenames
 		t.Name = fmt.Sprintf("%s_%s", strings.Join(t.namespace, "_"), t.Name)
+
+		// Ensure lower
+		t.Name = strings.ToLower(t.Name)
 	}
 
 	return err
@@ -201,6 +204,17 @@ func (t *Table) LoadDBMetadata() (err error) {
 
 	mds, err = metadata.LoadAllTableMetadata(t.Name)
 
+	// Check if the error is that there isn't any metadata for this table
+	if err == sql.ErrNoRows {
+		// which is a valid state, so surpresss the error
+		err = nil
+	}
+
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	// If there isn't any metadata then this loop won't execute
 	for _, md := range mds {
 		// Table
 		if md.ParentID == "" && md.Type == "Table" {
@@ -241,7 +255,10 @@ func (t *Table) SyncDBMetadata() (err error) {
 	// then it hasn't been loaded from the DB (it's been built from YAML)
 
 	// Load the DB Metadata state to the table.
-	t.LoadDBMetadata()
+	err = t.LoadDBMetadata()
+	if err != nil {
+		return err
+	}
 
 	// Search for Metadata that still doesn't have a Metadata Id.
 	// This will mean that they are new Table fields and need to be recorded in

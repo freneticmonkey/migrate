@@ -19,6 +19,7 @@ func WriteTables(path string, tables table.Tables) (err error) {
 
 // WriteTable Serialise the Table has YAML and write it to path
 func WriteTable(path string, tbl table.Table) (err error) {
+	tbl.RemoveNamespace()
 	filename := strings.ToLower(tbl.Name) + ".yml"
 	filepath := filepath.Join(path, filename)
 

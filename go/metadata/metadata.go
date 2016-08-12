@@ -101,6 +101,7 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 	var tblMd Metadata
 
 	tblMd, err = GetTableByName(name)
+
 	if err != nil {
 		return md, err
 	}

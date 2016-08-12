@@ -12,9 +12,9 @@ func ReadFile(file string, out interface{}) (err error) {
 
 	data, err := util.ReadFile(file)
 
-	util.ErrorCheck(err)
-
-	err = ReadData(data, out)
+	if !util.ErrorCheck(err) {
+		err = ReadData(data, out)
+	}
 
 	return err
 
