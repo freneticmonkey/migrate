@@ -133,6 +133,29 @@ func GetTableDogs() table.Table {
 	}
 }
 
+func GetYAMLTableAddressDogs() string {
+	return `id: table_unittestproject_dogs
+name: dogs
+engine: InnoDB
+charset: latin1
+columns:
+- id: unittestproject_dogs_col_id
+  name: id
+  type: int
+  size: [11]
+- id: unittestproject_dogs_col_address
+  name: address
+  type: varchar
+  size: [128]
+primaryindex:
+  id: unittestproject_dogs_primarykey
+  name: PrimaryKey
+  columns:
+  - name: id
+  isprimary: true
+`
+}
+
 func GetTableAddressDogs() table.Table {
 	return table.Table{
 		Name:    "unittestproject_dogs",
