@@ -75,40 +75,42 @@ func New(p Param) (m Migration, err error) {
 
 	if valid {
 
-		// Insert the Migration and its Steps into the Management DB
-		m = Migration{
-			DB:                 projectDBID,
-			Project:            p.Project,
-			Version:            p.Version,
-			VersionTimestamp:   p.Timestamp,
-			VersionDescription: p.Description,
-			Status:             Unapproved,
-			Sandbox:            p.Sandbox,
-		}
-
-		for i := 0; i < len(p.Forwards); i++ {
-			forward := p.Forwards[i]
-
-			// Insert the metadata
-			err = forward.Metadata.OnCreate()
-			if util.ErrorCheckf(err, "Failed to insert Metadata for Migration.") {
-				return m, err
+		// Ensure that the migration actually has steps (not an empty migration)
+		if len(p.Forwards) > 0 {
+			// Insert the Migration and its Steps into the Management DB
+			m = Migration{
+				DB:                 projectDBID,
+				Project:            p.Project,
+				Version:            p.Version,
+				VersionTimestamp:   p.Timestamp,
+				VersionDescription: p.Description,
+				Status:             Unapproved,
+				Sandbox:            p.Sandbox,
 			}
 
-			step := Step{
-				Forward:  forward.Statement,
-				Backward: p.Backwards[i].Statement,
-				Status:   Unapproved,
-				Op:       forward.Op,
-				MDID:     forward.Metadata.MDID,
-				Name:     forward.Name,
+			for i := 0; i < len(p.Forwards); i++ {
+				forward := p.Forwards[i]
+
+				// Insert the metadata
+				err = forward.Metadata.OnCreate()
+				if util.ErrorCheckf(err, "Failed to insert Metadata for Migration.") {
+					return m, err
+				}
+
+				step := Step{
+					Forward:  forward.Statement,
+					Backward: p.Backwards[i].Statement,
+					Status:   Unapproved,
+					Op:       forward.Op,
+					MDID:     forward.Metadata.MDID,
+					Name:     forward.Name,
+				}
+				m.AddStep(step)
 			}
-			m.AddStep(step)
+			m.Insert()
+		} else {
+			return m, fmt.Errorf("Migration creation failed.  No operations detected for Project: [%s] Version: [%s]", p.Project, p.Version)
 		}
-		util.LogWarn("Before insert")
-
-		m.Insert()
-
 	}
 
 	return m, err
