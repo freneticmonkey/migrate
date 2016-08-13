@@ -99,6 +99,9 @@ func (e ShellExecutor) Run(command string, args ...string) (out string, err erro
 
 }
 
+// Lambda Callback type to allow simulated execution of shell commands
+type Lambda func(string, []string) error
+
 // ExpectedCommand Defines a mock command input and output
 type ExpectedCommand struct {
 	Cmd       string
@@ -106,6 +109,7 @@ type ExpectedCommand struct {
 	Triggered bool
 	result    string
 	err       error
+	lambda    Lambda
 }
 
 // String String representation of the mock command
@@ -141,6 +145,14 @@ func (c ExpectedCommand) GetResult(prefix string) string {
 	return c.result
 }
 
+// Lambda Execute simulated function
+func (c ExpectedCommand) Lambda() error {
+	if c.lambda != nil {
+		return c.lambda(c.Cmd, c.Args)
+	}
+	return nil
+}
+
 // MockShellExecutor A mock command executor that fulfills the Runner interface
 // modelled after DATA-DOG/go-sqlmock
 type MockShellExecutor struct {
@@ -160,6 +172,17 @@ func (e *MockShellExecutor) ExpectExec(cmd string, args []string, output string,
 		Args:   args,
 		result: output,
 		err:    err,
+	})
+}
+
+// ExpectExecWithLambda Create a expected command
+func (e *MockShellExecutor) ExpectExecWithLambda(cmd string, args []string, output string, err error, lb Lambda) {
+	e.expectations = append(e.expectations, ExpectedCommand{
+		Cmd:    cmd,
+		Args:   args,
+		result: output,
+		err:    err,
+		lambda: lb,
 	})
 }
 
@@ -196,6 +219,13 @@ func (e *MockShellExecutor) Run(cmd string, args ...string) (out string, err err
 
 	expected.Triggered = true
 	LogAlert("Mock ExpectedCommand >> DETECTED: ###> [" + expected.String() + "]\n\n")
+
+	// Trigger lambda
+	err = expected.Lambda()
+	if err != nil {
+		return "", err
+	}
+
 	if expected.err != nil {
 		return "", expected.err // mocked to return error
 	}
