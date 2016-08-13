@@ -84,11 +84,12 @@ func create(project, version string, conf config.Config) *cli.ExitError {
 	// if the version hasn't been defined
 	if len(conf.Project.Name) == 0 {
 		return cli.NewExitError("Creation failed.  Unable to generate a migration as no project was defined", 1)
-	} else if len(conf.Project.Schema.Version) == 0 {
-		return cli.NewExitError("Creation failed.  Unable to generate a migration as no version was defined to migrate to", 1)
-	} else {
-		git.Clone(conf.Project)
 	}
+
+	if len(conf.Project.Schema.Version) == 0 {
+		return cli.NewExitError("Creation failed.  Unable to generate a migration as no version was defined to migrate to", 1)
+	}
+	git.Clone(conf.Project)
 
 	// Read the YAML files cloned from the repo
 	err = yaml.ReadTables(conf.Options.WorkingPath)
