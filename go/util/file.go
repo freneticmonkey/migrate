@@ -29,38 +29,48 @@ func ReadDirRelative(path string, fileType string, files *[]string) (err error) 
 }
 
 func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) {
-
 	// Basic path check
 	if _, err = fs.Stat(path); os.IsNotExist(err) {
 		// This path is busted
 		return err
 	}
-
 	dirInfo, err := afero.ReadDir(fs, path)
-	ErrorCheck(err)
+	if err != nil {
+		return err
+	}
+
+	// Find files in this directory, and queue subdirectories
+	subdirs := []string{}
 
 	for _, fileinfo := range dirInfo {
-		path = filepath.Join(path, fileinfo.Name())
+		fp := filepath.Join(path, fileinfo.Name())
+
 		if fileinfo.IsDir() {
-			ReadDirAbsolute(path, fileType, files)
+			subdirs = append(subdirs, fp)
 		} else {
 			// Check if the file is a YAML file
-			if strings.ToLower(filepath.Ext(path)) == "."+fileType {
+			if strings.ToLower(filepath.Ext(fp)) == "."+fileType {
 				alreadyFound := false
 
 				// Verify file isn't already in the path first
 				for _, f := range *files {
-					if f == path {
+					if f == fp {
 						alreadyFound = true
 						break
 					}
 				}
 				if !alreadyFound {
-					*files = append(*files, path)
+					*files = append(*files, fp)
 				}
 			}
 		}
 	}
+
+	// Process any subdirectories
+	for _, dir := range subdirs {
+		ReadDirAbsolute(dir, fileType, files)
+	}
+
 	return err
 }
 
