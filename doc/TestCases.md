@@ -5,44 +5,44 @@ Should start by building tests around standard use cases and then, brain storm h
 game teams will want to use this. Add in additional tests for executing things things out of order, invalid or misconfigured setups.
 
 # Unit Test data mockup framework
-- [ ] DB Mockup helper
-    - [ ] metadata
+- [x] DB Mockup helper
+    - [x] metadata
     - [ ] database
-    - [ ] migration
-- [ ] Git commands result helper
+    - [x] migration
+- [x] Git commands result helper
 
 # Sandbox
 
-- [ ] Refresh database
+- [x] Refresh database
 - [ ] Make and apply a table or column change immediately
-- [ ] Define a table with bare minimum properties. No options defined.  Default options test.
+- [x] Define a table with bare minimum properties. No options defined.  Default options test.
 - [ ] Execute a dryrun of
     - [ ] a setup
     - [ ] a change
 - [ ] Test that force will only work in a database configured as a sandbox
 
 # Setup
-- [ ] Setup the management database from an existing database
-- [ ] Setup the management database
+- [x] Setup the management database from an existing database
+- [x] Setup the management database
 
 # Diff
-- [ ] Check that the diff command works with changes to:
-    - [ ] Tables
-    - [ ] Columns
-    - [ ] Indexes
+- [x] Check that the diff command works with changes to:
+    - [x] Tables
+    - [x] Columns
+    - [x] Indexes
 
 # Create
-- [ ] Test creating valid forward migration with project and version
+- [x] Test creating valid forward migration with project and version
 - [ ] Test creating valid forward migration with only project testing head version extraction from git
 - [ ] Test creating valid backward migration using --rollback
 - [ ] Test FAIL: creating old (invalid) forward migration without rollback
-- [ ] Test FAIL: no project provided.
+- [x] Test FAIL: no project provided.
 
 # Validate
-- [ ] Test valid YAML
-- [ ] Test valid MySQL
-- [ ] Test malformed YAML
-- [ ] Test malformed MySQL
+- [x] Test valid YAML
+- [x] Test valid MySQL
+- [x] Test malformed YAML
+- [x] Test malformed MySQL
 
 # Exec
 - [ ] Test applying:
