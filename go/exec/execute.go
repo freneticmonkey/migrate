@@ -261,16 +261,21 @@ func Exec(options Options) (err error) {
 
 			// Store success in the database
 			if success {
-				if force {
-					m.Status = migration.Forced
+				if !dryrun {
+					if force {
+						m.Status = migration.Forced
+					} else {
+						m.Status = migration.Complete
+					}
+					err = m.Update()
+					if err != nil {
+						return err
+					}
+					util.LogInfof("Migration with ID: [%d] completed successfully.", m.MID)
 				} else {
-					m.Status = migration.Complete
+					util.LogInfof("(DRYRUN) Migration with ID: [%d] completed successfully.", m.MID)
 				}
-				err = m.Update()
-				if err != nil {
-					return err
-				}
-				util.LogInfof("Migration with ID: [%d] completed successfully.", m.MID)
+
 			}
 
 		} else {
