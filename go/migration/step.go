@@ -7,6 +7,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -82,4 +83,19 @@ func (s *Step) UpdateMetadata() (err error) {
 	}
 
 	return err
+}
+
+// ToDBRow Used to convert the Migration into a unit test DBRow
+func (s Step) ToDBRow() test.DBRow {
+	return test.DBRow{
+		s.SID,
+		s.MID,
+		s.Op,
+		s.MDID,
+		s.Name,
+		s.Forward,
+		s.Backward,
+		s.Output,
+		s.Status,
+	}
 }

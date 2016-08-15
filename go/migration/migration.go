@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -64,6 +65,20 @@ func (m *Migration) Update() (err error) {
 		}
 	}
 	return err
+}
+
+// ToDBRow Used to convert the Migration into a unit test DBRow
+func (m Migration) ToDBRow() test.DBRow {
+	return test.DBRow{
+		m.MID,
+		m.DB,
+		m.Project,
+		m.Version,
+		m.VersionTimestamp,
+		m.VersionDescription,
+		m.Status,
+		m.Timestamp,
+	}
 }
 
 // Load Load a migation from the DB using the Migration ID primary key

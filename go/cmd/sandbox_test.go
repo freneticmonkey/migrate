@@ -97,23 +97,23 @@ func TestDiffSchema(t *testing.T) {
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
@@ -121,9 +121,9 @@ func TestDiffSchema(t *testing.T) {
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -144,16 +144,16 @@ func TestDiffSchema(t *testing.T) {
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -383,7 +383,7 @@ func TestMigrateSandbox(t *testing.T) {
 	// Set this migration to running
 	mgmtDb.MetadataGet(
 		1,
-		test.GetDBRowMetadata(colMd),
+		colMd.ToDBRow(),
 		false,
 	)
 
@@ -424,7 +424,7 @@ func TestMigrateSandbox(t *testing.T) {
 	// Update Metadata
 	mgmtDb.MetadataGet(
 		1,
-		test.GetDBRowMetadata(colMd),
+		colMd.ToDBRow(),
 		false,
 	)
 
@@ -592,7 +592,7 @@ func TestRefreshDatabase(t *testing.T) {
 
 	mgmtDb.MetadataSelectName(
 		dogsAddressTbl.Name,
-		test.GetDBRowMetadata(dogsAddressTbl.Metadata),
+		dogsAddressTbl.Metadata.ToDBRow(),
 		false,
 	)
 
@@ -600,10 +600,10 @@ func TestRefreshDatabase(t *testing.T) {
 	mgmtDb.MetadataLoadAllTableMetadata(dogsAddressTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsAddressTbl.Metadata),
-			test.GetDBRowMetadata(dogsAddressTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsAddressTbl.Columns[1].Metadata),
-			test.GetDBRowMetadata(dogsAddressTbl.PrimaryIndex.Metadata),
+			dogsAddressTbl.Metadata.ToDBRow(),
+			dogsAddressTbl.Columns[0].Metadata.ToDBRow(),
+			dogsAddressTbl.Columns[1].Metadata.ToDBRow(),
+			dogsAddressTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -660,7 +660,7 @@ func TestRefreshDatabase(t *testing.T) {
 	// Set this migration to running
 	mgmtDb.MetadataGet(
 		1,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
@@ -701,7 +701,7 @@ func TestRefreshDatabase(t *testing.T) {
 	// Load the Metadata for the Step
 	mgmtDb.MetadataGet(
 		1,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 

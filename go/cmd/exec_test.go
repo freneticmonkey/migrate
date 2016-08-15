@@ -42,7 +42,6 @@ func TestExec(t *testing.T) {
 	testName := "TestExec"
 
 	util.LogAlert(testName)
-	util.SetVerbose(true)
 	var err error
 	var projectDB test.ProjectDB
 	var mgmtDB test.ManagementDB
@@ -143,20 +142,20 @@ func TestExec(t *testing.T) {
 	// Load the requested migration
 	mgmtDB.MigrationGet(
 		1,
-		test.GetDBRowMigration(m),
+		m.ToDBRow(),
 		false,
 	)
 
 	// Which will also load it's associated Migration Step
 	mgmtDB.MigrationStepGet(
 		1,
-		test.GetDBRowMigrationStep(step),
+		step.ToDBRow(),
 		false,
 	)
 
 	// Get the latest Migration
 	mgmtDB.MigrationGetLatest(
-		test.GetDBRowMigration(m),
+		m.ToDBRow(),
 		false,
 	)
 
@@ -198,7 +197,7 @@ func TestExec(t *testing.T) {
 	// Load Metadata for the Migration Step operation
 	mgmtDB.MetadataGet(
 		1,
-		test.GetDBRowMetadata(colMd),
+		colMd.ToDBRow(),
 		false,
 	)
 
@@ -248,7 +247,7 @@ func TestExec(t *testing.T) {
 	// Update Metadata
 	mgmtDB.MetadataGet(
 		1,
-		test.GetDBRowMetadata(colMd),
+		colMd.ToDBRow(),
 		false,
 	)
 

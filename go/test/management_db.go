@@ -6,9 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freneticmonkey/migrate/go/metadata"
-	"github.com/freneticmonkey/migrate/go/migration"
-
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
@@ -175,18 +172,6 @@ func (m *ManagementDB) MetadataCreateTable() {
 	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
 }
 
-func GetDBRowMetadata(m metadata.Metadata) DBRow {
-	return DBRow{
-		m.MDID,
-		m.DB,
-		m.PropertyID,
-		m.ParentID,
-		m.Type,
-		m.Name,
-		m.Exists,
-	}
-}
-
 // Migration Helpers
 
 var migrationColumns = []string{
@@ -302,19 +287,6 @@ func (m *ManagementDB) MigrationCreateTable() {
 
 }
 
-func GetDBRowMigration(m migration.Migration) DBRow {
-	return DBRow{
-		m.MID,
-		m.DB,
-		m.Project,
-		m.Version,
-		m.VersionTimestamp,
-		m.VersionDescription,
-		m.Status,
-		m.Timestamp,
-	}
-}
-
 // Migration Steps Helpers
 
 var migrationStepsColumns = []string{
@@ -387,18 +359,4 @@ func (m *ManagementDB) MigrationStepCreateTable() {
 	ctStr = regexp.QuoteMeta(ctStr)
 	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
 
-}
-
-func GetDBRowMigrationStep(s migration.Step) DBRow {
-	return DBRow{
-		s.SID,
-		s.MID,
-		s.Op,
-		s.MDID,
-		s.Name,
-		s.Forward,
-		s.Backward,
-		s.Output,
-		s.Status,
-	}
 }

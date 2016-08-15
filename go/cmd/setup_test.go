@@ -169,7 +169,7 @@ func TestSetupExistingDB(t *testing.T) {
 	// Load Table Metadata - Expect empty because this is a new database
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		true,
 	)
 

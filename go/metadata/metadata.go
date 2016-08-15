@@ -3,6 +3,7 @@ package metadata
 import (
 	"fmt"
 
+	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -66,6 +67,19 @@ func (m *Metadata) OnCreate() error {
 		return m.Insert()
 	}
 	return nil
+}
+
+// ToDBRow Used to convert the Metadata into a unit test DBRow
+func (m Metadata) ToDBRow() test.DBRow {
+	return test.DBRow{
+		m.MDID,
+		m.DB,
+		m.PropertyID,
+		m.ParentID,
+		m.Type,
+		m.Name,
+		m.Exists,
+	}
 }
 
 // Load Uses the valud of MDID to load from the Management DB

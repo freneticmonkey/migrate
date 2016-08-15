@@ -199,16 +199,16 @@ schemaTwo/*`
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -217,7 +217,7 @@ schemaTwo/*`
 
 	mgmtDB.MetadataSelectName(
 		dogsAddTbl.Name,
-		test.GetDBRowMetadata(dogsAddTbl.Metadata),
+		dogsAddTbl.Metadata.ToDBRow(),
 		false,
 	)
 
@@ -225,10 +225,10 @@ schemaTwo/*`
 	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsAddTbl.Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.Columns[1].Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.PrimaryIndex.Metadata),
+			dogsAddTbl.Metadata.ToDBRow(),
+			dogsAddTbl.Columns[0].Metadata.ToDBRow(),
+			dogsAddTbl.Columns[1].Metadata.ToDBRow(),
+			dogsAddTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -306,7 +306,7 @@ schemaTwo/*`
 	// Pulling table metadata - diff backwards
 	mgmtDB.MetadataSelectName(
 		dogsAddTbl.Name,
-		test.GetDBRowMetadata(dogsAddTbl.Metadata),
+		dogsAddTbl.Metadata.ToDBRow(),
 		false,
 	)
 
@@ -314,10 +314,10 @@ schemaTwo/*`
 	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsAddTbl.Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.Columns[1].Metadata),
-			test.GetDBRowMetadata(dogsAddTbl.PrimaryIndex.Metadata),
+			dogsAddTbl.Metadata.ToDBRow(),
+			dogsAddTbl.Columns[0].Metadata.ToDBRow(),
+			dogsAddTbl.Columns[1].Metadata.ToDBRow(),
+			dogsAddTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)

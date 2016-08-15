@@ -86,16 +86,16 @@ func TestValidate(t *testing.T) {
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -220,16 +220,16 @@ func TestValidateMySQL(t *testing.T) {
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
@@ -385,16 +385,16 @@ schemaTwo/*`
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
-		test.GetDBRowMetadata(dogsTbl.Metadata),
+		dogsTbl.Metadata.ToDBRow(),
 		false,
 	)
 
 	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
-			test.GetDBRowMetadata(dogsTbl.Metadata),
-			test.GetDBRowMetadata(dogsTbl.Columns[0].Metadata),
-			test.GetDBRowMetadata(dogsTbl.PrimaryIndex.Metadata),
+			dogsTbl.Metadata.ToDBRow(),
+			dogsTbl.Columns[0].Metadata.ToDBRow(),
+			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
 		},
 		false,
 	)
