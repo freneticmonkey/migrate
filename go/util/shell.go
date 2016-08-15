@@ -206,9 +206,9 @@ func (e *MockShellExecutor) Run(cmd string, args ...string) (out string, err err
 		break
 	}
 	if expected == nil {
-		msg := "ExpectedCommand: [%s] with Args [%+v], was not expected"
+		msg := "Command: [%s] with Args [%+v], was not expected"
 		if fulfilled == len(e.expectations) {
-			msg = " all expectations were already fulfilled, " + msg
+			msg = " All expectations were already fulfilled, " + msg
 		}
 		return "", fmt.Errorf(msg, cmd, args)
 	}
