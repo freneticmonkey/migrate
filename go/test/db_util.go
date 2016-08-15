@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/go-gorp/gorp"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
@@ -118,16 +117,4 @@ func createMockDB() (gdb *gorp.DbMap, mock sqlmock.Sqlmock, err error) {
 	}
 
 	return gdb, mock, err
-}
-
-func GetDBRowMetadata(m metadata.Metadata) DBRow {
-	return DBRow{
-		m.MDID,
-		m.DB,
-		m.PropertyID,
-		m.ParentID,
-		m.Type,
-		m.Name,
-		m.Exists,
-	}
 }

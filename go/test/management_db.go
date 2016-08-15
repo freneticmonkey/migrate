@@ -1,9 +1,13 @@
 package test
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/freneticmonkey/migrate/go/metadata"
+	"github.com/freneticmonkey/migrate/go/migration"
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
@@ -87,7 +91,9 @@ var metadataColumns = []string{
 	"exists",
 }
 
-func (m *ManagementDB) MetadataGet(mid int, result DBRow, expectEmtpy bool) {
+var metadataValuesTemplate = " values (null,?,?,?,?,?,?)"
+
+func (m *ManagementDB) MetadataGet(mdid int, result DBRow, expectEmtpy bool) {
 
 	query := DBQueryMock{
 		Columns: metadataColumns,
@@ -95,7 +101,7 @@ func (m *ManagementDB) MetadataGet(mid int, result DBRow, expectEmtpy bool) {
 	if !expectEmtpy {
 		query.Rows = []DBRow{result}
 	}
-	query.FormatQuery("SELECT * FROM `metadata` WHERE mdid=%d", mid)
+	query.FormatQuery("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
 
 	m.ExpectQuery(query)
 }
@@ -106,7 +112,7 @@ func (m *ManagementDB) MetadataInsert(args DBRow, lastInsert int64, rowsAffected
 		Type:   ExecCmd,
 		Result: sqlmock.NewResult(lastInsert, rowsAffected),
 	}
-	query.FormatQuery("insert into `metadata` (`%s`)%s", strings.Join(metadataColumns, "`,`"), migrationValuesTemplate)
+	query.FormatQuery("insert into `metadata` (`%s`)%s", strings.Join(metadataColumns, "`,`"), metadataValuesTemplate)
 	query.SetArgs(args...)
 
 	m.ExpectExec(query)
@@ -169,6 +175,18 @@ func (m *ManagementDB) MetadataCreateTable() {
 	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
 }
 
+func GetDBRowMetadata(m metadata.Metadata) DBRow {
+	return DBRow{
+		m.MDID,
+		m.DB,
+		m.PropertyID,
+		m.ParentID,
+		m.Type,
+		m.Name,
+		m.Exists,
+	}
+}
+
 // Migration Helpers
 
 var migrationColumns = []string{
@@ -179,22 +197,34 @@ var migrationColumns = []string{
 	"version_timestamp",
 	"version_description",
 	"status",
+	"timestamp",
 }
 
-var migrationStepsColumns = []string{
-	"sid",
-	"mid",
-	"op",
-	"mdid",
-	"name",
-	"forward",
-	"backward",
-	"output",
-	"status",
+var migrationValuesTemplate = " values (null,?,?,?,?,?,?,?)"
+
+func (m *ManagementDB) MigrationGet(mid int64, result DBRow, expectEmpty bool) {
+	query := DBQueryMock{
+		Columns: migrationColumns,
+	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
+	}
+	query.FormatQuery("SELECT * FROM `migration` WHERE mid=%d", mid)
+
+	m.ExpectQuery(query)
 }
 
-var migrationValuesTemplate = " values (null,?,?,?,?,?,?)"
-var migrationStepsValuesTemplate = " values (null,?,?,?,?,?,?,?,?)"
+func (m *ManagementDB) MigrationGetLatest(result DBRow, expectEmpty bool) {
+	query := DBQueryMock{
+		Columns: migrationColumns,
+	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
+	}
+	query.FormatQuery("select * from migration ORDER BY version_timestamp DESC LIMIT 1")
+
+	m.ExpectQuery(query)
+}
 
 func (m *ManagementDB) MigrationCount(result DBRow, expectEmpty bool) {
 
@@ -236,23 +266,15 @@ func (m *ManagementDB) MigrationSetStatus(mid int64, status int) {
 
 func (m *ManagementDB) MigrationInsert(args DBRow, lastInsert int64, rowsAffected int64) {
 
+	queryStr := fmt.Sprintf(
+		"insert into `migration` (`%s`) values (null,?,?,?,?,?,?)",
+		strings.Join(migrationColumns[:len(migrationColumns)-1], "`,`"),
+	)
 	query := DBQueryMock{
 		Type:   ExecCmd,
 		Result: sqlmock.NewResult(lastInsert, rowsAffected),
 	}
-	query.FormatQuery("insert into `migration` (`%s`)%s", strings.Join(migrationColumns, "`,`"), migrationValuesTemplate)
-	query.SetArgs(args...)
-
-	m.ExpectExec(query)
-}
-
-func (m *ManagementDB) MigrationInsertStep(args DBRow, lastInsert int64, rowsAffected int64) {
-
-	query := DBQueryMock{
-		Type:   ExecCmd,
-		Result: sqlmock.NewResult(lastInsert, rowsAffected),
-	}
-	query.FormatQuery("insert into `migration_steps` (`%s`)%s", strings.Join(migrationStepsColumns, "`,`"), migrationStepsValuesTemplate)
+	query.FormatQuery(queryStr)
 	query.SetArgs(args...)
 
 	m.ExpectExec(query)
@@ -280,7 +302,58 @@ func (m *ManagementDB) MigrationCreateTable() {
 
 }
 
+func GetDBRowMigration(m migration.Migration) DBRow {
+	return DBRow{
+		m.MID,
+		m.DB,
+		m.Project,
+		m.Version,
+		m.VersionTimestamp,
+		m.VersionDescription,
+		m.Status,
+		m.Timestamp,
+	}
+}
+
 // Migration Steps Helpers
+
+var migrationStepsColumns = []string{
+	"sid",
+	"mid",
+	"op",
+	"mdid",
+	"name",
+	"forward",
+	"backward",
+	"output",
+	"status",
+}
+
+var migrationStepsValuesTemplate = " values (null,?,?,?,?,?,?,?,?)"
+
+func (m *ManagementDB) MigrationStepGet(mid int64, result DBRow, expectEmpty bool) {
+	query := DBQueryMock{
+		Columns: migrationStepsColumns,
+	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
+	}
+	query.FormatQuery("SELECT * FROM `migration_steps` WHERE mid=%d", mid)
+
+	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) MigrationInsertStep(args DBRow, lastInsert int64, rowsAffected int64) {
+
+	query := DBQueryMock{
+		Type:   ExecCmd,
+		Result: sqlmock.NewResult(lastInsert, rowsAffected),
+	}
+	query.FormatQuery("insert into `migration_steps` (`%s`)%s", strings.Join(migrationStepsColumns, "`,`"), migrationStepsValuesTemplate)
+	query.SetArgs(args...)
+
+	m.ExpectExec(query)
+}
 
 func (m *ManagementDB) StepSetStatus(sid int64, status int) {
 
@@ -288,7 +361,7 @@ func (m *ManagementDB) StepSetStatus(sid int64, status int) {
 		Columns: migrationStepsColumns,
 		Result:  sqlmock.NewResult(0, 1),
 	}
-	query.FormatQuery("update migration_steps WHERE sid = %d SET status = %d", sid, status)
+	query.FormatQuery("update migration_steps WHERE mid = %d SET status = %d", sid, status)
 
 	m.ExpectExec(query)
 }
@@ -314,4 +387,18 @@ func (m *ManagementDB) MigrationStepCreateTable() {
 	ctStr = regexp.QuoteMeta(ctStr)
 	m.Mock.ExpectExec(ctStr).WillReturnResult(sqlmock.NewResult(0, 0))
 
+}
+
+func GetDBRowMigrationStep(s migration.Step) DBRow {
+	return DBRow{
+		s.SID,
+		s.MID,
+		s.Op,
+		s.MDID,
+		s.Name,
+		s.Forward,
+		s.Backward,
+		s.Output,
+		s.Status,
+	}
 }
