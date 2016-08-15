@@ -102,7 +102,12 @@ func Exec(options Options) (err error) {
 			// Flag the migration as running
 			if !dryrun && !m.Sandbox {
 				m.Status = migration.InProgress
-				m.Update()
+				err = m.Update()
+
+				// If there was a problem updating
+				if err != nil {
+					return err
+				}
 			}
 
 			// for each step in the migration
@@ -196,13 +201,21 @@ func Exec(options Options) (err error) {
 									failReason = fmt.Sprintf("Failed with Error: %v", err)
 									m.Steps[i].Output = failReason
 									m.Steps[i].Status = migration.Failed
-									step.Update()
+									err = step.Update()
+
+									if err != nil {
+										return err
+									}
 
 									failReason = fmt.Sprintf("Step: [%d] ", step.SID) + failReason
 
 									// Record the Migration as failed into the DB
 									m.Status = migration.Failed
-									m.Update()
+									err = m.Update()
+
+									if err != nil {
+										return err
+									}
 
 									// Format an error message
 									err = fmt.Errorf("Migration with ID: [%d] failed during apply. Reason: %s", m.MID, failReason)
@@ -213,10 +226,20 @@ func Exec(options Options) (err error) {
 							}
 
 							// Record the result of the migration
-							m.Steps[i].Update()
+							err = m.Steps[i].Update()
+
+							// Die immediately because there's some kind of DB connectivity issue
+							if err != nil {
+								return err
+							}
 
 							// If necessary, update the Metadata in the database
-							m.Steps[i].UpdateMetadata()
+							err = m.Steps[i].UpdateMetadata()
+
+							// Die immediately because there's some kind of DB connectivity issue
+							if err != nil {
+								return err
+							}
 
 						}
 					} else {
@@ -243,8 +266,10 @@ func Exec(options Options) (err error) {
 				} else {
 					m.Status = migration.Complete
 				}
-				m.Update()
-
+				err = m.Update()
+				if err != nil {
+					return err
+				}
 				util.LogInfof("Migration with ID: [%d] completed successfully.", m.MID)
 			}
 

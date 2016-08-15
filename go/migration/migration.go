@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -54,29 +55,46 @@ func (m *Migration) Update() (err error) {
 
 	_, err = mgmtDb.Update(m)
 
-	for i := 0; i < len(m.Steps); i++ {
-		err = m.Steps[i].Update()
-		if !util.ErrorCheckf(err, "Updating Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
-			break
+	if err == nil {
+		for i := 0; i < len(m.Steps); i++ {
+			err = m.Steps[i].Update()
+			if !util.ErrorCheckf(err, "Updating Migration Step into the DB failed for Project: [%s] with Version: [%s]", m.Project, m.Version) {
+				break
+			}
 		}
 	}
-
 	return err
 }
 
 // Load Load a migation from the DB using the Migration ID primary key
 func Load(mid int64) (m *Migration, err error) {
-	obj, err := mgmtDb.Get(Migration{}, mid)
 
-	if obj == nil {
+	var mig Migration
+	if err = configured(); err != nil {
+		return m, err
+	}
+	query := fmt.Sprintf("SELECT * FROM `migration` WHERE mid=%d", mid)
+	err = mgmtDb.SelectOne(&mig, query)
+
+	if err == nil {
+		m = &mig
+	} else if err == sql.ErrNoRows {
 		err = fmt.Errorf("Migration: [%d] not found in the DB", mid)
 	}
 
+	// obj, err := mgmtDb.Get(Migration{}, mid)
+
+	// if obj == nil && err == sql.ErrNoRows {
+	// 	err = fmt.Errorf("Migration: [%d] not found in the DB", mid)
+	// } else {
+	// 	fmt.Printf("Sad :( %v)", err)
+	// }
+
 	if err == nil {
-		m = obj.(*Migration)
+		// m = obj.(*Migration)
 
 		var steps []Step
-		query := fmt.Sprintf("select * from migration_steps WHERE mid = %d", mid)
+		query := fmt.Sprintf("SELECT * FROM `migration_steps` WHERE mid=%d", mid)
 		_, err = mgmtDb.Select(&steps, query)
 		if err == nil {
 			m.Steps = steps

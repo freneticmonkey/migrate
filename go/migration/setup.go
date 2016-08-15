@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/freneticmonkey/migrate/go/util"
@@ -70,4 +71,12 @@ func CreateTables() (result bool, err error) {
 	}
 
 	return result, err
+}
+
+// configured Internal Helper function for checking database validity
+func configured() error {
+	if mgmtDb != nil && mgmtDb.Db != nil && projectDBID > 0 {
+		return nil
+	}
+	return fmt.Errorf("Metadata: Database not configured.")
 }

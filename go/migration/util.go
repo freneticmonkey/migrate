@@ -55,6 +55,8 @@ func HasMigrations() (result bool, err error) {
 func GetLatest() (m Migration, err error) {
 	var migrations Migration
 	err = mgmtDb.SelectOne(&migrations, "select * from migration ORDER BY version_timestamp DESC LIMIT 1")
-	util.ErrorCheckf(err, "Unable to get latest Migration from Management DB")
+	if !util.ErrorCheckf(err, "Unable to get latest Migration from Management DB") {
+		m = migrations
+	}
 	return m, err
 }

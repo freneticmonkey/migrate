@@ -68,16 +68,16 @@ func (s *Step) UpdateMetadata() (err error) {
 		case table.Add:
 			// Mark exists
 			m.Exists = true
-			m.Update()
+			err = m.Update()
 		case table.Mod:
 			// If a rename has occurred, be sure to update the new name in the Metadata
 			if m.Name != s.Name {
 				m.Name = s.Name
-				m.Update()
+				err = m.Update()
 			}
 		case table.Del:
 			// If the operation is removing something, delete the associated Metadata
-			m.Delete()
+			err = m.Delete()
 		}
 	}
 
