@@ -15,7 +15,186 @@ import (
 )
 
 func TestExecDryrun(t *testing.T) {
+	testName := "TestExecDryrun"
 
+	util.LogAlert(testName)
+	var err error
+	var projectDB test.ProjectDB
+	var mgmtDB test.ManagementDB
+
+	util.SetConfigTesting()
+
+	////////////////////////////////////////////////////////
+	// Configure testing data
+	//
+
+	// Git requests to pull back state of current checkout
+
+	// GitVersionTime
+	gitMySQLTime := "2016-07-12 12:04:05"
+
+	// GitVersionDetails
+	gitDetails := `commit abc123
+    Author: Scott Porter <sporter@ea.com>
+    Date:   Tue Jul 12 22:04:05 2016 +1000
+
+    An example git commit for unit testing`
+
+	// Setup table data
+	testConfig := test.GetTestConfig()
+	dogsAddTbl := GetTableAddressDogs()
+
+	// Configuring the expected MDID for the new Column
+	colMd := dogsAddTbl.Columns[1].Metadata
+	colMd.MDID = 4
+
+	// Migration Configuration - use default, standard migration
+	dryrun := false
+	rollback := false
+	PTODisabled := true
+	allowDestructive := false
+
+	// Migration id
+	mid := int64(1)
+
+	step := migration.Step{
+		SID:      1,
+		MID:      1,
+		Op:       table.Add,
+		MDID:     1,
+		Name:     "address",
+		Forward:  "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Backward: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+		Output:   "",
+		Status:   migration.Approved,
+	}
+
+	m := migration.Migration{
+		MID:                1,
+		DB:                 1,
+		Project:            testConfig.Project.Name,
+		Version:            testConfig.Project.Schema.Version,
+		VersionTimestamp:   gitMySQLTime,
+		VersionDescription: gitDetails,
+		Status:             migration.Approved,
+		Timestamp:          mysql.GetTimeNow(),
+		Steps: []migration.Step{
+			step,
+		},
+		Sandbox: true,
+	}
+
+	//
+	////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////
+	// Configure MySQL access for the management and project DBs
+	//
+
+	// Configure the test databases
+	// Setup the mock project database
+	projectDB, err = test.CreateProjectDB(testName, t)
+
+	if err == nil {
+		// Connect to Project DB
+		exec.SetProjectDB(projectDB.Db)
+	} else {
+		t.Errorf("%s failed to setup the Project DB with error: %v", testName, err)
+		return
+	}
+
+	// Configure the Mock Managment DB
+	mgmtDB, err = test.CreateManagementDB(testName, t)
+
+	if err == nil {
+		exec.Setup(mgmtDB.Db, 1, testConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDB.Db, 1)
+		metadata.Setup(mgmtDB.Db, 1)
+	} else {
+		t.Errorf("%s failed to setup the Management DB with error: %v", testName, err)
+		return
+	}
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Verify that the Migration can run
+
+	// Load the requested migration
+	mgmtDB.MigrationGet(
+		1,
+		m.ToDBRow(),
+		false,
+	)
+
+	// Which will also load it's associated Migration Step
+	mgmtDB.MigrationStepGet(
+		1,
+		step.ToDBRow(),
+		false,
+	)
+
+	// Get the latest Migration
+	mgmtDB.MigrationGetLatest(
+		m.ToDBRow(),
+		false,
+	)
+
+	// Check for running migrations - InProgressID
+	mgmtDB.MigrationGetStatus(
+		migration.InProgress,
+		[]test.DBRow{
+			{},
+		},
+		true,
+	)
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Setup for the actual migration
+
+	// Load Metadata for the Migration Step operation
+	mgmtDB.MetadataGet(
+		1,
+		colMd.ToDBRow(),
+		false,
+	)
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	//
+
+	// The migration shouldn't be run here.
+	// Expect NOTHING to be executed HERE
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Update the Management DB with the result of the migration
+	// in this case success.
+
+	// NOTHING SHOULD BE UPDATED!
+
+	dryrun = true
+
+	err = exec.Exec(exec.Options{
+		MID:              mid,
+		Dryrun:           dryrun,
+		Rollback:         rollback,
+		PTODisabled:      PTODisabled,
+		AllowDestructive: allowDestructive,
+	})
+
+	if err != nil {
+		t.Errorf("%s failed with error: %v", testName, err)
+		return
+	}
 }
 
 func TestExecRollback(t *testing.T) {
@@ -139,6 +318,12 @@ func TestExec(t *testing.T) {
 		return
 	}
 
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Verify that the Migration can run
+
 	// Load the requested migration
 	mgmtDB.MigrationGet(
 		1,
@@ -168,6 +353,12 @@ func TestExec(t *testing.T) {
 		true,
 	)
 
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Setup for the actual migration
+
 	// Set this migration to running
 
 	// Update Migration state to InProgress
@@ -181,7 +372,7 @@ func TestExec(t *testing.T) {
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	// Update the Migration Step along with the Migration
+	// Update the Migration Step along with the Migration - Not effectively doing anything here
 	mgmtDB.Mock.ExpectExec("update `migration_steps`").WithArgs(
 		step.MID,
 		table.Add,
@@ -201,6 +392,8 @@ func TestExec(t *testing.T) {
 		false,
 	)
 
+	// Now set the step to InProgress
+
 	// Set Step to InProgress
 	mgmtDB.Mock.ExpectExec("update `migration_steps`").WithArgs(
 		step.MID,
@@ -213,6 +406,9 @@ func TestExec(t *testing.T) {
 		migration.InProgress,
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	//
+	////////////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////////////
 	// Expect the migration to be executed HERE
@@ -230,6 +426,7 @@ func TestExec(t *testing.T) {
 
 	////////////////////////////////////////////////////////////
 	// Update the Management DB with the result of the migration
+	// in this case success.
 
 	// Set Migration Step to Complete
 	mgmtDB.Mock.ExpectExec("update `migration_steps`").WithArgs(
