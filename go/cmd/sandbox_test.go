@@ -316,6 +316,12 @@ func TestMigrateSandbox(t *testing.T) {
 
 	testName := "TestMigrateSandbox"
 
+	dogsAddTbl := GetTableAddressDogs()
+
+	// Configuring the expected MDID for the new Column
+	colMd := dogsAddTbl.Columns[1].Metadata
+	colMd.MDID = 4
+
 	m := migration.Migration{
 		MID:                1,
 		DB:                 1,
@@ -377,7 +383,7 @@ func TestMigrateSandbox(t *testing.T) {
 	// Set this migration to running
 	mgmtDb.MetadataGet(
 		1,
-		test.DBRow{1, 1, "col1", "tbl1", "Column", "address", 1},
+		test.GetDBRowMetadata(colMd),
 		false,
 	)
 
@@ -418,9 +424,20 @@ func TestMigrateSandbox(t *testing.T) {
 	// Update Metadata
 	mgmtDb.MetadataGet(
 		1,
-		test.DBRow{1, 1, "col1", "tbl1", "Column", "address", 1},
+		test.GetDBRowMetadata(colMd),
 		false,
 	)
+
+	// Update Metadata with completed
+	mgmtDb.Mock.ExpectExec("update `metadata`").WithArgs(
+		colMd.DB,
+		colMd.PropertyID,
+		colMd.ParentID,
+		colMd.Type,
+		colMd.Name,
+		true,
+		colMd.MDID,
+	).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// Update Migrationt with completed
 	mgmtDb.Mock.ExpectExec("update `migration`").WithArgs(
