@@ -48,7 +48,7 @@ game teams will want to use this. Add in additional tests for executing things t
 - [ ] Test applying:
     - [ ] a valid migration using a dryrun
     - [ ] a valid backward migration using a dryrun
-    - [ ] a valid forward migration
+    - [x] a valid forward migration
     - [ ] a valid backward migration
     - [ ] a destructive migration with --allow-destructive
     - [ ] FAIL: invalid (old) forward migration
