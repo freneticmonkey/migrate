@@ -622,7 +622,7 @@ func TestExecRollbackInvalid(t *testing.T) {
 	latestStep := migration.Step{
 		SID:      2,
 		MID:      latestMID,
-		Op:       table.Add,
+		Op:       table.Del,
 		MDID:     1,
 		Name:     "address",
 		Forward:  "DROP TABLE `unittestproject_dogs`;",
