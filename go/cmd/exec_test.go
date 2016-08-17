@@ -196,6 +196,10 @@ func TestExecDryrun(t *testing.T) {
 		t.Errorf("%s failed with error: %v", testName, err)
 		return
 	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
 }
 
 func TestExecRollback(t *testing.T) {
@@ -521,10 +525,380 @@ func TestExecRollback(t *testing.T) {
 		t.Errorf("%s failed with error: %v", testName, err)
 		return
 	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
 }
 
 func TestExecRollbackInvalid(t *testing.T) {
+	testName := "TestExecRollbackInvalid"
+	util.LogAlert(testName)
 
+	var err error
+	var projectDB test.ProjectDB
+	var mgmtDB test.ManagementDB
+
+	util.SetConfigTesting()
+
+	////////////////////////////////////////////////////////
+	// Configure testing data
+	//
+
+	// Build times for testing
+
+	// 1st Aug 2016
+	migrationTimeLatest := mysql.FormatTime(time.Date(2016, 8, 1, 0, 0, 0, 0, time.UTC))
+
+	gitDetailsLatest := `commit abc123
+	Author: Scott Porter <sporter@ea.com>
+	Date:   Tue Aug 1 00:00:00 2016 +1000
+
+	An example latest commit dropping the test table`
+
+	// 20th June 2016
+	migrationTimeOlder := mysql.FormatTime(time.Date(2016, 7, 20, 0, 0, 0, 0, time.UTC))
+
+	// Git requests to pull back state of current checkout
+
+	// GitVersionDetails
+	gitDetailsOlder := `commit abc123
+    Author: Scott Porter <sporter@ea.com>
+    Date:   Tue Jul 20 00:00:00 2016 +1000
+
+    An example latest commit adding a column to the test table`
+
+	// Setup table data
+	testConfig := test.GetTestConfig()
+	dogsAddTbl := GetTableAddressDogs()
+
+	// Configuring the expected MDID for the new Column
+	colMd := dogsAddTbl.Columns[1].Metadata
+	colMd.MDID = 4
+
+	// Migration Configuration - use default, standard migration
+	dryrun := false
+	rollback := false
+	PTODisabled := true
+	allowDestructive := false
+
+	// Define the older Migration
+
+	// Migration id
+	olderMID := int64(1)
+
+	olderStep := migration.Step{
+		SID:      1,
+		MID:      olderMID,
+		Op:       table.Add,
+		MDID:     1,
+		Name:     "address",
+		Forward:  "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Backward: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+		Output:   "",
+		Status:   migration.Approved,
+	}
+
+	olderMig := migration.Migration{
+		MID:                1,
+		DB:                 1,
+		Project:            testConfig.Project.Name,
+		Version:            testConfig.Project.Schema.Version,
+		VersionTimestamp:   migrationTimeOlder,
+		VersionDescription: gitDetailsOlder,
+		Status:             migration.Approved,
+		Timestamp:          migrationTimeOlder,
+		Steps: []migration.Step{
+			olderStep,
+		},
+		Sandbox: true,
+	}
+
+	// Define the Latest Migration
+
+	// Migration id
+	latestMID := int64(1)
+
+	latestStep := migration.Step{
+		SID:      2,
+		MID:      latestMID,
+		Op:       table.Add,
+		MDID:     1,
+		Name:     "address",
+		Forward:  "DROP TABLE `unittestproject_dogs`;",
+		Backward: "CREATE TABLE `unittestproject_dogs` BLAH BLAH BLAH;",
+		Output:   "",
+		Status:   migration.Unapproved,
+	}
+
+	latestMig := migration.Migration{
+		MID:                latestMID,
+		DB:                 1,
+		Project:            testConfig.Project.Name,
+		Version:            testConfig.Project.Schema.Version,
+		VersionTimestamp:   migrationTimeLatest,
+		VersionDescription: gitDetailsLatest,
+		Status:             migration.Unapproved,
+		Timestamp:          migrationTimeLatest,
+		Steps: []migration.Step{
+			latestStep,
+		},
+		Sandbox: true,
+	}
+
+	//
+	////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////
+	// Configure MySQL access for the management and project DBs
+	//
+
+	// Configure the test databases
+	// Setup the mock project database
+	projectDB, err = test.CreateProjectDB(testName, t)
+
+	if err == nil {
+		// Connect to Project DB
+		exec.SetProjectDB(projectDB.Db)
+	} else {
+		t.Errorf("%s failed to setup the Project DB with error: %v", testName, err)
+		return
+	}
+
+	// Configure the Mock Managment DB
+	mgmtDB, err = test.CreateManagementDB(testName, t)
+
+	if err == nil {
+		exec.Setup(mgmtDB.Db, 1, testConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDB.Db, 1)
+		metadata.Setup(mgmtDB.Db, 1)
+	} else {
+		t.Errorf("%s failed to setup the Management DB with error: %v", testName, err)
+		return
+	}
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Verify that the Migration can run
+
+	// Load the requested migration
+	mgmtDB.MigrationGet(
+		1,
+		olderMig.ToDBRow(),
+		false,
+	)
+
+	// Which will also load it's associated Migration Step
+	mgmtDB.MigrationStepGet(
+		1,
+		olderStep.ToDBRow(),
+		false,
+	)
+
+	// Get the latest Migration
+	mgmtDB.MigrationGetLatest(
+		latestMig.ToDBRow(),
+		false,
+	)
+
+	// Check for running migrations - InProgressID
+	mgmtDB.MigrationGetStatus(
+		migration.InProgress,
+		[]test.DBRow{
+			{},
+		},
+		true,
+	)
+
+	//
+	////////////////////////////////////////////////////////////
+
+	err = exec.Exec(exec.Options{
+		MID:              olderMID,
+		Dryrun:           dryrun,
+		Rollback:         rollback,
+		PTODisabled:      PTODisabled,
+		AllowDestructive: allowDestructive,
+	})
+
+	if err == nil {
+		t.Errorf("%s Did NOT fail and it should have", testName)
+		return
+	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
+}
+
+func TestExecRollbackDryrun(t *testing.T) {
+	testName := "TestExecRollbackDryrun"
+	util.LogAlert(testName)
+
+	var err error
+	var projectDB test.ProjectDB
+	var mgmtDB test.ManagementDB
+
+	util.SetConfigTesting()
+
+	////////////////////////////////////////////////////////
+	// Configure testing data
+	//
+
+	// Build times for testing
+
+	// 20th June 2016
+	migrationTimeOlder := mysql.FormatTime(time.Date(2016, 7, 20, 0, 0, 0, 0, time.UTC))
+
+	// Git requests to pull back state of current checkout
+
+	// GitVersionDetails
+	gitDetailsOlder := `commit abc123
+    Author: Scott Porter <sporter@ea.com>
+    Date:   Tue Jul 20 00:00:00 2016 +1000
+
+    An example latest commit adding a column to the test table`
+
+	// Setup table data
+	testConfig := test.GetTestConfig()
+	dogsAddTbl := GetTableAddressDogs()
+
+	// Configuring the expected MDID for the new Column
+	colMd := dogsAddTbl.Columns[1].Metadata
+	colMd.MDID = 4
+
+	// Migration Configuration - use default, standard migration
+	dryrun := true
+	rollback := true
+	PTODisabled := true
+	allowDestructive := false
+
+	// Define the older Migration
+
+	// Migration id
+	olderMID := int64(1)
+
+	olderStep := migration.Step{
+		SID:      1,
+		MID:      olderMID,
+		Op:       table.Add,
+		MDID:     1,
+		Name:     "address",
+		Forward:  "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Backward: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+		Output:   "",
+		Status:   migration.Approved,
+	}
+
+	olderMig := migration.Migration{
+		MID:                1,
+		DB:                 1,
+		Project:            testConfig.Project.Name,
+		Version:            testConfig.Project.Schema.Version,
+		VersionTimestamp:   migrationTimeOlder,
+		VersionDescription: gitDetailsOlder,
+		Status:             migration.Approved,
+		Timestamp:          migrationTimeOlder,
+		Steps: []migration.Step{
+			olderStep,
+		},
+		Sandbox: true,
+	}
+
+	//
+	////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////
+	// Configure MySQL access for the management and project DBs
+	//
+
+	// Configure the test databases
+	// Setup the mock project database
+	projectDB, err = test.CreateProjectDB(testName, t)
+
+	if err == nil {
+		// Connect to Project DB
+		exec.SetProjectDB(projectDB.Db)
+	} else {
+		t.Errorf("%s failed to setup the Project DB with error: %v", testName, err)
+		return
+	}
+
+	// Configure the Mock Managment DB
+	mgmtDB, err = test.CreateManagementDB(testName, t)
+
+	if err == nil {
+		exec.Setup(mgmtDB.Db, 1, testConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDB.Db, 1)
+		metadata.Setup(mgmtDB.Db, 1)
+	} else {
+		t.Errorf("%s failed to setup the Management DB with error: %v", testName, err)
+		return
+	}
+
+	//
+	////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////
+	// Verify that the Migration can run
+
+	// Load the requested migration
+	mgmtDB.MigrationGet(
+		1,
+		olderMig.ToDBRow(),
+		false,
+	)
+
+	// Which will also load it's associated Migration Step
+	mgmtDB.MigrationStepGet(
+		1,
+		olderStep.ToDBRow(),
+		false,
+	)
+
+	// Get the latest Migration
+	// mgmtDB.MigrationGetLatest(
+	// 	latestMig.ToDBRow(),
+	// 	false,
+	// )
+
+	// Check for running migrations - InProgressID
+	mgmtDB.MigrationGetStatus(
+		migration.InProgress,
+		[]test.DBRow{
+			{},
+		},
+		true,
+	)
+
+	//
+	////////////////////////////////////////////////////////////
+
+	// Load Metadata for the Migration Step operation
+	mgmtDB.MetadataGet(
+		1,
+		colMd.ToDBRow(),
+		false,
+	)
+
+	err = exec.Exec(exec.Options{
+		MID:              olderMID,
+		Dryrun:           dryrun,
+		Rollback:         rollback,
+		PTODisabled:      PTODisabled,
+		AllowDestructive: allowDestructive,
+	})
+
+	if err != nil {
+		t.Errorf("%s failed with error: %v", testName, err)
+		return
+	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
 }
 
 func TestExecPTODisabled(t *testing.T) {
@@ -825,4 +1199,8 @@ func TestExec(t *testing.T) {
 		t.Errorf("%s failed with error: %v", testName, err)
 		return
 	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
 }

@@ -47,11 +47,11 @@ game teams will want to use this. Add in additional tests for executing things t
 # Exec
 - [ ] Test applying:
     - [x] a valid migration using a dryrun
-    - [ ] a valid backward migration using a dryrun
+    - [x] a valid backward migration using a dryrun
     - [x] a valid forward migration
     - [x] a valid backward migration
     - [ ] a destructive migration with --allow-destructive
-    - [ ] FAIL: invalid (old) forward migration
+    - [x] FAIL: invalid (old) forward migration
     - [ ] FAIL: an already applied migration
     - [ ] FAIL: a migration while another migration is in progress
     - [ ] FAIL: an unknown migration (unknown id)
