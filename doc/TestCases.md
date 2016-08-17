@@ -50,12 +50,12 @@ game teams will want to use this. Add in additional tests for executing things t
     - [x] a valid backward migration using a dryrun
     - [x] a valid forward migration
     - [x] a valid backward migration
-    - [ ] a destructive migration with --allow-destructive
+    - [x] a destructive migration with --allow-destructive
     - [x] FAIL: invalid (old) forward migration
     - [ ] FAIL: an already applied migration
     - [ ] FAIL: a migration while another migration is in progress
     - [x] FAIL: an unknown migration (unknown id)
-    - [ ] FAIL: a destructive migration WITHOUT --allow-destructive
+    - [x] FAIL: a destructive migration WITHOUT --allow-destructive
     - [ ] FAIL: mid migration fail during a rename which results in the metadata not being updated in the management database.
 
 # YAML
