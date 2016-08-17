@@ -2,6 +2,7 @@ package exec
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/migration"
@@ -36,6 +37,7 @@ func Exec(options Options) (err error) {
 	var statement string
 	var output string
 	var success bool
+	var action string
 
 	// If a Migration ID was supplied in the Migration Options, then attempt to load from the DB
 	if mid > 0 {
@@ -98,6 +100,36 @@ func Exec(options Options) (err error) {
 			}
 		}
 
+		// Check the migration for destructive changes, and verify if they are allowed.
+		unapprovedDestructive := false
+		destructiveChanges := []string{}
+		for _, step := range m.Steps {
+			// If Destructive
+			if step.Op != table.Add {
+				destructiveChanges = append(destructiveChanges, step.Forward)
+
+				// If not destruction not approved - fail
+				if !options.AllowDestructive {
+					unapprovedDestructive = true
+					failReason = fmt.Sprintf("Migration: [%d] cannot be applied because it contains destructive change(s): [%s] without use of the --allow-destructive flag", mid, step.Forward)
+					break
+				}
+			}
+		}
+
+		// if not forced, and  prompt for destructive approval
+		if !options.Force && len(destructiveChanges) > 0 && !unapprovedDestructive {
+			util.LogWarn("The following DESTRUCTIVE changes have been detected.")
+			util.LogAttentionf("\t%s", strings.Join(destructiveChanges, "\n\t"))
+			action, err = util.SelectAction("Do you wish to continue? (y/n)", []string{"y", "n"})
+
+			// Fail if not approved, or there was some kind of error reading input
+			if action != "y" || err != nil {
+				failReason = fmt.Sprintf("Migration: [%d] cannot be applied because it contains destructive change(s).", mid)
+				unapprovedDestructive = true
+			}
+		}
+
 		// We assume that everything is ok by default
 		migrationCanExecute := true
 
@@ -110,6 +142,11 @@ func Exec(options Options) (err error) {
 				migrationCanExecute = false
 				failReason = fmt.Sprintf("Migration is too old to apply.  Use --rollback to force")
 			}
+		}
+
+		// If there's a problem with destructive changes
+		if unapprovedDestructive {
+			migrationCanExecute = false
 		}
 
 		// If there's another migration already running
