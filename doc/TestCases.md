@@ -49,7 +49,7 @@ game teams will want to use this. Add in additional tests for executing things t
     - [x] a valid migration using a dryrun
     - [ ] a valid backward migration using a dryrun
     - [x] a valid forward migration
-    - [ ] a valid backward migration
+    - [x] a valid backward migration
     - [ ] a destructive migration with --allow-destructive
     - [ ] FAIL: invalid (old) forward migration
     - [ ] FAIL: an already applied migration
@@ -57,3 +57,7 @@ game teams will want to use this. Add in additional tests for executing things t
     - [ ] FAIL: an unknown migration (unknown id)
     - [ ] FAIL: a destructive migration WITHOUT --allow-destructive
     - [ ] FAIL: mid migration fail during a rename which results in the metadata not being updated in the management database.
+
+# YAML
+- [ ] Namespacing
+    - [ ] Nested folders
