@@ -96,8 +96,27 @@ func Exec(options Options) (err error) {
 			}
 		}
 
-		// If this migration is the latest and another migration is not running, OR we're in the sandbox
-		if isLatest && !migrationRunning || options.Sandbox {
+		// We assume that everything is ok by default
+		migrationCanExecute := true
+
+		// If the migration isn't a rollback, ensure that it's the latest migration
+		if !rollback && !isLatest {
+
+			// if it's the sandbox we can ignore this fail state
+			if !options.Sandbox {
+				// If not, can't run
+				migrationCanExecute = false
+				failReason = fmt.Sprintf("Migration is too old to apply.  Use --rollback to force")
+			}
+		}
+
+		// If there's another migration already running
+		if migrationRunning {
+			migrationCanExecute = false
+		}
+
+		// If this migration can execute, then start applying it
+		if migrationCanExecute {
 
 			// Flag the migration as running
 			if !dryrun && !m.Sandbox {
