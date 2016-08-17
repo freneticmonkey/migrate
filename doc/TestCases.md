@@ -35,7 +35,7 @@ game teams will want to use this. Add in additional tests for executing things t
 - [x] Test creating valid forward migration with project and version
 - [ ] Test creating valid forward migration with only project testing head version extraction from git
 - [ ] Test creating valid backward migration using --rollback
-- [ ] Test FAIL: creating old (invalid) forward migration without rollback
+- [ ] Test FAIL: creating old (invalid) forward migration without --rollback
 - [x] Test FAIL: no project provided.
 
 # Validate
@@ -54,7 +54,7 @@ game teams will want to use this. Add in additional tests for executing things t
     - [x] FAIL: invalid (old) forward migration
     - [ ] FAIL: an already applied migration
     - [ ] FAIL: a migration while another migration is in progress
-    - [ ] FAIL: an unknown migration (unknown id)
+    - [x] FAIL: an unknown migration (unknown id)
     - [ ] FAIL: a destructive migration WITHOUT --allow-destructive
     - [ ] FAIL: mid migration fail during a rename which results in the metadata not being updated in the management database.
 

@@ -531,7 +531,7 @@ func TestExecRollback(t *testing.T) {
 	mgmtDB.ExpectionsMet(testName, t)
 }
 
-func TestExecRollbackInvalid(t *testing.T) {
+func TestExecFailInvalidRollback(t *testing.T) {
 	testName := "TestExecRollbackInvalid"
 	util.LogAlert(testName)
 
@@ -909,16 +909,70 @@ func TestExecAllowDestructive(t *testing.T) {
 
 }
 
-func TestExecAllowDestructiveFail(t *testing.T) {
-
-}
-
-func TestExecUnapprovedFail(t *testing.T) {
-
-}
-
 func TestExecStepApprovedStepUnapproved(t *testing.T) {
 
+}
+
+func TestExecFailAllowDestructive(t *testing.T) {
+
+}
+
+func TestExecFailUnapproved(t *testing.T) {
+
+}
+func TestExecFailMissingId(t *testing.T) {
+	testName := "TestExecFailMissingId"
+
+	util.LogAlert(testName)
+	var err error
+	var projectDB test.ProjectDB
+	var mgmtDB test.ManagementDB
+
+	util.SetConfigTesting()
+
+	// Migration Configuration - use default, standard migration
+	dryrun := false
+	rollback := false
+	PTODisabled := false
+	allowDestructive := false
+
+	////////////////////////////////////////////////////////
+	// Configure MySQL access for the management and project DBs
+	//
+
+	// Configure the test databases
+	// Setup the mock project database
+	projectDB, err = test.CreateProjectDB(testName, t)
+
+	if err != nil {
+		t.Errorf("%s failed to setup the Project DB with error: %v", testName, err)
+		return
+	}
+
+	// Configure the Mock Managment DB
+	mgmtDB, err = test.CreateManagementDB(testName, t)
+
+	if err != nil {
+		t.Errorf("%s failed to setup the Management DB with error: %v", testName, err)
+		return
+	}
+
+	err = exec.Exec(exec.Options{
+		MID:              0, // Invalid MID
+		Dryrun:           dryrun,
+		Rollback:         rollback,
+		PTODisabled:      PTODisabled,
+		AllowDestructive: allowDestructive,
+	})
+
+	if err == nil {
+		t.Errorf("%s didn't fail and it should have", testName)
+		return
+	}
+
+	projectDB.ExpectionsMet(testName, t)
+
+	mgmtDB.ExpectionsMet(testName, t)
 }
 
 func TestExec(t *testing.T) {

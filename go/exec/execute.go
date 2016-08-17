@@ -43,6 +43,8 @@ func Exec(options Options) (err error) {
 		if util.ErrorCheckf(err, "Couldn't load Migration: [%d] from the Management DB", mid) {
 			return err
 		}
+	} else {
+		return fmt.Errorf("Migration failed.  Invalid Migration Id: [%d]", mid)
 	}
 
 	// TODO: Update the Migration state at the end of the Migration!!!!
