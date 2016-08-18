@@ -38,6 +38,7 @@ func GetCreateCommand() (setup cli.Command) {
 		Action: func(ctx *cli.Context) error {
 			var project string
 			var version string
+			var rollback bool
 
 			// Parse global flags
 			parseGlobalFlags(ctx)
@@ -58,19 +59,22 @@ func GetCreateCommand() (setup cli.Command) {
 				version = ctx.String("version")
 			}
 
-			return create(project, version, conf)
+			if ctx.IsSet("rollback") {
+				rollback = ctx.Bool("rollback")
+			}
+
+			return create(project, version, rollback, conf)
 
 		},
 	}
 	return setup
 }
 
-func create(project, version string, conf config.Config) *cli.ExitError {
+func create(project, version string, rollback bool, conf config.Config) *cli.ExitError {
 	var problems int
 	var ts string
 	var info string
 	var err error
-	rollback := false
 
 	// Override the project settings with the command line flags
 	if project != "" {
