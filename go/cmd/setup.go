@@ -37,30 +37,32 @@ func GetSetupCommand() (setup cli.Command) {
 			// Parse global flags
 			parseGlobalFlags(ctx)
 
-			// Read configuration and access the management database
-			conf, configError := configureManagement()
-			if configError != nil {
-				return cli.NewExitError("Configuration Load failed.", 1)
-			}
-
 			if ctx.IsSet("management") {
-
-				if configError != nil {
-					// Build the schema for the management database
-					err := management.BuildSchema(conf)
-
-					if util.ErrorCheck(err) {
-						return cli.NewExitError(fmt.Sprintf("Management Database Setup: Building tables FAILED with error: %v", err), 1)
-					}
-					return cli.NewExitError("Management Database Setup completed successfully.", 0)
-				}
-				return cli.NewExitError("Management Database Setup: Building tables FAILED because the Management DB is already setup", 1)
-			} else if ctx.IsSet("existing") {
+				util.ConfigFileSystem()
+				// Load Configuration only
+				conf, configError := loadConfig(configURL, configFile)
 
 				if configError != nil {
 					return cli.NewExitError("Configuration Load failed.", 1)
 				}
 
+				// Build the schema for the management database
+				err := management.BuildSchema(conf)
+
+				if util.ErrorCheck(err) {
+					return cli.NewExitError(fmt.Sprintf("Management Database Setup: Building tables FAILED with error: %v", err), 1)
+				}
+				return cli.NewExitError("Management Database Setup completed successfully.", 0)
+
+				// return cli.NewExitError("Management Database Setup: Management DB is already setup", 1)
+
+			} else if ctx.IsSet("existing") {
+				// Read configuration and access the management database
+				conf, configError := configureManagement()
+
+				if configError != nil {
+					return cli.NewExitError("Configuration Load failed.", 1)
+				}
 				return setupExistingDB(conf)
 			}
 
@@ -74,6 +76,9 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 
 	const YES, NO = "yes", "no"
 	action := NO
+	util.VerboseOverrideSet(true)
+	util.LogInfo("Starting Setup from Existing DB")
+	util.VerboseOverrideRestore()
 
 	// Read the MySQL Database and generate Tables
 	err := mysql.ReadTables()
@@ -100,6 +105,21 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 
 			path := util.WorkingSubDir(strings.ToLower(conf.Project.Name))
 
+			util.VerboseOverrideSet(true)
+			util.LogInfof("Detected %d Tables. Converting to YAML.", len(mysql.Schema))
+			util.LogInfof("Writing to Path: %s", path)
+			util.VerboseOverrideRestore()
+
+			exists, err := util.DirExists(path)
+
+			if err != nil {
+				return cli.NewExitError("Couldn't create project folder: "+path, 1)
+			}
+
+			if !exists {
+				util.Mkdir(path, 0755)
+			}
+
 			// Generate PropertyIds for all Database properties
 			for i := 0; i < len(mysql.Schema); i++ {
 				tbl := &mysql.Schema[i]
@@ -119,7 +139,10 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 				util.LogInfof("Registering Table for migrations: %s", mysql.Schema[i].Name)
 			}
 
-			return cli.NewExitError("Existing Database Setup Completed. Generated YAML definitions in path: "+path, 0)
+			util.VerboseOverrideSet(true)
+			util.LogOkf("Processed %d Tables", len(mysql.Schema))
+			util.LogOkf("Generated YAML definitions in path: %s", path)
+			return cli.NewExitError("Existing Database Setup Completed", 0)
 
 		}
 	}

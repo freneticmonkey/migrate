@@ -11,6 +11,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/util"
+	"github.com/freneticmonkey/migrate/go/yaml"
 	"github.com/go-gorp/gorp"
 )
 
@@ -28,7 +29,7 @@ func tablesExist() bool {
 	query := fmt.Sprintf("SHOW TABLES IN management")
 
 	_, err := mgmtDb.Select(&dbTables, query)
-	if util.ErrorCheck(err) {
+	if err != nil {
 		return false
 	}
 	return len(dbTables) == len(tables)
@@ -44,7 +45,9 @@ func getManagementDB(conf config.Config) *gorp.DbMap {
 	mgmt := conf.Options.Management
 
 	db, err := sql.Open("mysql", mgmt.DB.ConnectString())
-	util.ErrorCheckf(err, "Failed to connect to the management DB")
+	if util.ErrorCheckf(err, "Failed to connect to the management DB") {
+		return nil
+	}
 
 	return &gorp.DbMap{
 		Db: db,
@@ -75,20 +78,28 @@ func Setup(conf config.Config) (err error) {
 	var tdb database.TargetDatabase
 	projDB := conf.Project.DB
 	tdb, err = database.GetbyProject(conf.Project.Name, projDB.Database, projDB.Environment)
-	if util.ErrorCheckf(err, "Target Database entry doesn't exist for Project: [%s]. Creating it", conf.Project.Name) {
+
+	if err != nil {
+		// if util.ErrorCheckf(err, "Target Database entry doesn't exist for Project: [%s]. Creating it", conf.Project.Name) {
+		util.LogWarnf("Target Database entry doesn't exist for Project: [%s]", conf.Project.Name)
+		util.LogGreen("Creating it")
 		tdb = database.TargetDatabase{
 			Project: conf.Project.Name,
 			Name:    projDB.Database,
 			Env:     projDB.Environment,
 		}
 		err = tdb.Insert()
+
+		util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database)
 	}
 
-	if !util.ErrorCheckf(err, "Couldn't Insert the Target Database for Project: [%s] with Name: [%s]", conf.Project.Name, conf.Project.DB.Database) {
+	if err == nil {
+		yaml.Setup(conf)
 		mysql.Setup(conf)
 		metadata.Setup(mgmtDb, tdb.DBID)
 		migration.Setup(mgmtDb, tdb.DBID)
 		exec.Setup(mgmtDb, tdb.DBID, conf.Project.DB.ConnectString())
+		util.LogInfo("Connected to Management DB")
 	}
 
 	return err
@@ -103,7 +114,7 @@ func BuildSchema(conf config.Config) (err error) {
 		mgmtDb = getManagementDB(conf)
 	}
 
-	if !tablesExist() {
+	if mgmtDb != nil && !tablesExist() {
 
 		// Configure the Database Table packages
 		database.Setup(mgmtDb)
@@ -130,7 +141,7 @@ func BuildSchema(conf config.Config) (err error) {
 		util.LogInfo("Successfully Created Management database schema.")
 
 	} else {
-		err = fmt.Errorf("Management Schema Detected.  Schema creation cancelled.")
+		err = fmt.Errorf("Existing Management Schema Detected.  Schema creation cancelled.")
 	}
 	return err
 }

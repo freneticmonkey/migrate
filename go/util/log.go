@@ -9,9 +9,19 @@ import (
 )
 
 var verbose bool
+var originalVerb bool
 
 func SetVerbose(v bool) {
 	verbose = v
+}
+
+func VerboseOverrideSet(ovr bool) {
+	originalVerb = verbose
+	verbose = ovr
+}
+
+func VerboseOverrideRestore() {
+	verbose = originalVerb
 }
 
 func LogColour(out string, attr color.Attribute) {
