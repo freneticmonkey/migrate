@@ -40,6 +40,8 @@ func GetCreateCommand() (setup cli.Command) {
 			var version string
 			var rollback bool
 
+			rollback = false
+
 			// Parse global flags
 			parseGlobalFlags(ctx)
 
