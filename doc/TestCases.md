@@ -53,7 +53,7 @@ game teams will want to use this. Add in additional tests for executing things t
     - [x] a destructive migration with --allow-destructive
     - [x] FAIL: invalid (old) forward migration
     - [x] FAIL: an already applied migration
-    - [ ] FAIL: a migration while another migration is in progress
+    - [x] FAIL: a migration while another migration is in progress
     - [x] FAIL: an unknown migration (unknown id)
     - [x] FAIL: a destructive migration WITHOUT --allow-destructive
     - [ ] FAIL: mid migration fail during a rename which results in the metadata not being updated in the management database.
