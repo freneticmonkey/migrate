@@ -1,4 +1,6 @@
 options:
+    # Use namespace functionality to allow for subfolder schema
+    namespaces: No
     # Relative to this configuration file
     workingpath: "test/working"
     # Management specific configuration

@@ -8,6 +8,7 @@ type Config struct {
 }
 
 type Options struct {
+	Namespaces  bool
 	WorkingPath string
 	Management  Management
 }

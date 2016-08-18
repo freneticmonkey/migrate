@@ -40,8 +40,10 @@ func ReadTables(path string) (err error) {
 			// Process the table metadata
 			processMetadata(&tbl)
 
-			// Calculate the table's namespace
-			tbl.SetNamespace(path, filename)
+			if useNamespaces {
+				// Calculate the table's namespace
+				tbl.SetNamespace(path, filename)
+			}
 
 			// If the table has an Id, then it can be used.
 			// Otherwise ignore it.

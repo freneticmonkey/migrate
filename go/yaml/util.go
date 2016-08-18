@@ -31,9 +31,9 @@ func ReadData(data []byte, out interface{}) (err error) {
 }
 
 func WriteFile(file string, tbl table.Table) (err error) {
-
-	tbl.RemoveNamespace()
-
+	if useNamespaces {
+		tbl.RemoveNamespace()
+	}
 	filedata, err := yaml.Marshal(tbl)
 
 	if !util.ErrorCheck(err) {
