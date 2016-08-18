@@ -41,7 +41,7 @@ func GetGlobalFlags() (flags []cli.Flag) {
 
 func parseGlobalFlags(ctx *cli.Context) {
 	// Verbose output for now
-	verbose := true
+	verbose := false
 	configFile = ctx.GlobalString("config-file")
 
 	if ctx.GlobalIsSet("config-file") {
@@ -128,7 +128,7 @@ func setConfig(targetConfig config.Config) (err error) {
 	// Configure access to the management DB
 	err = management.Setup(targetConfig)
 
-	if util.ErrorCheck(err) {
+	if err != nil {
 		return fmt.Errorf("Unable configure management database. Error: %v", err)
 	}
 
