@@ -42,9 +42,9 @@ func GetGlobalFlags() (flags []cli.Flag) {
 func parseGlobalFlags(ctx *cli.Context) {
 	// Verbose output for now
 	verbose := true
+	configFile = ctx.GlobalString("config-file")
 
 	if ctx.GlobalIsSet("config-file") {
-		configFile = ctx.GlobalString("config-file")
 		util.LogInfof("Detected config-file: %s", configFile)
 	}
 
@@ -63,6 +63,9 @@ func parseGlobalFlags(ctx *cli.Context) {
 // configureManagement Read the command line parameters,
 // load configuration and setup the mananagement database
 func configureManagement() (targetConfig config.Config, err error) {
+
+	util.ConfigFileSystem()
+
 	// Load Configuration
 	targetConfig, err = loadConfig(configURL, configFile)
 

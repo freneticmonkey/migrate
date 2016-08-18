@@ -42,8 +42,12 @@ func GetSandboxCommand() (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
-
 			var conf config.Config
+
+			if !ctx.IsSet("recreate") && !ctx.IsSet("migrate") {
+				cli.ShowSubcommandHelp(ctx)
+				return cli.NewExitError("Please provide a valid flag", 1)
+			}
 
 			// Parse global flags
 			parseGlobalFlags(ctx)

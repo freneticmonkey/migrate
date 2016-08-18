@@ -14,6 +14,7 @@ import (
 var WorkingPathAbs string
 
 var isTesting bool
+var fsConfigured bool
 
 var fs afero.Fs
 var sh ShellRunner
@@ -28,6 +29,28 @@ func SetConfigTesting() {
 	isTesting = true
 }
 
+func ConfigFileSystem() {
+	if !fsConfigured {
+		// Configure the file system depending on whether we are running unit tests
+		if !isTesting {
+			fs = afero.NewOsFs()
+			sh = &ShellExecutor{}
+		} else {
+			fs = afero.NewMemMapFs()
+			sh = &MockShellExecutor{}
+		}
+		fsConfigured = true
+	}
+
+}
+
+func ShutdownFileSystem() {
+	if isTesting {
+		fs = nil
+		fsConfigured = false
+	}
+}
+
 // Config Configure the utility subsystems depending on testing
 func Config(conf config.Config) afero.Fs {
 
@@ -38,14 +61,8 @@ func Config(conf config.Config) afero.Fs {
 	// Configure the working path, ensuring the it's lowercase
 	WorkingPathAbs = filepath.Join(cwd, strings.ToLower(conf.Options.WorkingPath))
 
-	// Configure the file system depending on whether we are running unit tests
-	if !isTesting {
-		fs = afero.NewOsFs()
-		sh = &ShellExecutor{}
-	} else {
-		fs = afero.NewMemMapFs()
-		sh = &MockShellExecutor{}
-	}
+	// Ensure that the filesystem has been setup correctly
+	ConfigFileSystem()
 
 	return fs
 }

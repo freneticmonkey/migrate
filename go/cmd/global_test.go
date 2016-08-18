@@ -34,7 +34,9 @@ func Teardown() {
 	migration.Setup(nil, 1)
 	metadata.Setup(nil, 1)
 
+	// Cleanup util
 	util.SetVerbose(false)
+	util.ShutdownFileSystem()
 }
 
 func GetMySQLCreateTableDogs() string {
