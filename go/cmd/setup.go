@@ -29,11 +29,19 @@ func GetSetupCommand() (setup cli.Command) {
 		},
 		Action: func(ctx *cli.Context) *cli.ExitError {
 
+			if !ctx.IsSet("management") && !ctx.IsSet("existing") {
+				cli.ShowSubcommandHelp(ctx)
+				return cli.NewExitError("Please specify a setup action", 1)
+			}
+
 			// Parse global flags
 			parseGlobalFlags(ctx)
 
 			// Read configuration and access the management database
 			conf, configError := configureManagement()
+			if configError != nil {
+				return cli.NewExitError("Configuration Load failed.", 1)
+			}
 
 			if ctx.IsSet("management") {
 
@@ -47,9 +55,7 @@ func GetSetupCommand() (setup cli.Command) {
 					return cli.NewExitError("Management Database Setup completed successfully.", 0)
 				}
 				return cli.NewExitError("Management Database Setup: Building tables FAILED because the Management DB is already setup", 1)
-			}
-
-			if ctx.IsSet("existing") {
+			} else if ctx.IsSet("existing") {
 
 				if configError != nil {
 					return cli.NewExitError("Configuration Load failed.", 1)
@@ -58,7 +64,7 @@ func GetSetupCommand() (setup cli.Command) {
 				return setupExistingDB(conf)
 			}
 
-			return cli.NewExitError("Setup successfully completed no action. :)", 0)
+			return cli.NewExitError("No action performed.", 0)
 		},
 	}
 	return setup
