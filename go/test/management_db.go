@@ -140,13 +140,14 @@ func (m *ManagementDB) MetadataSelectNameParent(name string, parentId string, re
 	m.ExpectQuery(query)
 }
 
-func (m *ManagementDB) MetadataLoadAllTableMetadata(tblPropertyID string, dbID int64, results []DBRow, expectEmpty bool) {
+func (m *ManagementDB) MetadataLoadAllTableMetadata(tblName, tblPropertyID string, dbID int64, results []DBRow, expectEmpty bool) {
 	query := DBQueryMock{
 		Columns: metadataColumns,
 	}
 	if !expectEmpty {
 		query.Rows = results
 	}
+	// query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblName, tblPropertyID, dbID)
 	query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblPropertyID, tblPropertyID, dbID)
 
 	m.ExpectQuery(query)

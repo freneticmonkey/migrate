@@ -117,13 +117,13 @@ func create(project, version string, rollback bool, conf config.Config) *cli.Exi
 		return cli.NewExitError("Creation failed. Target Database Validation Errors Detected", problems)
 	}
 
-	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema)
+	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false)
 	if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
 		return cli.NewExitError("Create failed. Unable to generate a forward migration", 1)
 	}
 	forwardOps := mysql.GenerateAlters(forwardDiff)
 
-	backwardDiff, err := table.DiffTables(mysql.Schema, yaml.Schema)
+	backwardDiff, err := table.DiffTables(mysql.Schema, yaml.Schema, false)
 	if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
 		return cli.NewExitError("Create failed. Unable to generate a backward migration", 1)
 	}

@@ -120,6 +120,7 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 		return md, err
 	}
 
+	// query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.Name, tblMd.PropertyID, targetDBID)
 	query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.PropertyID, tblMd.PropertyID, targetDBID)
 	_, err = mgmtDb.Select(&md, query)
 

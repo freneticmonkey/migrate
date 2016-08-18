@@ -90,7 +90,9 @@ func TestValidate(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -223,7 +225,9 @@ func TestValidateMySQL(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -388,7 +392,9 @@ schemaTwo/*`
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),

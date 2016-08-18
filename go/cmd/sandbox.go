@@ -216,13 +216,13 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		}
 
 		// Generate Diffs
-		forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema)
+		forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema, false)
 		if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
 			return forwardOps, backwardOps, err
 		}
 		forwardOps = mysql.GenerateAlters(forwardDiff)
 
-		backwardDiff, err = table.DiffTables(mysql.Schema, yaml.Schema)
+		backwardDiff, err = table.DiffTables(mysql.Schema, yaml.Schema, false)
 		if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
 			return forwardOps, backwardOps, err
 		}

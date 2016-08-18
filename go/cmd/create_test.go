@@ -207,7 +207,9 @@ schemaTwo/*`
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -226,7 +228,9 @@ schemaTwo/*`
 	)
 
 	//Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsAddTbl.Name,
+		dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsAddTbl.Metadata.ToDBRow(),
@@ -315,7 +319,9 @@ schemaTwo/*`
 	)
 
 	//Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsAddTbl.Name,
+		dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsAddTbl.Metadata.ToDBRow(),
@@ -569,7 +575,9 @@ schemaTwo/*`
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -588,7 +596,9 @@ schemaTwo/*`
 	)
 
 	//Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsAddTbl.Name,
+		dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsAddTbl.Metadata.ToDBRow(),
@@ -672,7 +682,9 @@ schemaTwo/*`
 	)
 
 	//Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsAddTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsAddTbl.Name,
+		dogsAddTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsAddTbl.Metadata.ToDBRow(),

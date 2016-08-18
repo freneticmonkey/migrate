@@ -325,7 +325,7 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 
 // DiffTables Compare the toTables and fromTables Slices of Table structs and
 // return a Differences Slice containing all of the differences between the tables.
-func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences, err error) {
+func DiffTables(toTables []Table, fromTables []Table, dryrun bool) (tableDiffs Differences, err error) {
 	util.LogInfo("Starting Diff")
 
 	// Search through the input tables
@@ -337,7 +337,9 @@ func DiffTables(toTables []Table, fromTables []Table) (tableDiffs Differences, e
 
 		// Sync the metadata for the table and it's fields to the DB so that it can be
 		// detected by the Migration when it executes
-		err = toTable.SyncDBMetadata()
+		if !dryrun {
+			err = toTable.SyncDBMetadata()
+		}
 
 		if util.ErrorCheckf(err, "Problem syncing Metadata with DB for Table: [%s]", toTable.Name) {
 			return tableDiffs, err

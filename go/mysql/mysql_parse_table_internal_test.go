@@ -801,7 +801,13 @@ func TestParseCreateTable(t *testing.T) {
 			false,
 		)
 
-		mgmtDB.MetadataLoadAllTableMetadata(tst.Metadata[0][2].(string), 1, tst.Metadata, false)
+		mgmtDB.MetadataLoadAllTableMetadata(
+			tst.Metadata[0][5].(string),
+			tst.Metadata[0][2].(string),
+			1,
+			tst.Metadata,
+			false,
+		)
 
 		result, err := ParseCreateTable(tst.Statement())
 

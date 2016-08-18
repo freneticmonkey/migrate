@@ -1393,7 +1393,7 @@ func TestTables(t *testing.T) {
 	// TODO: Fix Mock DB to get this working :(
 	var diffs Differences
 	if false {
-		diffs, _ = DiffTables(toTables, fromTables)
+		diffs, _ = DiffTables(toTables, fromTables, true)
 	}
 
 	if len(diffs.Slice) > 0 {

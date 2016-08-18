@@ -101,7 +101,9 @@ func TestDiffSchema(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -118,7 +120,9 @@ func TestDiffSchema(t *testing.T) {
 	)
 
 	// Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -148,7 +152,9 @@ func TestDiffSchema(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -597,7 +603,9 @@ func TestRefreshDatabase(t *testing.T) {
 	)
 
 	// Diff will also sync metadata for the YAML Schema
-	mgmtDb.MetadataLoadAllTableMetadata(dogsAddressTbl.Metadata.PropertyID,
+	mgmtDb.MetadataLoadAllTableMetadata(
+		dogsAddressTbl.Name,
+		dogsAddressTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsAddressTbl.Metadata.ToDBRow(),

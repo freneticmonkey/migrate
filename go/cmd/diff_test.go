@@ -103,7 +103,9 @@ func TestDiff(t *testing.T) {
 		false,
 	)
 
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
+	mgmtDB.MetadataLoadAllTableMetadata(
+		dogsTbl.Name,
+		dogsTbl.Metadata.PropertyID,
 		1,
 		[]test.DBRow{
 			dogsTbl.Metadata.ToDBRow(),
@@ -114,23 +116,6 @@ func TestDiff(t *testing.T) {
 	)
 
 	// STARTING Diff Queries
-
-	mgmtDB.MetadataSelectName(
-		dogsTbl.Name,
-		dogsTbl.Metadata.ToDBRow(),
-		false,
-	)
-
-	//Diff will also sync metadata for the YAML Schema
-	mgmtDB.MetadataLoadAllTableMetadata(dogsTbl.Metadata.PropertyID,
-		1,
-		[]test.DBRow{
-			dogsTbl.Metadata.ToDBRow(),
-			dogsTbl.Columns[0].Metadata.ToDBRow(),
-			dogsTbl.PrimaryIndex.Metadata.ToDBRow(),
-		},
-		false,
-	)
 
 	//
 	//
