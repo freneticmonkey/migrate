@@ -131,7 +131,6 @@ func TestSetupExistingDB(t *testing.T) {
 	var err error
 	var exists bool
 	var data []byte
-	util.SetVerbose(true)
 	util.SetConfigTesting()
 
 	testName := "TestSetupExistingDB"
