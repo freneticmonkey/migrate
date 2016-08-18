@@ -82,6 +82,10 @@ func FileExists(path string) (bool, error) {
 	return afero.Exists(fs, path)
 }
 
+func DirExists(path string) (bool, error) {
+	return afero.DirExists(fs, path)
+}
+
 func ReadAll(r io.Reader) ([]byte, error) {
 	return afero.ReadAll(r)
 }
