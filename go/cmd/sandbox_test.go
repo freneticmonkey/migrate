@@ -466,7 +466,7 @@ func TestMigrateSandbox(t *testing.T) {
 	err = migrateSandbox(testName, false, &m)
 
 	if err != nil {
-		t.Errorf(testName + " Failed. There was a problem executing the Migration.")
+		t.Errorf("%s Failed. There was a problem executing the Migration. Error: %v", testName, err)
 	}
 
 	mgmtDb.ExpectionsMet(testName, t)
