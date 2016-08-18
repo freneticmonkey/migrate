@@ -45,7 +45,7 @@ func Exec(options Options) (err error) {
 		if util.ErrorCheckf(err, "Couldn't load Migration: [%d] from the Management DB", mid) {
 			return err
 		}
-	} else {
+	} else if !(options.Sandbox && m != nil) {
 		return fmt.Errorf("Migration failed.  Invalid Migration Id: [%d]", mid)
 	}
 
