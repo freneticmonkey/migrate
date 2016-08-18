@@ -40,7 +40,7 @@ func TestValidate(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
@@ -107,7 +107,7 @@ func TestValidate(t *testing.T) {
 	result = validate(project, version, "both", testConfig)
 
 	if result.ExitCode() > 0 {
-		t.Errorf("TestValidate failed with error: %v", err)
+		t.Errorf("TestValidate failed with error: %v", result.Error())
 		return
 	}
 
@@ -120,7 +120,6 @@ func TestValidate(t *testing.T) {
 }
 
 func TestValidateYAML(t *testing.T) {
-	var err error
 	var result *cli.ExitError
 
 	// Test Configuration
@@ -141,7 +140,7 @@ func TestValidateYAML(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
@@ -154,7 +153,7 @@ func TestValidateYAML(t *testing.T) {
 	result = validate(project, version, "yaml", testConfig)
 
 	if result.ExitCode() > 0 {
-		t.Errorf("%s failed with error: %v", testName, err)
+		t.Errorf("%s failed with error: %v", testName, result.Error())
 		return
 	}
 
@@ -241,7 +240,7 @@ func TestValidateMySQL(t *testing.T) {
 	result = validate(project, version, "mysql", testConfig)
 
 	if result.ExitCode() > 0 {
-		t.Errorf("TestValidate failed with error: %v", err)
+		t.Errorf("TestValidate failed with error: %v", result.Error())
 		return
 	}
 
@@ -339,7 +338,7 @@ schemaTwo/*`
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		GetYAMLTableDogs(),
 		0644,
 		false,
