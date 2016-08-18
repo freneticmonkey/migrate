@@ -225,6 +225,19 @@ func (m *ManagementDB) MigrationCount(result DBRow, expectEmpty bool) {
 	m.ExpectQuery(query)
 }
 
+func (m *ManagementDB) MigrationGetVersionExists(version string, result DBRow, expectEmpty bool) {
+
+	query := DBQueryMock{
+		Columns: migrationColumns,
+	}
+	if !expectEmpty {
+		query.Rows = append(query.Rows, result)
+	}
+	query.FormatQuery("select count(*) from migration WHERE version = \"%s\"", version)
+
+	m.ExpectQuery(query)
+}
+
 func (m *ManagementDB) MigrationGetStatus(status int, results []DBRow, expectEmpty bool) {
 
 	query := DBQueryMock{

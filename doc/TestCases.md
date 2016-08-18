@@ -34,7 +34,7 @@ game teams will want to use this. Add in additional tests for executing things t
 # Create
 - [x] Test creating valid forward migration with project and version
 - [ ] Test creating valid forward migration with only project testing head version extraction from git
-- [ ] Test creating valid backward migration using --rollback
+- [x] Test creating valid backward migration using --rollback
 - [ ] Test FAIL: creating old (invalid) forward migration without --rollback
 - [x] Test FAIL: no project provided.
 
