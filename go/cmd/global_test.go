@@ -72,7 +72,7 @@ func GetCreateTableAddressColumnDogs() string {
 
 func GetYAMLTableDogs() string {
 	return `id: table_unittestproject_dogs
-name: dogs
+name: unittestproject_dogs
 engine: InnoDB
 charset: latin1
 columns:
@@ -137,7 +137,7 @@ func GetTableDogs() table.Table {
 
 func GetYAMLTableAddressDogs() string {
 	return `id: table_unittestproject_dogs
-name: dogs
+name: unittestproject_dogs
 engine: InnoDB
 charset: latin1
 columns:
