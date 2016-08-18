@@ -83,24 +83,13 @@ A growing list of features and tasks that need to be completed before this proje
 - [ ] Add a dependency check flag to setup which checks env for git and pt-online-schema-change
 - [ ] Add MySQL validation option for validate cli
 
-# TODO Tests
-- [x] MySQL Parsing
-- [x] YAML Parsing
-- [x] Difference Engine
-    - [x] Difference detection
-    - [x] MySQL Statement Generation
-- [ ] Create Migration
-    - [ ] MySQL Statement Validity
-    - [ ] Git validation
-        - [ ] Can create new
-        - [ ] Can't create old
-    - [ ] Migration correctly stored in database
-- [ ] Run Migration
-    - [ ] Successfully applied
-    - [ ] Approval
-        - [ ] Will run approved
-        - [ ] Won't run denied
-    - [ ] Ensure single migration execution
+# TODO Polish
+- [ ] Provide feedback when flags are required
+- [ ] Setup --test flag for testing configuration (DB)
+- [ ] Migration inspection which displays migrations in cli
+- [ ] Diff a specific table
+- [ ] Pull Schema changes back to the YAML (Manual sandbox edits)
+
 
 # TODO Future / Maybe
 - [ ] Add strict mode which hashes the create table statement and stores it for validation against each of the migration_steps.
