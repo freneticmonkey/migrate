@@ -101,7 +101,9 @@ func diff(project, version string, conf config.Config) *cli.ExitError {
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Validation failed. Problems determining differences", 1)
 	}
+	util.VerboseOverrideSet(true)
 	mysql.GenerateAlters(forwardDiff)
+	util.VerboseOverrideRestore()
 
 	completeMessage := "Diff completed successfully."
 
