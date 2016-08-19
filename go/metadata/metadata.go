@@ -29,15 +29,33 @@ func (m *Metadata) Insert() error {
 	if err := configured(); err != nil {
 		return err
 	}
-	return mgmtDb.Insert(m)
+
+	err := mgmtDb.Insert(m)
+	if usingCache {
+		if err == nil {
+			cache = append(cache, *m)
+		}
+	}
+	return err
 }
 
 // Update Update the Metadata in the Management DB
 func (m *Metadata) Update() (err error) {
-	if err := configured(); err != nil {
+	if err = configured(); err != nil {
 		return err
 	}
 	_, err = mgmtDb.Update(m)
+
+	if err == nil {
+		if usingCache {
+			for i := range cache {
+				if cache[i].MDID == m.MDID {
+					cache[i] = *m
+				}
+			}
+			cache = append(cache, *m)
+		}
+	}
 	return err
 }
 
@@ -47,6 +65,13 @@ func (m *Metadata) Delete() (err error) {
 		return err
 	}
 	_, err = mgmtDb.Delete(m)
+	if usingCache {
+		for i := range cache {
+			if cache[i].MDID == m.MDID {
+				cache = append(cache[:i], cache[i+1:]...)
+			}
+		}
+	}
 	return err
 }
 
@@ -85,14 +110,26 @@ func (m Metadata) ToDBRow() test.DBRow {
 // Load Uses the valud of MDID to load from the Management DB
 func Load(mdid int64) (m *Metadata, err error) {
 	var md Metadata
-	if err = configured(); err != nil {
-		return m, err
-	}
-	query := fmt.Sprintf("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
-	err = mgmtDb.SelectOne(&md, query)
 
-	if err == nil {
-		m = &md
+	if usingCache {
+
+		for i := range cache {
+			if cache[i].MDID == mdid {
+				return &md, nil
+			}
+		}
+
+	} else {
+
+		if err = configured(); err != nil {
+			return m, err
+		}
+		query := fmt.Sprintf("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
+		err = mgmtDb.SelectOne(&md, query)
+
+		if err == nil {
+			m = &md
+		}
 	}
 	return m, err
 }
@@ -120,8 +157,20 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 		return md, err
 	}
 
-	query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.Name, tblMd.PropertyID, targetDBID)
-	_, err = mgmtDb.Select(&md, query)
+	if usingCache {
+
+		for _, meta := range cache {
+			if meta.Name == name || meta.ParentID == tblMd.PropertyID {
+				md = append(md, meta)
+			}
+		}
+
+	} else {
+
+		query := fmt.Sprintf("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblMd.Name, tblMd.PropertyID, targetDBID)
+		_, err = mgmtDb.Select(&md, query)
+
+	}
 
 	util.ErrorCheckf(err, "There was a problem retrieving Metadata for Table with Name: [%s] and PropertyID: [%s]", name, tblMd.PropertyID)
 	return md, err
@@ -140,15 +189,31 @@ func GetByName(name string, parentID string) (md Metadata, err error) {
 		return md, err
 	}
 
-	errString := fmt.Sprintf("Failed to find Property with name: [%s]", name)
-	query := fmt.Sprintf("SELECT * FROM metadata WHERE name=\"%s\"", name)
+	if usingCache {
 
-	if len(parentID) > 0 {
-		query += fmt.Sprintf(" AND parent_id=\"%s\"", parentID)
-		errString += fmt.Sprintf(" in ParentID: [%s]", parentID)
+		for _, md := range cache {
+			if md.Name == name && md.ParentID == parentID {
+				return md, nil
+			}
+		}
+
+	} else {
+		query := fmt.Sprintf("SELECT * FROM metadata WHERE name=\"%s\"", name)
+
+		if len(parentID) > 0 {
+			query += fmt.Sprintf(" AND parent_id=\"%s\"", parentID)
+		}
+
+		err = mgmtDb.SelectOne(&md, query)
 	}
 
-	err = mgmtDb.SelectOne(&md, query)
-
 	return md, err
+}
+
+// UpdateCache Build a localstore of the Metadata Management DB for the target DB
+func UpdateCache() error {
+	query := fmt.Sprintf("SELECT * FROM metadata WHERE db = %d", targetDBID)
+
+	_, err := mgmtDb.Select(&cache, query)
+	return err
 }

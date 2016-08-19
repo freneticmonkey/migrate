@@ -6,6 +6,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/git"
 	"github.com/freneticmonkey/migrate/go/id"
+	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -64,6 +65,9 @@ func diff(project, version string, conf config.Config) *cli.ExitError {
 	var forwardDiff table.Differences
 	var problems int
 	var err error
+
+	// Enable Metadata cache as we're not going to be making changes to it
+	metadata.UseCache(true)
 
 	// Override the project settings with the command line flags
 	if version != "" {

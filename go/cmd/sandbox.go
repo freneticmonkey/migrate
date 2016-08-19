@@ -8,6 +8,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/id"
+	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
@@ -194,6 +195,9 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 
 	// If schema was found
 	if len(yaml.Schema) > 0 {
+
+		metadata.UseCache(true)
+
 		// Validate the YAML Schema
 		_, err = id.ValidateSchema(yaml.Schema, "YAML Schema")
 		if util.ErrorCheck(err) {

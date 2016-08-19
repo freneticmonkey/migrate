@@ -11,6 +11,9 @@ import (
 var mgmtDb *gorp.DbMap
 var targetDBID int
 
+var cache []Metadata
+var usingCache bool
+
 // Setup Setup the Metadata table in the management DB
 func Setup(db *gorp.DbMap, targetDatabaseID int) {
 	mgmtDb = db
@@ -53,4 +56,16 @@ func configured() error {
 		return nil
 	}
 	return fmt.Errorf("Metadata: Database not configured.")
+}
+
+// UseCache Toggle Select statements to use localcache, and update the localcache
+func UseCache(state bool) (err error) {
+	usingCache = state
+	if state {
+		err = UpdateCache()
+		if err != nil {
+			usingCache = false
+		}
+	}
+	return err
 }

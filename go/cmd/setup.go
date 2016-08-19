@@ -6,6 +6,7 @@ import (
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/management"
+	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/freneticmonkey/migrate/go/yaml"
@@ -79,6 +80,8 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 	util.VerboseOverrideSet(true)
 	util.LogInfo("Starting Setup from Existing DB")
 	util.VerboseOverrideRestore()
+
+	metadata.UseCache(true)
 
 	// Read the MySQL Database and generate Tables
 	err := mysql.ReadTables()
