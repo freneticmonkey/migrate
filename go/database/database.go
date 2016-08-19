@@ -57,7 +57,9 @@ func Load(dbid int64) (db *TargetDatabase, err error) {
 // the project, database, and environment
 func GetbyProject(project string, name string, env string) (db TargetDatabase, err error) {
 	err = mgmtDb.SelectOne(&db, fmt.Sprintf("SELECT * FROM target_database WHERE project=\"%s\" AND name=\"%s\" AND env=\"%s\"", project, name, env))
-	util.LogWarnf("Failed to find Target Database for Project: [%s] with Name: [%s] and Env: [%s]", project, name, env)
+	if err != nil {
+		util.LogWarnf("Failed to find Target Database for Project: [%s] with Name: [%s] and Env: [%s]", project, name, env)
+	}
 
 	return db, err
 }

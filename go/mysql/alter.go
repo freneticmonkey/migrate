@@ -192,6 +192,20 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 			if !column.Nullable {
 				builder.Add("NOT NULL")
 			}
+
+			// if AutoInc is T or F
+			if column.AutoInc {
+				builder.Add("AUTO_INCREMENT")
+			}
+
+			// if a Default value is defined
+			if len(column.Default) > 0 {
+				if column.Default == NULL {
+					builder.Add("DEFAULT NULL")
+				} else {
+					builder.AddFormat("DEFAULT '%s'", column.Default)
+				}
+			}
 		}
 
 	case table.Del:
@@ -426,7 +440,6 @@ func GenerateAlters(differences table.Differences) (operations SQLOperations) {
 		operations.Merge(alter)
 	}
 
-	util.LogInfo("Generated MySQL")
 	for _, ops := range operations {
 		table.FormatOperation(ops.Statement, ops.Op)
 	}

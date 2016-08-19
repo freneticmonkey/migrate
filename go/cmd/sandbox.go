@@ -72,7 +72,7 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bo
 	var successmsg string
 
 	const YES, NO = "yes", "no"
-	action := NO
+	action := ""
 
 	if migrate || recreate {
 
@@ -271,6 +271,8 @@ func recreateProjectDatabase(conf config.Config, dryrun bool) (err error) {
 	var tables []string
 
 	tables, err = mysql.ReadTableNames()
+
+	util.LogInfo(formatMessage(dryrun, "Sandbox Recreation", "Recreating Database"))
 
 	if len(tables) > 0 {
 		dropTables := fmt.Sprintf("DROP TABLE `%s`", strings.Join(tables, "`,`"))
