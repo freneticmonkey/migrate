@@ -182,7 +182,7 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 
 	case table.Add:
 		builder.AddQuote(diff.Table)
-		builder.Add("COLUMN")
+		builder.Add("ADD COLUMN")
 		builder.AddQuote(diff.Property)
 
 		column, ok := diff.Value.(table.Column)

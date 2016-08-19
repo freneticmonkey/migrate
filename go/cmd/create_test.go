@@ -298,7 +298,7 @@ schemaTwo/*`
 
 	// Helper operation
 	forward := mysql.SQLOperation{
-		Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Statement: "ALTER TABLE `dogs` ADD COLUMN `address` varchar(128) NOT NULL;",
 		Op:        table.Add,
 		Name:      "address",
 		Metadata: metadata.Metadata{
@@ -661,7 +661,7 @@ schemaTwo/*`
 
 	// Helper operation
 	forward := mysql.SQLOperation{
-		Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Statement: "ALTER TABLE `dogs` ADD COLUMN `address` varchar(128) NOT NULL;",
 		Op:        table.Add,
 		Name:      "address",
 		Metadata: metadata.Metadata{
