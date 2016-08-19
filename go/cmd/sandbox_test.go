@@ -54,7 +54,7 @@ func TestDiffSchema(t *testing.T) {
 
 	expectedForwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
 			Op:        table.Add,
 			Name:      "address",
 			Metadata:  expectedAddressMetadata,
@@ -63,7 +63,7 @@ func TestDiffSchema(t *testing.T) {
 
 	expectedBackwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
 			Op:        table.Del,
 			Name:      "address",
 			Metadata:  expectedAddressMetadata,
@@ -197,7 +197,7 @@ func TestCreateMigration(t *testing.T) {
 
 	forwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+			Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
 			Op:        table.Add,
 			Name:      "address",
 			Metadata: metadata.Metadata{
@@ -212,7 +212,7 @@ func TestCreateMigration(t *testing.T) {
 
 	backwards := mysql.SQLOperations{
 		mysql.SQLOperation{
-			Statement: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+			Statement: "ALTER TABLE `dogs` DROP COLUMN `address`;",
 			Op:        table.Del,
 			Name:      "address",
 			Metadata: metadata.Metadata{
@@ -344,8 +344,8 @@ func TestMigrateSandbox(t *testing.T) {
 				Op:       table.Add,
 				MDID:     1,
 				Name:     "address",
-				Forward:  "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
-				Backward: "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;",
+				Forward:  "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
+				Backward: "ALTER TABLE `dogs` DROP COLUMN `address`;",
 				Output:   "",
 				Status:   migration.Unapproved,
 			},
@@ -410,7 +410,7 @@ func TestMigrateSandbox(t *testing.T) {
 		Type:   test.ExecCmd,
 		Result: sqlmock.NewResult(1, 1),
 	}
-	query.FormatQuery("ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;")
+	query.FormatQuery("ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;")
 
 	projectDB.ExpectExec(query)
 
@@ -517,9 +517,9 @@ func TestRefreshDatabase(t *testing.T) {
 				MID:      1,
 				Op:       table.Add,
 				MDID:     1,
-				Name:     "unittestproject_dogs",
+				Name:     "dogs",
 				Forward:  GetCreateTableDogs(),
-				Backward: "DROP TABLE `unittestproject_dogs`;",
+				Backward: "DROP TABLE `dogs`;",
 				Output:   "",
 				Status:   migration.Unapproved,
 			},

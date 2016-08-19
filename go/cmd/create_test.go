@@ -298,18 +298,18 @@ schemaTwo/*`
 
 	// Helper operation
 	forward := mysql.SQLOperation{
-		Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
 		Op:        table.Add,
 		Name:      "address",
 		Metadata: metadata.Metadata{
 			MDID:       4,
 			DB:         1,
-			PropertyID: "unittestproject_dogs_col_address",
-			ParentID:   "unittestproject_dogs",
+			PropertyID: "address",
+			ParentID:   "dogs",
 			Name:       "address",
 		},
 	}
-	backwardsStatement := "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;"
+	backwardsStatement := "ALTER TABLE `dogs` DROP COLUMN `address`;"
 
 	// Pulling table metadata - diff backwards
 	mgmtDB.MetadataSelectName(
@@ -661,18 +661,18 @@ schemaTwo/*`
 
 	// Helper operation
 	forward := mysql.SQLOperation{
-		Statement: "ALTER TABLE `unittestproject_dogs` COLUMN `address` varchar(128) NOT NULL;",
+		Statement: "ALTER TABLE `dogs` COLUMN `address` varchar(128) NOT NULL;",
 		Op:        table.Add,
 		Name:      "address",
 		Metadata: metadata.Metadata{
 			MDID:       4,
 			DB:         1,
-			PropertyID: "unittestproject_dogs_col_address",
-			ParentID:   "unittestproject_dogs",
+			PropertyID: "address",
+			ParentID:   "dogs",
 			Name:       "address",
 		},
 	}
-	backwardsStatement := "ALTER TABLE `unittestproject_dogs` DROP COLUMN `address`;"
+	backwardsStatement := "ALTER TABLE `dogs` DROP COLUMN `address`;"
 
 	// Pulling table metadata - diff backwards
 	mgmtDB.MetadataSelectName(

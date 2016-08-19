@@ -782,7 +782,6 @@ func dbTearDown() {
 }
 
 func TestParseCreateTable(t *testing.T) {
-
 	mgmtDB, _ := test.CreateManagementDB("TestParseCreateTable", t)
 
 	metadata.Setup(mgmtDB.Db, 1)
@@ -802,7 +801,7 @@ func TestParseCreateTable(t *testing.T) {
 		)
 
 		mgmtDB.MetadataLoadAllTableMetadata(
-			tst.Metadata[0][5].(string),
+			tst.Expected.Name,
 			tst.Metadata[0][2].(string),
 			1,
 			tst.Metadata,
@@ -826,6 +825,8 @@ func TestParseCreateTable(t *testing.T) {
 			t.Errorf("%s FAILED. %s", tst.Description, context)
 
 		}
+
+		break
 
 	}
 

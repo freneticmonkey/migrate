@@ -41,7 +41,7 @@ func Teardown() {
 
 func GetMySQLCreateTableDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `unittestproject_dogs` (",
+		"CREATE TABLE `dogs` (",
 		"`id` int(11) NOT NULL,",
 		" PRIMARY KEY (`id`)",
 		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
@@ -51,7 +51,7 @@ func GetMySQLCreateTableDogs() string {
 
 func GetCreateTableDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `unittestproject_dogs` (",
+		"CREATE TABLE `dogs` (",
 		"`id` int(11) NOT NULL,",
 		" PRIMARY KEY (`id`)",
 		") ENGINE=InnoDB DEFAULT CHARSET=latin1;",
@@ -61,7 +61,7 @@ func GetCreateTableDogs() string {
 
 func GetCreateTableAddressColumnDogs() string {
 	var dogsTable = []string{
-		"CREATE TABLE `unittestproject_dogs` (",
+		"CREATE TABLE `dogs` (",
 		"`id` int(11) NOT NULL,",
 		"`address` varchar(128) NOT NULL,",
 		" PRIMARY KEY (`id`)",
@@ -71,17 +71,17 @@ func GetCreateTableAddressColumnDogs() string {
 }
 
 func GetYAMLTableDogs() string {
-	return `id: table_unittestproject_dogs
-name: unittestproject_dogs
+	return `id: dogs
+name: dogs
 engine: InnoDB
 charset: latin1
 columns:
-- id: unittestproject_dogs_col_id
+- id: id
   name: id
   type: int
   size: [11]
 primaryindex:
-  id: unittestproject_dogs_primarykey
+  id: primarykey
   name: PrimaryKey
   columns:
   - name: id
@@ -91,7 +91,7 @@ primaryindex:
 
 func GetTableDogs() table.Table {
 	return table.Table{
-		Name:    "unittestproject_dogs",
+		Name:    "dogs",
 		Engine:  "InnoDB",
 		CharSet: "latin1",
 		Columns: []table.Column{
@@ -102,8 +102,8 @@ func GetTableDogs() table.Table {
 				Metadata: metadata.Metadata{
 					MDID:       2,
 					DB:         1,
-					PropertyID: "unittestproject_dogs_col_id",
-					ParentID:   "table_unittestproject_dogs",
+					PropertyID: "id",
+					ParentID:   "dogs",
 					Name:       "id",
 					Type:       "Column",
 				},
@@ -119,8 +119,8 @@ func GetTableDogs() table.Table {
 			Metadata: metadata.Metadata{
 				MDID:       3,
 				DB:         1,
-				PropertyID: "unittestproject_dogs_primarykey",
-				ParentID:   "table_unittestproject_dogs",
+				PropertyID: "primarykey",
+				ParentID:   "dogs",
 				Name:       "PrimaryKey",
 				Type:       "PrimaryKey",
 			},
@@ -128,29 +128,29 @@ func GetTableDogs() table.Table {
 		Metadata: metadata.Metadata{
 			MDID:       1,
 			DB:         1,
-			PropertyID: "table_unittestproject_dogs",
-			Name:       "unittestproject_dogs",
+			PropertyID: "dogs",
+			Name:       "dogs",
 			Type:       "Table",
 		},
 	}
 }
 
 func GetYAMLTableAddressDogs() string {
-	return `id: table_unittestproject_dogs
-name: unittestproject_dogs
+	return `id: dogs
+name: dogs
 engine: InnoDB
 charset: latin1
 columns:
-- id: unittestproject_dogs_col_id
+- id: id
   name: id
   type: int
   size: [11]
-- id: unittestproject_dogs_col_address
+- id: address
   name: address
   type: varchar
   size: [128]
 primaryindex:
-  id: unittestproject_dogs_primarykey
+  id: primarykey
   name: PrimaryKey
   columns:
   - name: id
@@ -160,7 +160,7 @@ primaryindex:
 
 func GetTableAddressDogs() table.Table {
 	return table.Table{
-		Name:    "unittestproject_dogs",
+		Name:    "dogs",
 		Engine:  "InnoDB",
 		CharSet: "latin1",
 		Columns: []table.Column{
@@ -171,8 +171,8 @@ func GetTableAddressDogs() table.Table {
 				Metadata: metadata.Metadata{
 					MDID:       2,
 					DB:         1,
-					PropertyID: "unittestproject_dogs_col_id",
-					ParentID:   "table_unittestproject_dogs",
+					PropertyID: "id",
+					ParentID:   "dogs",
 					Name:       "id",
 					Type:       "Column",
 				},
@@ -188,8 +188,8 @@ func GetTableAddressDogs() table.Table {
 					// into the DB and as such, the trigger for
 					// insertion is MDID < 1
 					DB:         1,
-					PropertyID: "unittestproject_dogs_col_address",
-					ParentID:   "table_unittestproject_dogs",
+					PropertyID: "address",
+					ParentID:   "dogs",
 					Name:       "address",
 					Type:       "Column",
 				},
@@ -205,8 +205,8 @@ func GetTableAddressDogs() table.Table {
 			Metadata: metadata.Metadata{
 				MDID:       3,
 				DB:         1,
-				PropertyID: "unittestproject_dogs_primarykey",
-				ParentID:   "table_unittestproject_dogs",
+				PropertyID: "primarykey",
+				ParentID:   "dogs",
 				Name:       "PrimaryKey",
 				Type:       "PrimaryKey",
 			},
@@ -214,8 +214,8 @@ func GetTableAddressDogs() table.Table {
 		Metadata: metadata.Metadata{
 			MDID:       1,
 			DB:         1,
-			PropertyID: "table_unittestproject_dogs",
-			Name:       "unittestproject_dogs",
+			PropertyID: "dogs",
+			Name:       "dogs",
 			Type:       "Table",
 		},
 	}
@@ -229,6 +229,7 @@ func TestConfigReadFile(t *testing.T) {
 	configFilename := "config.yml"
 	var configContents = `
     options:
+        namespaces: No
         management:
             db:
                 username: root
@@ -252,6 +253,7 @@ func TestConfigReadFile(t *testing.T) {
     `
 	expectedConfig := config.Config{
 		Options: config.Options{
+			Namespaces: false,
 			Management: config.Management{
 				DB: config.DB{
 					Username:    "root",

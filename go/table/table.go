@@ -317,7 +317,7 @@ func (t *Table) GeneratePropertyIDs() error {
 	tableName := strings.ToLower(t.Metadata.Name)
 	// Table
 	if t.Metadata.PropertyID == "" {
-		t.ID = "table_" + tableName
+		t.ID = tableName
 		t.Metadata.PropertyID = t.ID
 	}
 
@@ -325,7 +325,7 @@ func (t *Table) GeneratePropertyIDs() error {
 	for i := 0; i < len(t.Columns); i++ {
 		col := &t.Columns[i]
 		if col.Metadata.PropertyID == "" {
-			col.ID = tableName + "_col_" + strings.ToLower(col.Metadata.Name)
+			col.ID = strings.ToLower(col.Metadata.Name)
 			col.Metadata.PropertyID = col.ID
 			col.Metadata.ParentID = t.ID
 		}
@@ -333,7 +333,7 @@ func (t *Table) GeneratePropertyIDs() error {
 
 	// Primary Key
 	if t.PrimaryIndex.Metadata.PropertyID == "" {
-		t.PrimaryIndex.ID = tableName + "_primarykey"
+		t.PrimaryIndex.ID = "primarykey"
 		t.PrimaryIndex.Metadata.PropertyID = t.PrimaryIndex.ID
 		t.PrimaryIndex.Metadata.ParentID = t.ID
 	}
@@ -342,7 +342,7 @@ func (t *Table) GeneratePropertyIDs() error {
 	for i := 0; i < len(t.SecondaryIndexes); i++ {
 		ind := &t.SecondaryIndexes[i]
 		if ind.Metadata.PropertyID == "" {
-			ind.ID = tableName + "_idx_" + strings.ToLower(ind.Metadata.Name)
+			ind.ID = strings.ToLower(ind.Metadata.Name)
 			ind.Metadata.PropertyID = ind.ID
 			ind.Metadata.ParentID = t.ID
 		}

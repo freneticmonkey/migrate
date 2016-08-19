@@ -148,7 +148,7 @@ func (m *ManagementDB) MetadataLoadAllTableMetadata(tblName, tblPropertyID strin
 		query.Rows = results
 	}
 	// query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblName, tblPropertyID, dbID)
-	query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblPropertyID, tblPropertyID, dbID)
+	query.FormatQuery("select * from metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db=%d", tblName, tblPropertyID, dbID)
 
 	m.ExpectQuery(query)
 }
