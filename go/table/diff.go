@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/fatih/color"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/util"
 )
@@ -22,14 +21,12 @@ func FormatOperation(input string, op int) (fmtStr string) {
 	case Add:
 		fmtStr = "+++ " + input
 		util.LogGreen(fmtStr)
-		color.Set(color.FgGreen)
 	case Del:
 		fmtStr = "--- " + input
 		util.LogRed(fmtStr)
 	case Mod:
 		fmtStr = " M  " + input
 		util.LogYellow(fmtStr)
-		color.Set(color.FgYellow)
 	}
 	return fmtStr
 }
