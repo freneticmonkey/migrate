@@ -41,11 +41,16 @@ func GetSandboxCommand() (setup cli.Command) {
 				Name:  "force",
 				Usage: "Extremely Dangerous!!! Force the recreation of schema.",
 			},
+			cli.StringFlag{
+				Name:  "pull-diff",
+				Value: "",
+				Usage: "Serialise manual MySQL Table alteration to YAML. Use '*' for entire schema.",
+			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
 			var conf config.Config
 
-			if !ctx.IsSet("recreate") && !ctx.IsSet("migrate") {
+			if !ctx.IsSet("recreate") && !ctx.IsSet("migrate") && !ctx.IsSet("pull-diff") {
 				cli.ShowSubcommandHelp(ctx)
 				return cli.NewExitError("Please provide a valid flag", 1)
 			}
@@ -61,14 +66,14 @@ func GetSandboxCommand() (setup cli.Command) {
 			}
 
 			// Process command line flags
-			return sandboxProcessFlags(conf, ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"))
+			return sandboxProcessFlags(conf, ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"), ctx.IsSet("pull-diff"), ctx.String("pull-diff"))
 		},
 	}
 	return setup
 }
 
 // sandboxProcessFlags Setup the Sandbox operation
-func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bool) (err error) {
+func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force, pulldiff bool, pdTable string) (err error) {
 	var successmsg string
 
 	const YES, NO = "yes", "no"
@@ -117,6 +122,8 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force bo
 		}
 		return cli.NewExitError("Sandbox Recreation cancelled.", 0)
 
+	} else if pulldiff {
+		return pullDiff(conf, pdTable)
 	}
 	return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
 }
@@ -293,6 +300,88 @@ func recreateProjectDatabase(conf config.Config, dryrun bool) (err error) {
 		} else {
 			util.LogInfof("(DRYRUN) Exec SQL: %s", dropTables)
 		}
+	}
+
+	return err
+}
+
+func pullDiff(conf config.Config, tableName string) (err error) {
+
+	YES := "yes"
+	NO := "no"
+
+	if len(tableName) == 0 {
+		return cli.NewExitError("Pull-diff Error.  No table name supplied.  Use '*' to pull all tables.", 1)
+	}
+
+	action, e := util.SelectAction("Are you sure you pull changes from MySQL to the YAML Schema? (This will override any unmigrated changes to the YAML)", []string{YES, NO})
+
+	if util.ErrorCheck(e) {
+		return cli.NewExitError("There was a problem confirming the action.", 1)
+
+	} else if action != YES {
+		return cli.NewExitError("Pull-diff cancelled.", 0)
+	}
+
+	metadata.UseCache(true)
+
+	// Read the MySQL tables from the target database
+	err = mysql.ReadTables()
+	if util.ErrorCheck(err) {
+		err = fmt.Errorf("Pull-Diff failed. Unable to read MySQL Tables")
+	}
+
+	// Filter by tableName in the MySQL Schema
+	if tableName != "*" {
+		tgtTbl := []table.Table{}
+
+		for _, tbl := range mysql.Schema {
+			if tbl.Name == tableName {
+				tgtTbl = append(tgtTbl, tbl)
+				break
+			}
+		}
+		// Reduce the YAML schema to the single target table
+		mysql.Schema = tgtTbl
+	}
+
+	// Serialise the MySQL Schema
+	path := util.WorkingSubDir(strings.ToLower(conf.Project.Name))
+
+	util.VerboseOverrideSet(true)
+	util.LogInfof("Detected %d Tables. Converting to YAML.", len(mysql.Schema))
+	util.LogInfof("Writing to Path: %s", path)
+	util.VerboseOverrideRestore()
+
+	exists, err := util.DirExists(path)
+
+	if err != nil {
+		return cli.NewExitError("Couldn't create project folder: "+path, 1)
+	}
+
+	if !exists {
+		util.Mkdir(path, 0755)
+	}
+
+	for i := 0; i < len(mysql.Schema); i++ {
+		tbl := &mysql.Schema[i]
+
+		// Generate PropertyIds for new fields in MySQL
+		tbl.GeneratePropertyIDs()
+
+		// Generate YAML from the Tables and write to the working folder
+		err = yaml.WriteTable(path, *tbl)
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to create YAML Table: %s due to error: %v", path, err), 1)
+		}
+
+		// Insert the metadata for any new fields into MySQL
+		err = tbl.InsertMetadata()
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to insert metdata for Table: %s due to error: %v", tbl.Name, err), 1)
+		}
+		util.LogInfof("Updating Table Registration for migrations: %s", mysql.Schema[i].Name)
 	}
 
 	return err
