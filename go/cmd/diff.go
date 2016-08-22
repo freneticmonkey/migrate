@@ -43,7 +43,7 @@ func GetDiffCommand() (setup cli.Command) {
 			conf, err := configureManagement()
 
 			if err != nil {
-				return cli.NewExitError("Configuration Load failed.", 1)
+				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)
 			}
 
 			// Override the project settings with the command line flags

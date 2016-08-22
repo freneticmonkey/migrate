@@ -42,7 +42,8 @@ func GetExecCommand() (setup cli.Command) {
 			if ctx.IsSet("id") && ctx.Int("id") > 0 {
 				mid = int64(ctx.Int("id"))
 			} else {
-				return cli.NewExitError("Exec failed. No Migration Id set", 1)
+				cli.ShowSubcommandHelp(ctx)
+				return cli.NewExitError("Migration failed. Unable to execute a migration without a Migration Id", 1)
 			}
 
 			dryrun := ctx.Bool("dryrun")

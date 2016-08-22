@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/freneticmonkey/migrate/go/serve"
 	"github.com/freneticmonkey/migrate/go/util"
 
@@ -38,7 +40,7 @@ func GetServeCommand() (srv cli.Command) {
 			_, err = configureManagement()
 
 			if err != nil {
-				return cli.NewExitError("Configuration Load failed.", 1)
+				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)
 			}
 
 			err = serve.Run(frontend, port)

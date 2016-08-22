@@ -62,7 +62,7 @@ func GetSetupCommand() (setup cli.Command) {
 				conf, configError := configureManagement()
 
 				if configError != nil {
-					return cli.NewExitError("Configuration Load failed.", 1)
+					return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", configError), 1)
 				}
 				return setupExistingDB(conf)
 			}
