@@ -145,7 +145,7 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 
 				err = tbl.InsertMetadata()
 				if err != nil {
-					return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to insert metdata for Table: %s due to error: %v", tbl.Name, err), 1)
+					return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to insert metadata for Table: %s due to error: %v", tbl.Name, err), 1)
 				}
 				util.LogInfof("Registering Table for migrations: %s", mysql.Schema[i].Name)
 			}
