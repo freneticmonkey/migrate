@@ -22,13 +22,10 @@ func TestCreateFailNoProject(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
-	project := ""
 	version := ""
 	rollback := false
 
-	testConfig.Project.Name = project
-
-	result := create(project, version, rollback, testConfig)
+	result := create(version, rollback, testConfig)
 
 	if result.ExitCode() < 1 {
 		t.Errorf("%s succeeded when it should have failed.", testName)
@@ -44,14 +41,12 @@ func TestCreateFailNoProjectVersion(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
-	project := "UnitTestProject"
 	version := ""
 	rollback := false
 
-	testConfig.Project.Name = project
 	testConfig.Project.Schema.Version = version
 
-	result := create(project, version, rollback, testConfig)
+	result := create(version, rollback, testConfig)
 
 	if result.ExitCode() < 1 {
 		t.Errorf("%s succeeded when it should have failed.", testName)
@@ -70,7 +65,6 @@ func TestCreate(t *testing.T) {
 
 	util.SetConfigTesting()
 
-	project := "UnitTestProject"
 	version := "abc123"
 	rollback := false
 
@@ -267,7 +261,7 @@ schemaTwo/*`
 
 	params = []string{
 		"-C",
-		util.WorkingSubDir(project),
+		util.WorkingSubDir(testConfig.Project.Name),
 		"show",
 		"-s",
 		"--format=%%cI",
@@ -283,7 +277,7 @@ schemaTwo/*`
 
 	params = []string{
 		"-C",
-		util.WorkingSubDir(project),
+		util.WorkingSubDir(testConfig.Project.Name),
 		"show",
 		"-s",
 		"--pretty=medium",
@@ -368,7 +362,7 @@ schemaTwo/*`
 	//
 	////////////////////////////////////////////////////////
 
-	result = create(project, version, rollback, testConfig)
+	result = create(version, rollback, testConfig)
 
 	if result.ExitCode() > 0 {
 		t.Errorf("%s failed with error: %v", testName, result)
@@ -428,7 +422,6 @@ func TestCreateRollback(t *testing.T) {
 
 	util.SetConfigTesting()
 
-	project := "UnitTestProject"
 	version := "abc123"
 	rollback := true
 
@@ -635,7 +628,7 @@ schemaTwo/*`
 
 	params = []string{
 		"-C",
-		util.WorkingSubDir(project),
+		util.WorkingSubDir(testConfig.Project.Name),
 		"show",
 		"-s",
 		"--format=%%cI",
@@ -646,7 +639,7 @@ schemaTwo/*`
 
 	params = []string{
 		"-C",
-		util.WorkingSubDir(project),
+		util.WorkingSubDir(testConfig.Project.Name),
 		"show",
 		"-s",
 		"--pretty=medium",
@@ -741,7 +734,7 @@ schemaTwo/*`
 	//
 	////////////////////////////////////////////////////////
 
-	result = create(project, version, rollback, testConfig)
+	result = create(version, rollback, testConfig)
 
 	if result.ExitCode() > 0 {
 		t.Errorf("%s failed with error: %v", testName, result)

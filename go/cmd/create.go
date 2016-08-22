@@ -21,11 +21,6 @@ func GetCreateCommand() (setup cli.Command) {
 		Usage: "This subcommand is used to create a migration and register it with the management database.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "project",
-				Value: "",
-				Usage: "The target project",
-			},
-			cli.StringFlag{
 				Name:  "version",
 				Value: "",
 				Usage: "The target git version",
@@ -36,11 +31,18 @@ func GetCreateCommand() (setup cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
-			var project string
 			var version string
 			var rollback bool
 
 			rollback = false
+
+			// Override the project settings with the command line flags
+			if ctx.IsSet("version") {
+				version = ctx.String("version")
+			} else {
+				cli.ShowSubcommandHelp(ctx)
+				return cli.NewExitError("Unable to generate a migration.  Please specify a target version to migrate to.", 1)
+			}
 
 			// Parse global flags
 			parseGlobalFlags(ctx)
@@ -49,52 +51,35 @@ func GetCreateCommand() (setup cli.Command) {
 			conf, err := configureManagement()
 
 			if err != nil {
-				return cli.NewExitError("Configuration Load failed.", 1)
-			}
-
-			// Override the project settings with the command line flags
-			if ctx.IsSet("project") {
-				project = ctx.String("project")
-			}
-
-			if ctx.IsSet("version") {
-				version = ctx.String("version")
+				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)
 			}
 
 			if ctx.IsSet("rollback") {
 				rollback = ctx.Bool("rollback")
 			}
 
-			return create(project, version, rollback, conf)
+			return create(version, rollback, conf)
 
 		},
 	}
 	return setup
 }
 
-func create(project, version string, rollback bool, conf config.Config) *cli.ExitError {
+func create(version string, rollback bool, conf config.Config) *cli.ExitError {
 	var problems int
 	var ts string
 	var info string
 	var err error
 
 	// Override the project settings with the command line flags
-	if project != "" {
-		conf.Project.Name = project
-	}
-
 	if version != "" {
 		conf.Project.Schema.Version = version
-	}
-
-	// if the version hasn't been defined
-	if len(conf.Project.Name) == 0 {
-		return cli.NewExitError("Creation failed.  Unable to generate a migration as no project was defined", 1)
-	}
-
-	if len(conf.Project.Schema.Version) == 0 {
+	} else {
+		// if the version hasn't been defined
 		return cli.NewExitError("Creation failed.  Unable to generate a migration as no version was defined to migrate to", 1)
 	}
+
+	// Clone the target Git Repo
 	git.Clone(conf.Project)
 
 	// Read the YAML files cloned from the repo
