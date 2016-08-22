@@ -30,11 +30,17 @@ func GetDiffCommand() (setup cli.Command) {
 				Value: "",
 				Usage: "The target git version",
 			},
+			cli.StringFlag{
+				Name:  "table",
+				Value: "",
+				Usage: "Name of the target table to diff",
+			},
 		},
 		Action: func(ctx *cli.Context) error {
 
 			var version string
 			var project string
+			var table string
 
 			// Parse global flags
 			parseGlobalFlags(ctx)
@@ -55,16 +61,23 @@ func GetDiffCommand() (setup cli.Command) {
 				project = ctx.String("project")
 			}
 
-			return diff(version, project, conf)
+			if ctx.IsSet("table") {
+				table = ctx.String("table")
+			}
+
+			return diff(version, project, table, conf)
 		},
 	}
 	return setup
 }
 
-func diff(project, version string, conf config.Config) *cli.ExitError {
+func diff(project, version, tableName string, conf config.Config) *cli.ExitError {
+
 	var forwardDiff table.Differences
 	var problems int
 	var err error
+
+	targetTableFound := false
 
 	// Enable Metadata cache as we're not going to be making changes to it
 	metadata.UseCache(true)
@@ -91,6 +104,21 @@ func diff(project, version string, conf config.Config) *cli.ExitError {
 		return cli.NewExitError("Validation failed. YAML Errors found", problems)
 	}
 
+	// Filter by tableName in the YAML Schema
+	if tableName != "" {
+		tgtTbl := []table.Table{}
+
+		for _, tbl := range yaml.Schema {
+			if tbl.Name == tableName {
+				tgtTbl = append(tgtTbl, tbl)
+				targetTableFound = true
+				break
+			}
+		}
+		// Reduce the YAML schema to the single target table
+		yaml.Schema = tgtTbl
+	}
+
 	// Read the MySQL tables from the target database
 	err = mysql.ReadTables()
 	if util.ErrorCheck(err) {
@@ -99,6 +127,26 @@ func diff(project, version string, conf config.Config) *cli.ExitError {
 	problems, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Validation failed. Problems with Target Database Detected", problems)
+	}
+
+	// Filter by tableName in the MySQL Schema
+	if tableName != "" {
+		tgtTbl := []table.Table{}
+
+		for _, tbl := range mysql.Schema {
+			if tbl.Name == tableName {
+				tgtTbl = append(tgtTbl, tbl)
+				targetTableFound = true
+				break
+			}
+		}
+		// Reduce the YAML schema to the single target table
+		mysql.Schema = tgtTbl
+	}
+
+	// If a Table Name was specified, and a table wasn't found
+	if !targetTableFound && tableName != "" {
+		return cli.NewExitError(fmt.Sprintf("Diff failed for Table: %s. No found in YAML or MySQL Schemas", tableName), 1)
 	}
 
 	forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema, true)
