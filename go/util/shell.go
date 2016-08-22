@@ -83,14 +83,12 @@ func (e ShellExecutor) Run(command string, args ...string) (out string, err erro
 
 	err = cmd.Start()
 	if err != nil {
-		LogErrorf("Error starting for Cmd: [%s] Error: [%s]", command, strings.Join(errout, "\n"))
-		LogFatal(1, err)
+		err = fmt.Errorf("Error starting for Cmd: [%s] Error Out: [%s] Error: [%v]", command, strings.Join(errout, "\n"), err)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		LogErrorf("Error waiting for Cmd: [%s] Error: [%s]", command, strings.Join(errout, "\n"))
-		LogFatal(1, err)
+		err = fmt.Errorf("Error waiting for Cmd: [%s] Error: [%s] Error: [%v]", command, strings.Join(errout, "\n"), err)
 	}
 
 	wg.Wait()
