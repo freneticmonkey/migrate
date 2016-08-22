@@ -319,6 +319,8 @@ func (t *Table) GeneratePropertyIDs() error {
 	if t.Metadata.PropertyID == "" {
 		t.ID = tableName
 		t.Metadata.PropertyID = t.ID
+	} else {
+		t.ID = t.Metadata.PropertyID
 	}
 
 	// Columns
@@ -327,7 +329,9 @@ func (t *Table) GeneratePropertyIDs() error {
 		if col.Metadata.PropertyID == "" {
 			col.ID = strings.ToLower(col.Metadata.Name)
 			col.Metadata.PropertyID = col.ID
-			col.Metadata.ParentID = t.ID
+			col.Metadata.ParentID = t.Metadata.PropertyID
+		} else {
+			col.ID = col.Metadata.PropertyID
 		}
 	}
 
@@ -335,7 +339,9 @@ func (t *Table) GeneratePropertyIDs() error {
 	if t.PrimaryIndex.Metadata.PropertyID == "" {
 		t.PrimaryIndex.ID = "primarykey"
 		t.PrimaryIndex.Metadata.PropertyID = t.PrimaryIndex.ID
-		t.PrimaryIndex.Metadata.ParentID = t.ID
+		t.PrimaryIndex.Metadata.ParentID = t.Metadata.PropertyID
+	} else {
+		t.PrimaryIndex.ID = t.Metadata.PropertyID
 	}
 
 	// Indexes
@@ -344,7 +350,9 @@ func (t *Table) GeneratePropertyIDs() error {
 		if ind.Metadata.PropertyID == "" {
 			ind.ID = strings.ToLower(ind.Metadata.Name)
 			ind.Metadata.PropertyID = ind.ID
-			ind.Metadata.ParentID = t.ID
+			ind.Metadata.ParentID = t.Metadata.PropertyID
+		} else {
+			ind.ID = ind.Metadata.PropertyID
 		}
 	}
 
