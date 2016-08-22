@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/freneticmonkey/migrate/go/exec"
+	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
 )
@@ -20,8 +21,12 @@ func GetExecCommand() (setup cli.Command) {
 				Usage: "The id of the migration to be applied",
 			},
 			cli.BoolFlag{
+				Name:  "print",
+				Usage: "Print the Migration and its steps",
+			},
+			cli.BoolFlag{
 				Name:  "dryrun",
-				Usage: "Peform a dry run of the migration",
+				Usage: "Perform a dry run of the migration",
 			},
 			cli.BoolFlag{
 				Name:  "rollback",
@@ -46,12 +51,32 @@ func GetExecCommand() (setup cli.Command) {
 				return cli.NewExitError("Migration failed. Unable to execute a migration without a Migration Id", 1)
 			}
 
+			// Parse global flags
+			parseGlobalFlags(ctx)
+
+			// Setup the management database and configuration settings
+			_, err := configureManagement()
+
+			if err != nil {
+				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)
+			}
+
+			if ctx.IsSet("print") {
+
+				err = migration.Print(mid)
+				if err != nil {
+					return cli.NewExitError(fmt.Sprintf("Couldn't print migration: [%d] Error: %v", mid, err), 1)
+				}
+
+				return cli.NewExitError("Migration printed.", 0)
+			}
+
 			dryrun := ctx.Bool("dryrun")
 			rollback := ctx.Bool("rollback")
 			PTODisabled := ctx.Bool("pto-disabled")
 			allowDestructive := ctx.Bool("allow-destructive")
 
-			err := exec.Exec(exec.Options{
+			err = exec.Exec(exec.Options{
 				MID:              mid,
 				Dryrun:           dryrun,
 				Rollback:         rollback,

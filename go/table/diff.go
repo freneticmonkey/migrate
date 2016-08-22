@@ -15,6 +15,12 @@ const (
 	Mod = iota
 )
 
+var OpString = [3]string{
+	"Add",
+	"Del",
+	"Mod",
+}
+
 // FormatOperation Formats the difference in a human readable git style for console output
 func FormatOperation(input string, op int) (fmtStr string) {
 	switch op {

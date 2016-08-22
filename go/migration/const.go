@@ -21,3 +21,15 @@ const (
 	// Skipped application
 	Skipped
 )
+
+var StatusString = [9]string{
+	"Unapproved",
+	"Denied",
+	"Depreciated",
+	"Approved",
+	"Complete",
+	"Forced",
+	"InProgress",
+	"Failed",
+	"Skipped",
+}

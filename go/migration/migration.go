@@ -3,9 +3,12 @@ package migration
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 
+	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
@@ -164,4 +167,41 @@ func LoadMigrationsList(mids []int64) (m []Migration, err error) {
 	}
 
 	return m, err
+}
+
+// Print Print a Migration and it's associated to Stdout
+func Print(mid int64) (err error) {
+	var m *Migration
+	m, err = Load(mid)
+
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', tabwriter.Debug)
+
+	fmt.Fprintf(w, "---- Migration: %d ----\n", mid)
+	fmt.Fprintln(w, "Project\tVersion\tVersion Timestamp (Git)\tVersion Description\tStatus\tLast Modified")
+	fmt.Fprintf(w, "|%s\t%s\t%s\t%s\t%s\t%s|\n", m.Project, m.Version, m.VersionTimestamp, m.VersionDescription, StatusString[m.Status], m.Timestamp)
+	w.Flush()
+
+	fmt.Fprintln(w, "")
+
+	fmt.Fprintln(w, " --- Steps ---")
+	fmt.Fprintln(w, "|#\tID\tOp Type\tMetadata ID\tName\tForward\tBackward\tOutput\tStatus|")
+	for i, step := range m.Steps {
+		fmt.Fprintf(w, "|%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s|\n",
+			i,
+			step.SID,
+			table.OpString[step.Op],
+			step.MDID,
+			step.Name,
+			step.Forward,
+			step.Backward,
+			step.Output,
+			StatusString[step.Status],
+		)
+	}
+	fmt.Fprintln(w, "")
+
+	w.Flush()
+
+	return err
 }

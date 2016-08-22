@@ -86,7 +86,7 @@ A growing list of features and tasks that need to be completed before this proje
 - [x] Provide feedback when flags are required
 - [x] Setup --test flag for testing configuration (DB)
 - [x] Add a dependency check flag to setup which checks env for git and pt-online-schema-change
-- [ ] Migration inspection which displays migrations in cli
+- [x] Migration inspection which displays migrations in cli
 - [x] Diff a specific table
 - [x] Pull Schema changes back to the YAML (Manual sandbox edits)
 
