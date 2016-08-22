@@ -80,12 +80,12 @@ A growing list of features and tasks that need to be completed before this proje
 
 # TODO TOOLING
 - [x] Hash generation for embedded identifiers
-- [ ] Add a dependency check flag to setup which checks env for git and pt-online-schema-change
 - [ ] Add MySQL validation option for validate cli
 
 # TODO Polish
-- [ ] Provide feedback when flags are required
-- [ ] Setup --test flag for testing configuration (DB)
+- [x] Provide feedback when flags are required
+- [x] Setup --test flag for testing configuration (DB)
+- [x] Add a dependency check flag to setup which checks env for git and pt-online-schema-change
 - [ ] Migration inspection which displays migrations in cli
 - [ ] Diff a specific table
 - [ ] Pull Schema changes back to the YAML (Manual sandbox edits)
