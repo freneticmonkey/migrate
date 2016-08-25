@@ -237,7 +237,7 @@ func diffProperties(tableName string, fieldName string, propertyNames []string, 
 }
 
 func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Differences) {
-	// Ugly, but it works?
+	//FIXME: Ugly, but it works? try toTable.Columns[:] instead?
 	toColumns := make([]interface{}, len(toTable.Columns))
 	for i, v := range toTable.Columns {
 		toColumns[i] = v
