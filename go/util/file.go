@@ -100,6 +100,13 @@ func WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return afero.WriteFile(fs, filename, data, 0644)
 }
 
+func DeleteFile(filename string) error {
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(WorkingPathAbs, filename)
+	}
+	return fs.Remove(filename)
+}
+
 func Mkdir(path string, perm os.FileMode) error {
 	return fs.Mkdir(path, perm)
 }
