@@ -206,7 +206,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		metadata.UseCache(true)
 
 		// Validate the YAML Schema
-		_, err = id.ValidateSchema(yaml.Schema, "YAML Schema")
+		_, err = id.ValidateSchema(yaml.Schema, "YAML Schema", true)
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. YAML Validation Errors Detected", actionTitle)
 		}
@@ -220,7 +220,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		// Don't bother validating the database if we're going to wipe it.
 		if !recreate {
 			// Validate the MySQL Schema
-			_, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
+			_, err = id.ValidateSchema(mysql.Schema, "Target Database Schema", true)
 			if util.ErrorCheck(err) {
 				err = fmt.Errorf("%s failed. Target Database Validation Errors Detected", actionTitle)
 			}

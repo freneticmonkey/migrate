@@ -74,7 +74,7 @@ func GetDiffCommand() (setup cli.Command) {
 func diff(project, version, tableName string, conf config.Config) *cli.ExitError {
 
 	var forwardDiff table.Differences
-	var problems int
+	var problems id.ValidationErrors
 	var err error
 
 	targetTableFound := false
@@ -99,9 +99,9 @@ func diff(project, version, tableName string, conf config.Config) *cli.ExitError
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Diff failed. Unable to read YAML Tables", 1)
 	}
-	problems, err = id.ValidateSchema(yaml.Schema, "YAML Schema")
+	problems, err = id.ValidateSchema(yaml.Schema, "YAML Schema", true)
 	if util.ErrorCheck(err) {
-		return cli.NewExitError("Validation failed. YAML Errors found", problems)
+		return cli.NewExitError("Validation failed. YAML Errors found", problems.Count())
 	}
 
 	// Filter by tableName in the YAML Schema
@@ -124,9 +124,9 @@ func diff(project, version, tableName string, conf config.Config) *cli.ExitError
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Diff failed. Unable to read MySQL Tables", 1)
 	}
-	problems, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
+	problems, err = id.ValidateSchema(mysql.Schema, "Target Database Schema", true)
 	if util.ErrorCheck(err) {
-		return cli.NewExitError("Validation failed. Problems with Target Database Detected", problems)
+		return cli.NewExitError("Validation failed. Problems with Target Database Detected", problems.Count())
 	}
 
 	// Filter by tableName in the MySQL Schema

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/serve"
 	"github.com/freneticmonkey/migrate/go/util"
 
@@ -26,6 +27,7 @@ func GetServeCommand() (srv cli.Command) {
 			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
+			var conf config.Config
 			// Process command line flags
 
 			// Parse global flags
@@ -37,13 +39,13 @@ func GetServeCommand() (srv cli.Command) {
 			port := ctx.Int("port")
 
 			// Setup the management database and configuration settings
-			_, err = configureManagement()
+			conf, err = configureManagement()
 
 			if err != nil {
 				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)
 			}
 
-			err = serve.Run(frontend, port)
+			err = serve.Run(conf, frontend, port)
 
 			if util.ErrorCheck(err) {
 				return cli.NewExitError("Server Error", 1)

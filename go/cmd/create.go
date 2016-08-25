@@ -66,7 +66,7 @@ func GetCreateCommand() (setup cli.Command) {
 }
 
 func create(version string, rollback bool, conf config.Config) *cli.ExitError {
-	var problems int
+	var problems id.ValidationErrors
 	var ts string
 	var info string
 	var err error
@@ -87,9 +87,9 @@ func create(version string, rollback bool, conf config.Config) *cli.ExitError {
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Creation failed. Unable to read YAML Tables", 1)
 	}
-	problems, err = id.ValidateSchema(yaml.Schema, "YAML Schema")
+	problems, err = id.ValidateSchema(yaml.Schema, "YAML Schema", true)
 	if util.ErrorCheck(err) {
-		return cli.NewExitError("Creation failed. YAML Validation Errors Detected", problems)
+		return cli.NewExitError("Creation failed. YAML Validation Errors Detected", problems.Count())
 	}
 
 	// Read the MySQL tables from the target database
@@ -97,9 +97,9 @@ func create(version string, rollback bool, conf config.Config) *cli.ExitError {
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Creation failed. Unable to read MySQL Tables", 1)
 	}
-	problems, err = id.ValidateSchema(mysql.Schema, "Target Database Schema")
+	problems, err = id.ValidateSchema(mysql.Schema, "Target Database Schema", true)
 	if util.ErrorCheck(err) {
-		return cli.NewExitError("Creation failed. Target Database Validation Errors Detected", problems)
+		return cli.NewExitError("Creation failed. Target Database Validation Errors Detected", problems.Count())
 	}
 
 	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false)
