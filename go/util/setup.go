@@ -53,6 +53,7 @@ func ShutdownFileSystem() {
 
 // Config Configure the utility subsystems depending on testing
 func Config(conf config.Config) afero.Fs {
+	var err error
 
 	// Make path absolute
 	cwd, err := os.Getwd()
@@ -60,6 +61,11 @@ func Config(conf config.Config) afero.Fs {
 
 	// Configure the working path, ensuring the it's lowercase
 	WorkingPathAbs = filepath.Join(cwd, strings.ToLower(conf.Options.WorkingPath))
+	WorkingPathAbs, err = filepath.Abs(WorkingPathAbs)
+
+	if err != nil {
+		LogErrorf("Problem configuring the Working Directory to: %s", WorkingPathAbs)
+	}
 
 	// Ensure that the filesystem has been setup correctly
 	ConfigFileSystem()
