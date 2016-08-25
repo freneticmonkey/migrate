@@ -10,26 +10,26 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// RegisterDatabaseEndpoints Register the database functions for the REST API
-func RegisterDatabaseEndpoints(r *mux.Router) {
-	r.HandleFunc("/api/database/{id}", GetDatabase)
+// registerDatabaseEndpoints Register the database functions for the REST API
+func registerDatabaseEndpoints(r *mux.Router) {
+	r.HandleFunc("/api/database/{id}", getDatabase)
 }
 
-// GetDatabase Temporary REST test function
-func GetDatabase(w http.ResponseWriter, r *http.Request) {
+// getDatabase Temporary REST test function
+func getDatabase(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Invalid Database Id: %d", id), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Invalid Database Id: %d", id), err, nil)
 		return
 	}
 
 	db, err := database.Load(int64(id))
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to load Database Object from Database Id: %d", id), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to load Database Object from Database Id: %d", id), err, nil)
 		return
 	}
-	WriteResponse(w, db, err)
+	writeResponse(w, db, err)
 }

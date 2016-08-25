@@ -10,41 +10,41 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// MigrationList Helper type used to return a List of Migrations
-type MigrationList struct {
+// migrationList Helper type used to return a List of Migrations
+type migrationList struct {
 	Migrations []migration.Migration `json:"migrations"`
 	Start      int64                 `json:"start"`
 	End        int64                 `json:"end"`
 	Total      int64                 `json:"total"`
 }
 
-// RegisterMigrationEndpoints Register the migration functions for the REST API
-func RegisterMigrationEndpoints(r *mux.Router) {
-	r.HandleFunc("/api/migration/{id}", GetMigration)
-	r.HandleFunc("/api/migration/list/{start}/{count}", ListMigrations)
+// registerMigrationEndpoints Register the migration functions for the REST API
+func registerMigrationEndpoints(r *mux.Router) {
+	r.HandleFunc("/api/migration/{id}", getMigration)
+	r.HandleFunc("/api/migration/list/{start}/{count}", listMigrations)
 }
 
-// GetMigration Get Migration by Id
-func GetMigration(w http.ResponseWriter, r *http.Request) {
+// getMigration Get Migration by Id
+func getMigration(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Invalid Migration Id: %d", id), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Invalid Migration Id: %d", id), err, nil)
 		return
 	}
 
 	m, err := migration.Load(int64(id))
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to load Migration Id: %d", id), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to load Migration Id: %d", id), err, nil)
 		return
 	}
-	WriteResponse(w, m, err)
+	writeResponse(w, m, err)
 }
 
-// ListMigrations List all migrations migrations
-func ListMigrations(w http.ResponseWriter, r *http.Request) {
+// listMigrations List all migrations
+func listMigrations(w http.ResponseWriter, r *http.Request) {
 	var start int64
 	var count int64
 	var end int64
@@ -69,23 +69,23 @@ func ListMigrations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Invalid Migration Start Id: %d", start), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Invalid Migration Start Id: %d", start), err, nil)
 		return
 	}
 
 	migrations, end, total, err = migration.LoadList(start, count)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to retrieve Migrations from: %d for count: %d", start, count), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to retrieve Migrations from: %d for count: %d", start, count), err, nil)
 		return
 	}
 
-	payload := MigrationList{
+	payload := migrationList{
 		Migrations: migrations,
 		Start:      start,
 		End:        end,
 		Total:      total,
 	}
 
-	WriteResponse(w, payload, err)
+	writeResponse(w, payload, err)
 }

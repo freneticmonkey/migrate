@@ -10,29 +10,29 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type MigrationStatus struct {
+type migrationStatus struct {
 	MID    int64 `json:"mid"`
 	Status int   `json:"status"`
 }
 
-type StepStatus struct {
+type stepStatus struct {
 	SID    int64 `json:"sid"`
 	Status int   `json:"status"`
 }
 
-type EditStatus struct {
-	Migrations []MigrationStatus `json:"migrations"`
-	Steps      []StepStatus      `json:"steps"`
+type editStatus struct {
+	Migrations []migrationStatus `json:"migrations"`
+	Steps      []stepStatus      `json:"steps"`
 }
 
-// RegisterStatusEndpoints Register the migration functions for the REST API
-func RegisterStatusEndpoints(r *mux.Router) {
-	r.HandleFunc("/api/status/edit/", SetStatus)
+// registerStatusEndpoints Register the migration functions for the REST API
+func registerStatusEndpoints(r *mux.Router) {
+	r.HandleFunc("/api/status/edit/", setStatus)
 }
 
-// SetStatus Update Migration and associated step status'
-func SetStatus(w http.ResponseWriter, r *http.Request) {
-	status := EditStatus{}
+// setStatus Update Migration and associated step status'
+func setStatus(w http.ResponseWriter, r *http.Request) {
+	status := editStatus{}
 	migrationIds := []int64{}
 	migrations := []migration.Migration{}
 	var err error
@@ -44,7 +44,7 @@ func SetStatus(w http.ResponseWriter, r *http.Request) {
 	err = decoder.Decode(&status)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to Read Migration"), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to Read Migration"), err, nil)
 		return
 	}
 
@@ -56,7 +56,7 @@ func SetStatus(w http.ResponseWriter, r *http.Request) {
 	migrations, err = migration.LoadMigrationsList(migrationIds)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to load Migrations from POST Ids"), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to load Migrations from POST Ids"), err, nil)
 		return
 	}
 
@@ -67,7 +67,7 @@ func SetStatus(w http.ResponseWriter, r *http.Request) {
 	steps, err = migration.LoadStepsList(stepIds)
 
 	if util.ErrorCheck(err) {
-		WriteErrorResponse(w, fmt.Sprintf("Unable to load Steps from POST Ids"), err)
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to load Steps from POST Ids"), err, nil)
 		return
 	}
 
@@ -79,7 +79,7 @@ func SetStatus(w http.ResponseWriter, r *http.Request) {
 				err = dbstep.Update()
 
 				if util.ErrorCheck(err) {
-					WriteErrorResponse(w, fmt.Sprintf("Unable to update Step with ID: %d", dbstep.SID), err)
+					writeErrorResponse(w, r, fmt.Sprintf("Unable to update Step with ID: %d", dbstep.SID), err, nil)
 					return
 				}
 			}
@@ -95,12 +95,12 @@ func SetStatus(w http.ResponseWriter, r *http.Request) {
 				err = migration.Update()
 
 				if util.ErrorCheck(err) {
-					WriteErrorResponse(w, fmt.Sprintf("Unable to update Migration with ID: %d", migration.MID), err)
+					writeErrorResponse(w, r, fmt.Sprintf("Unable to update Migration with ID: %d", migration.MID), err, nil)
 					return
 				}
 			}
 		}
 	}
 
-	WriteResponse(w, "ok", err)
+	writeResponse(w, "ok", err)
 }

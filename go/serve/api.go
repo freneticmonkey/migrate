@@ -6,14 +6,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/gorilla/mux"
 )
 
 // ResponseError Standardised response error helper struct
 type ResponseError struct {
-	Error  string `json:"error"`
-	Detail string `json:"detail"`
+	Error  string      `json:"error"`
+	Detail string      `json:"detail"`
+	Data   interface{} `json:"data"`
 }
 
 // Response Standardised response helper struct
@@ -23,13 +25,23 @@ type Response struct {
 }
 
 // Run Start the REST API Server
-func Run(frontend bool, port int) (err error) {
+func Run(conf config.Config, frontend bool, port int) (err error) {
+	util.LogInfo("Starting Migrate Server")
+
+	// Configuring server cache
+	err = tableSetup(conf)
+	if err != nil {
+		return err
+	}
+
 	r := mux.NewRouter()
 
 	// Register API endpoints
-	RegisterMigrationEndpoints(r)
-	RegisterStatusEndpoints(r)
-	RegisterDatabaseEndpoints(r)
+	registerMigrationEndpoints(r)
+	registerStatusEndpoints(r)
+	registerDatabaseEndpoints(r)
+	registerTableEndpoints(r)
+	registerSandboxEndpoints(r)
 
 	// Serve the Javascript Frontend UI as well
 	if frontend {
@@ -38,15 +50,15 @@ func Run(frontend bool, port int) (err error) {
 	}
 
 	http.Handle("/", r)
-	log.Printf("Server started on port: %d\n", port)
+	log.Printf("Migrate Server started on port: %d\n", port)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 
 	return err
 }
 
-// WriteResponse Helper function for building a standardised JSON response
-func WriteResponse(w http.ResponseWriter, body interface{}, e error) (err error) {
+// writeResponse Helper function for building a standardised JSON response
+func writeResponse(w http.ResponseWriter, body interface{}, e error) (err error) {
 	var payload []byte
 	response := Response{
 		Result: body,
@@ -64,15 +76,19 @@ func WriteResponse(w http.ResponseWriter, body interface{}, e error) (err error)
 	return err
 }
 
-// WriteErrorResponse Helper function for building a standardised JSON error response
-func WriteErrorResponse(w http.ResponseWriter, detail string, e error) (err error) {
+// writeErrorResponse Helper function for building a standardised JSON error response
+func writeErrorResponse(w http.ResponseWriter, r *http.Request, detail string, e error, errorData interface{}) (err error) {
 	var response []byte
 	var mt []byte
+
+	util.LogErrorf("URL: '%s' Error during request: %v", r.URL, e)
+
 	response, err = json.Marshal(Response{
 		Result: mt,
 		Error: ResponseError{
 			Error:  fmt.Sprintf("%v", e),
 			Detail: detail,
+			Data:   errorData,
 		},
 	})
 
