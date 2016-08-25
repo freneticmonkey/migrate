@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -21,10 +22,18 @@ func registerTableEndpoints(r *mux.Router) {
 	r.HandleFunc("/api/table/create", createTable).Methods("POST")
 	r.HandleFunc("/api/table/{id}", getTable)
 	r.HandleFunc("/api/table/{id}/edit", editTable).Methods("POST")
-	r.HandleFunc("/api/table/{id}/delete", deleteTable)
+	r.HandleFunc("/api/table/{id}/delete", deleteTable).Methods("DELETE")
 	r.HandleFunc("/api/table/{id}/diff", diffTable).Methods("POST")
 	r.HandleFunc("/api/table/diff", diffAllTables)
 	r.HandleFunc("/api/table/list/{start}/{count}", listTables)
+}
+
+type DeleteRequest struct {
+	Table string
+}
+
+type DeleteResponse struct {
+	Details string
 }
 
 var yamlPath string
@@ -133,6 +142,69 @@ func editTable(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTable(w http.ResponseWriter, r *http.Request) {
+	var deleteRequest DeleteRequest
+	// Parse table from post body
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&deleteRequest)
+	if err != nil {
+		writeErrorResponse(w, r, "Unable to delete Table", err, nil)
+		return
+	}
+
+	// Check that the table is in the YAML Schema
+	tableExists := false
+	for i := 0; i < len(yaml.Schema); i++ {
+		if yaml.Schema[i].Name == deleteRequest.Table {
+			tableExists = true
+			break
+		}
+	}
+
+	if !tableExists {
+		writeErrorResponse(w, r, "Unable to delete non-existant Table.  Unknown Table.", err, nil)
+		return
+	}
+
+	filename := fmt.Sprintf("%s.yml", deleteRequest.Table)
+	fp := filepath.Join(yamlPath, filename)
+
+	// Check that the file exists
+
+	fileExists, err := util.FileExists(fp)
+
+	if !fileExists || err != nil {
+		writeErrorResponse(w, r, "Unable to delete non-existant Table.  File doesn't exist.", err, nil)
+		return
+	}
+
+	if tableExists && fileExists {
+		// Delete the table YAML file
+		err = util.DeleteFile(fp)
+
+		if err != nil {
+			writeErrorResponse(w, r, "Unable to delete Table", err, nil)
+			return
+		}
+
+		// Remove from the YAML Schema array
+		removeSuccess := false
+		for i := 0; i < len(yaml.Schema); i++ {
+			if yaml.Schema[i].Name == deleteRequest.Table {
+				yaml.Schema = append(yaml.Schema[:i], yaml.Schema[i+1:]...)
+				removeSuccess = true
+				break
+			}
+		}
+
+		if !removeSuccess {
+			writeErrorResponse(w, r, "Unable to delete Table from Schema", err, nil)
+			return
+		}
+	}
+
+	writeResponse(w, DeleteResponse{
+		Details: "Successfully Deleted",
+	}, err)
 
 }
 

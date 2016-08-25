@@ -79,7 +79,7 @@ A growing list of features and tasks that need to be completed before this proje
         - [x] View
         - [x] Create
         - [ ] Edit
-        - [ ] Delete
+        - [x] Delete
         - [ ] Diff
     - [ ] Sandbox Utilities
         - [ ] Migrate
