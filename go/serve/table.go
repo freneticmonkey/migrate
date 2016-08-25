@@ -19,7 +19,7 @@ import (
 
 // registerTableEndpoints Register the table functions for the REST API
 func registerTableEndpoints(r *mux.Router) {
-	r.HandleFunc("/api/table/create", createTable).Methods("POST")
+	r.HandleFunc("/api/table/create", createTable).Methods("PUT")
 	r.HandleFunc("/api/table/{id}", getTable)
 	r.HandleFunc("/api/table/{id}/edit", editTable).Methods("POST")
 	r.HandleFunc("/api/table/{id}/delete", deleteTable).Methods("DELETE")
@@ -66,42 +66,34 @@ func tableSetup(conf config.Config) (err error) {
 	return err
 }
 
-func createTable(w http.ResponseWriter, r *http.Request) {
-	var newTable table.Table
-	var err error
+func replaceTable(context string, w http.ResponseWriter, r *http.Request, tbl table.Table) {
 	var errors id.ValidationErrors
-
-	// Parse table from post body
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&newTable)
-	if err != nil {
-		writeErrorResponse(w, r, "Create FAILED! Malformed Table.", err, nil)
-	}
+	var err error
 
 	// Generate any missing PropertyIDs
-	newTable.GeneratePropertyIDs()
+	tbl.GeneratePropertyIDs()
 
 	// check for table errors, or name conflicts
 	// insert table into temporary yaml table slice and validate
 	tmpTables := yaml.Schema[:]
-	tmpTables = append(tmpTables, newTable)
+	tmpTables = append(tmpTables, tbl)
 
 	errors, err = id.ValidateSchema(tmpTables, "YAML Schema", false)
 	if util.ErrorCheck(err) {
-		writeErrorResponse(w, r, "Create FAILED! YAML Validation Errors Detected", err, errors)
+		writeErrorResponse(w, r, fmt.Sprintf("%s FAILED! YAML Validation Errors Detected", context), err, errors)
 		return
 	}
 
 	// Serialise table to disk
-	err = yaml.WriteTable(yamlPath, newTable)
+	err = yaml.WriteTable(yamlPath, tbl)
 
 	if err != nil {
-		writeErrorResponse(w, r, "Create FAILED! Unable to create YAML Table definition", err, errors)
+		writeErrorResponse(w, r, fmt.Sprintf("%s FAILED! Unable to create YAML Table definition", context), err, errors)
 		return
 	}
 
 	// insert into the yaml.Schema array
-	yaml.Schema = append(yaml.Schema, newTable)
+	yaml.Schema = append(yaml.Schema, tbl)
 
 	// Return Success!
 	var response struct {
@@ -110,9 +102,33 @@ func createTable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Result = "success"
-	response.Table = newTable
+	response.Table = tbl
 
 	writeResponse(w, response, err)
+}
+
+func tableExists(tableName string) bool {
+	// Check that the table is in the YAML Schema
+	for i := 0; i < len(yaml.Schema); i++ {
+		if yaml.Schema[i].Name == tableName {
+			return true
+		}
+	}
+	return false
+}
+
+func createTable(w http.ResponseWriter, r *http.Request) {
+	var newTable table.Table
+	var err error
+
+	// Parse table from post body
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&newTable)
+	if err != nil {
+		writeErrorResponse(w, r, "Create Table FAILED! Malformed Table.", err, nil)
+	} else {
+		replaceTable("Create", w, r, newTable)
+	}
 }
 
 // getTable Get Table by Id
@@ -138,7 +154,32 @@ func getTable(w http.ResponseWriter, r *http.Request) {
 }
 
 func editTable(w http.ResponseWriter, r *http.Request) {
+	var editTable table.Table
+	var err error
+	vars := mux.Vars(r)
 
+	// Parse table from post body
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&editTable)
+	if err != nil {
+		writeErrorResponse(w, r, "Edit Table FAILED! Malformed Table.", err, nil)
+		return
+	}
+
+	// Verify that the table is valid
+	tableID := vars["id"]
+
+	if editTable.ID != tableID {
+		writeErrorResponse(w, r, "Edit Table FAILED! Table ID mismatch.", err, nil)
+		return
+	}
+
+	if !tableExists(tableID) {
+		writeErrorResponse(w, r, "Edit Table FAILED! Unknown table.", err, nil)
+		return
+	}
+
+	replaceTable("Edit", w, r, editTable)
 }
 
 func deleteTable(w http.ResponseWriter, r *http.Request) {
@@ -152,16 +193,8 @@ func deleteTable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the table is in the YAML Schema
-	tableExists := false
-	for i := 0; i < len(yaml.Schema); i++ {
-		if yaml.Schema[i].Name == deleteRequest.Table {
-			tableExists = true
-			break
-		}
-	}
-
-	if !tableExists {
-		writeErrorResponse(w, r, "Unable to delete non-existant Table.  Unknown Table.", err, nil)
+	if !tableExists(deleteRequest.Table) {
+		writeErrorResponse(w, r, "Delete Table FAILED! Unknown table.", err, nil)
 		return
 	}
 
@@ -169,7 +202,6 @@ func deleteTable(w http.ResponseWriter, r *http.Request) {
 	fp := filepath.Join(yamlPath, filename)
 
 	// Check that the file exists
-
 	fileExists, err := util.FileExists(fp)
 
 	if !fileExists || err != nil {
@@ -177,29 +209,27 @@ func deleteTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if tableExists && fileExists {
-		// Delete the table YAML file
-		err = util.DeleteFile(fp)
+	// Delete the table YAML file
+	err = util.DeleteFile(fp)
 
-		if err != nil {
-			writeErrorResponse(w, r, "Unable to delete Table", err, nil)
-			return
-		}
+	if err != nil {
+		writeErrorResponse(w, r, "Unable to delete Table", err, nil)
+		return
+	}
 
-		// Remove from the YAML Schema array
-		removeSuccess := false
-		for i := 0; i < len(yaml.Schema); i++ {
-			if yaml.Schema[i].Name == deleteRequest.Table {
-				yaml.Schema = append(yaml.Schema[:i], yaml.Schema[i+1:]...)
-				removeSuccess = true
-				break
-			}
+	// Remove from the YAML Schema array
+	removeSuccess := false
+	for i := 0; i < len(yaml.Schema); i++ {
+		if yaml.Schema[i].Name == deleteRequest.Table {
+			yaml.Schema = append(yaml.Schema[:i], yaml.Schema[i+1:]...)
+			removeSuccess = true
+			break
 		}
+	}
 
-		if !removeSuccess {
-			writeErrorResponse(w, r, "Unable to delete Table from Schema", err, nil)
-			return
-		}
+	if !removeSuccess {
+		writeErrorResponse(w, r, "Unable to delete Table from Schema", err, nil)
+		return
 	}
 
 	writeResponse(w, DeleteResponse{
