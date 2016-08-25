@@ -184,11 +184,19 @@ func (t *Table) SyncDBMetadata() (err error) {
 
 // GeneratePropertyIDs Generate PropertyIds for all Table Properties that don't have a PropertyID set.
 func (t *Table) GeneratePropertyIDs() error {
-	tableName := strings.ToLower(t.Metadata.Name)
+	tableID := t.Metadata.PropertyID
+
 	// Table
-	if t.Metadata.PropertyID == "" {
-		t.ID = tableName
-		t.Metadata.PropertyID = t.ID
+	if tableID == "" {
+		tableID = strings.ToLower(t.Metadata.Name)
+
+		if tableID == "" {
+			tableID = strings.ToLower(t.Name)
+		}
+
+		t.ID = tableID
+		t.Metadata.PropertyID = tableID
+
 	} else {
 		t.ID = t.Metadata.PropertyID
 	}
@@ -197,32 +205,58 @@ func (t *Table) GeneratePropertyIDs() error {
 	for i := 0; i < len(t.Columns); i++ {
 		col := &t.Columns[i]
 		if col.Metadata.PropertyID == "" {
-			col.ID = strings.ToLower(col.Metadata.Name)
-			col.Metadata.PropertyID = col.ID
-			col.Metadata.ParentID = t.Metadata.PropertyID
+			colID := col.ID
+
+			if colID == "" {
+				colID = strings.ToLower(col.Metadata.Name)
+			}
+
+			if colID == "" {
+				colID = strings.ToLower(col.Name)
+			}
+
+			col.ID = colID
+			col.Metadata.PropertyID = colID
+			col.Metadata.ParentID = tableID
+
 		} else {
 			col.ID = col.Metadata.PropertyID
+			col.Metadata.ParentID = tableID
 		}
 	}
 
 	// Primary Key
 	if t.PrimaryIndex.Metadata.PropertyID == "" {
-		t.PrimaryIndex.ID = "primarykey"
-		t.PrimaryIndex.Metadata.PropertyID = t.PrimaryIndex.ID
-		t.PrimaryIndex.Metadata.ParentID = t.Metadata.PropertyID
+		pkID := "primarykey"
+
+		t.PrimaryIndex.ID = pkID
+		t.PrimaryIndex.Metadata.PropertyID = pkID
+		t.PrimaryIndex.Metadata.ParentID = tableID
+
 	} else {
 		t.PrimaryIndex.ID = t.Metadata.PropertyID
+		t.PrimaryIndex.Metadata.ParentID = tableID
 	}
 
 	// Indexes
 	for i := 0; i < len(t.SecondaryIndexes); i++ {
 		ind := &t.SecondaryIndexes[i]
 		if ind.Metadata.PropertyID == "" {
-			ind.ID = strings.ToLower(ind.Metadata.Name)
-			ind.Metadata.PropertyID = ind.ID
-			ind.Metadata.ParentID = t.Metadata.PropertyID
+			indID := ind.ID
+			if indID == "" {
+				indID = strings.ToLower(ind.Metadata.Name)
+			}
+
+			if indID == "" {
+				indID = strings.ToLower(ind.Name)
+			}
+			ind.ID = indID
+			ind.Metadata.PropertyID = indID
+			ind.Metadata.ParentID = tableID
+
 		} else {
 			ind.ID = ind.Metadata.PropertyID
+			ind.Metadata.ParentID = tableID
 		}
 	}
 
