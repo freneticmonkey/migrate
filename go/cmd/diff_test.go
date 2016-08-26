@@ -48,7 +48,7 @@ func TestDiff(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
@@ -173,7 +173,7 @@ func TestDiffTableName(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
@@ -298,7 +298,7 @@ func TestDiffTableNameFailed(t *testing.T) {
 	//
 
 	test.WriteFile(
-		"UnitTestProject/dogs.yml",
+		"unittestproject/dogs.yml",
 		testdata.GetYAMLTableDogs(),
 		0644,
 		false,

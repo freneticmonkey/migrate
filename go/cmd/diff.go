@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/git"
@@ -95,7 +96,7 @@ func diff(project, version, tableName string, conf config.Config) *cli.ExitError
 	}
 
 	// Read the YAML files cloned from the repo
-	err = yaml.ReadTables(conf.Options.WorkingPath)
+	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Diff failed. Unable to read YAML Tables", 1)
 	}
