@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/id"
-	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/freneticmonkey/migrate/go/yaml"
@@ -23,8 +20,6 @@ func registerTableEndpoints(r *mux.Router) {
 	r.HandleFunc("/api/table/{id}", getTable)
 	r.HandleFunc("/api/table/{id}/edit", editTable).Methods("POST")
 	r.HandleFunc("/api/table/{id}/delete", deleteTable).Methods("DELETE")
-	r.HandleFunc("/api/table/{id}/diff", diffTable).Methods("POST")
-	r.HandleFunc("/api/table/diff", diffAllTables)
 	r.HandleFunc("/api/table/list/{start}/{count}", listTables)
 }
 
@@ -36,34 +31,8 @@ type DeleteResponse struct {
 	Details string
 }
 
-var yamlPath string
-
-func tableSetup(conf config.Config) (err error) {
-
-	// Put Metadata into Cache Mode, otherwise the server is going to be quite slow.
-	// This is not super necessary as the server doesn't need to handle high RPS.
-	metadata.UseCache(true)
-
-	// Read the YAML schema
-	yamlPath = util.WorkingSubDir(strings.ToLower(conf.Project.Name))
-
-	util.LogInfo(yamlPath)
-
-	_, err = util.DirExists(yamlPath)
-	if util.ErrorCheck(err) {
-		return fmt.Errorf("Table Setup failed. Unable to read Local Schema Path")
-	}
-
-	// Read tables relative to the current working directory (which is the project name)
-	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
-
-	if util.ErrorCheck(err) {
-		return fmt.Errorf("Table Setup failed. Unable to read YAML Tables")
-	}
-
-	util.LogInfof("Found %d YAML Tables", len(yaml.Schema))
-
-	return err
+type DiffRequest struct {
+	Table string
 }
 
 func replaceTable(context string, w http.ResponseWriter, r *http.Request, tbl table.Table) {
@@ -235,23 +204,6 @@ func deleteTable(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, DeleteResponse{
 		Details: "Successfully Deleted",
 	}, err)
-
-}
-
-func diffTable(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// TableDiffList Helper type used to return a List of Table Diffs
-type TableDiffList struct {
-	// Migrations []migration.Migration `json:"migrations"`
-	Start int64 `json:"start"`
-	End   int64 `json:"end"`
-	Total int64 `json:"total"`
-}
-
-func diffAllTables(w http.ResponseWriter, r *http.Request) {
-
 }
 
 // TableList Helper type used to return a List of Tables

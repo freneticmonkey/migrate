@@ -10,6 +10,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
 )
@@ -70,8 +71,8 @@ func TestCreate(t *testing.T) {
 
 	// Configure testing data
 	testConfig := test.GetTestConfig()
-	dogsTbl := GetTableDogs()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	expectedAddressMetadata := dogsAddTbl.Columns[1].Metadata
@@ -147,7 +148,7 @@ schemaTwo/*`
 
 			test.WriteFile(
 				"UnitTestProject/dogs.yml",
-				GetYAMLTableAddressDogs(),
+				testdata.GetYAMLTableAddressDogs(),
 				0644,
 				false,
 			)
@@ -192,7 +193,7 @@ schemaTwo/*`
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
@@ -408,7 +409,7 @@ schemaTwo/*`
 		t.Errorf("%s FAILED: Not all shell commands were executed: error [%v]", testName, err)
 	}
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestCreateRollback(t *testing.T) {
@@ -427,8 +428,8 @@ func TestCreateRollback(t *testing.T) {
 
 	// Configure testing data
 	testConfig := test.GetTestConfig()
-	dogsTbl := GetTableDogs()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	expectedAddressMetadata := dogsAddTbl.Columns[1].Metadata
@@ -514,7 +515,7 @@ schemaTwo/*`
 
 			test.WriteFile(
 				"UnitTestProject/dogs.yml",
-				GetYAMLTableAddressDogs(),
+				testdata.GetYAMLTableAddressDogs(),
 				0644,
 				false,
 			)
@@ -559,7 +560,7 @@ schemaTwo/*`
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
@@ -780,5 +781,5 @@ schemaTwo/*`
 		t.Errorf("%s FAILED: Not all shell commands were executed: error [%v]", testName, err)
 	}
 
-	Teardown()
+	testdata.Teardown()
 }

@@ -120,14 +120,11 @@ Edit a Table with ID {id} generating a new YAML file with the changes
 #### /api/table/{id}/delete/
 Delete the YAML file for the table with ID {id}
 
-#### /api/table/{id}/diff/
-Generate the SQL ALTER TABLE statement(s) for the Table with {id}
-
-#### /api/table/diff/
-Generate the SQL ALTER TABLE statements for all Target DB Tables using the current state of the YAML
-
 ### /api/sandbox/
 This endpoint contains utilities for manipulating the schema in the sandbox
+
+#### /api/sandbox/diff/{id}
+Generate the SQL ALTER TABLE statements for the Table with {id} or for all Tables if {id} is not defined
 
 #### /api/sandbox/migrate/
 Apply differences in the YAML schema state to the target DB

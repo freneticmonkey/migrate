@@ -8,6 +8,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
 )
@@ -26,8 +27,8 @@ func TestDiff(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
-	// Teardown() - Pre test cleanup
-	Teardown()
+	// testdata.Teardown() - Pre test cleanup
+	testdata.Teardown()
 
 	util.SetConfigTesting()
 	util.Config(testConfig)
@@ -40,7 +41,7 @@ func TestDiff(t *testing.T) {
 	// Mock MySQL
 
 	// Mock Table structs - with the new Address Column
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure source YAML files for Schema read
@@ -48,7 +49,7 @@ func TestDiff(t *testing.T) {
 
 	test.WriteFile(
 		"UnitTestProject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -96,7 +97,7 @@ func TestDiff(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
@@ -134,7 +135,7 @@ func TestDiff(t *testing.T) {
 
 	mgmtDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestDiffTableName(t *testing.T) {
@@ -151,8 +152,8 @@ func TestDiffTableName(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
-	// Teardown() - Pre test cleanup
-	Teardown()
+	// testdata.Teardown() - Pre test cleanup
+	testdata.Teardown()
 
 	util.SetConfigTesting()
 	util.Config(testConfig)
@@ -165,7 +166,7 @@ func TestDiffTableName(t *testing.T) {
 	// Mock MySQL
 
 	// Mock Table structs - with the new Address Column
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure source YAML files for Schema read
@@ -173,7 +174,7 @@ func TestDiffTableName(t *testing.T) {
 
 	test.WriteFile(
 		"UnitTestProject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -221,7 +222,7 @@ func TestDiffTableName(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
@@ -259,7 +260,7 @@ func TestDiffTableName(t *testing.T) {
 
 	mgmtDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestDiffTableNameFailed(t *testing.T) {
@@ -276,8 +277,8 @@ func TestDiffTableNameFailed(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
-	// Teardown() - Pre test cleanup
-	Teardown()
+	// testdata.Teardown() - Pre test cleanup
+	testdata.Teardown()
 
 	util.SetConfigTesting()
 	util.Config(testConfig)
@@ -290,7 +291,7 @@ func TestDiffTableNameFailed(t *testing.T) {
 	// Mock MySQL
 
 	// Mock Table structs - with the new Address Column
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure source YAML files for Schema read
@@ -298,7 +299,7 @@ func TestDiffTableNameFailed(t *testing.T) {
 
 	test.WriteFile(
 		"UnitTestProject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -346,7 +347,7 @@ func TestDiffTableNameFailed(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
@@ -384,5 +385,5 @@ func TestDiffTableNameFailed(t *testing.T) {
 
 	mgmtDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
 )
@@ -33,7 +34,7 @@ func TestValidate(t *testing.T) {
 	version := ""
 
 	// Configure testing data
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure source YAML files for Schema validation
@@ -41,7 +42,7 @@ func TestValidate(t *testing.T) {
 
 	test.WriteFile(
 		"unittestproject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -81,7 +82,7 @@ func TestValidate(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
@@ -117,7 +118,7 @@ func TestValidate(t *testing.T) {
 
 	mgmtDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 
 }
 
@@ -143,7 +144,7 @@ func TestValidateYAML(t *testing.T) {
 
 	test.WriteFile(
 		"unittestproject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -159,7 +160,7 @@ func TestValidateYAML(t *testing.T) {
 		return
 	}
 
-	Teardown()
+	testdata.Teardown()
 
 }
 
@@ -183,7 +184,7 @@ func TestValidateMySQL(t *testing.T) {
 	version := ""
 
 	// Configure testing data
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure MySQL db reads for Schema validation
@@ -216,7 +217,7 @@ func TestValidateMySQL(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
@@ -252,7 +253,7 @@ func TestValidateMySQL(t *testing.T) {
 
 	mgmtDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 
 }
 
@@ -274,7 +275,7 @@ func TestGitCloneValidate(t *testing.T) {
 
 	// Configure testing data
 	testConfig := test.GetTestConfig()
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	////////////////////////////////////////////////////////
 	// Configure Git Checkout
@@ -343,7 +344,7 @@ schemaTwo/*`
 
 	test.WriteFile(
 		"unittestproject/dogs.yml",
-		GetYAMLTableDogs(),
+		testdata.GetYAMLTableDogs(),
 		0644,
 		false,
 	)
@@ -383,7 +384,7 @@ schemaTwo/*`
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// ParseCreateTable which includes a Table.LoadDBMetadata() call
 	mgmtDB.MetadataSelectName(
@@ -455,5 +456,5 @@ schemaTwo/*`
 		t.Errorf("%s FAILED: Not all shell commands were executed: error [%v]", testName, err)
 	}
 
-	Teardown()
+	testdata.Teardown()
 }

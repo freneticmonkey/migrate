@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/util"
+	"github.com/freneticmonkey/migrate/go/yaml"
 	"github.com/gorilla/mux"
 )
 
@@ -24,12 +27,45 @@ type Response struct {
 	Error  ResponseError `json:"error"`
 }
 
+var yamlPath string
+var conf config.Config
+
+func setup(apiConfig config.Config) (err error) {
+
+	conf = apiConfig
+
+	// Put Metadata into Cache Mode, otherwise the server is going to be quite slow.
+	// This is not super necessary as the server doesn't need to handle high RPS.
+	metadata.UseCache(true)
+
+	// Read the YAML schema
+	yamlPath = util.WorkingSubDir(strings.ToLower(conf.Project.Name))
+
+	util.LogInfo(yamlPath)
+
+	_, err = util.DirExists(yamlPath)
+	if util.ErrorCheck(err) {
+		return fmt.Errorf("Table Setup failed. Unable to read Local Schema Path")
+	}
+
+	// Read tables relative to the current working directory (which is the project name)
+	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+
+	if util.ErrorCheck(err) {
+		return fmt.Errorf("Table Setup failed. Unable to read YAML Tables")
+	}
+
+	util.LogInfof("Found %d YAML Tables", len(yaml.Schema))
+
+	return err
+}
+
 // Run Start the REST API Server
-func Run(conf config.Config, frontend bool, port int) (err error) {
+func Run(apiConfig config.Config, frontend bool, port int) (err error) {
 	util.LogInfo("Starting Migrate Server")
 
 	// Configuring server cache
-	err = tableSetup(conf)
+	err = setup(apiConfig)
 	if err != nil {
 		return err
 	}

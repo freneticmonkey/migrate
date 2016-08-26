@@ -12,6 +12,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
@@ -43,7 +44,7 @@ func TestExecDryrun(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -241,7 +242,7 @@ func TestExecRollback(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -570,7 +571,7 @@ func TestExecFailInvalidRollback(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -763,7 +764,7 @@ func TestExecRollbackDryrun(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -933,7 +934,7 @@ func TestExecAllowDestructive(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the dropped Table
 	tableMD := dogsAddTbl.Metadata
@@ -1217,7 +1218,7 @@ func TestExecFailAllowDestructive(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Migration Configuration - use default, standard migration
 	dryrun := false
@@ -1370,7 +1371,7 @@ func TestExecFailMigrationRunning(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Migration Configuration - use default, standard migration
 	dryrun := false
@@ -1523,7 +1524,7 @@ func TestExecFailDenied(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -1662,7 +1663,7 @@ func TestExecFailAlreadyExecute(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -1856,7 +1857,7 @@ func TestExec(t *testing.T) {
 
 	// Setup table data
 	testConfig := test.GetTestConfig()
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata

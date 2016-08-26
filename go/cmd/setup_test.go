@@ -9,6 +9,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
 )
@@ -60,7 +61,7 @@ func TestManagementSetup(t *testing.T) {
 	}
 
 	mgmtDB.ExpectionsMet(testName, t)
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestBuildSchema(t *testing.T) {
@@ -121,7 +122,7 @@ func TestBuildSchema(t *testing.T) {
 	}
 
 	mgmtDB.ExpectionsMet(testName, t)
-	Teardown()
+	testdata.Teardown()
 
 }
 
@@ -142,7 +143,7 @@ func TestSetupExistingDB(t *testing.T) {
 
 	util.Config(testConfig)
 
-	dogsTbl := GetTableDogs()
+	dogsTbl := testdata.GetTableDogs()
 
 	// Setup the mock Managment DB
 	mgmtDB, err = test.CreateManagementDB(testName, t)
@@ -163,7 +164,7 @@ func TestSetupExistingDB(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	// Load Table Metadata - Expect empty because this is a new database
 	mgmtDB.MetadataSelectName(
@@ -244,7 +245,7 @@ func TestSetupExistingDB(t *testing.T) {
 		} else {
 			tblStr := string(data)
 
-			expectedTblStr := GetYAMLTableDogs()
+			expectedTblStr := testdata.GetYAMLTableDogs()
 
 			if tblStr != expectedTblStr {
 				util.DebugDiffString(expectedTblStr, tblStr)
@@ -260,5 +261,5 @@ func TestSetupExistingDB(t *testing.T) {
 		mgmtDB.ExpectionsMet(testName, t)
 		projectDB.ExpectionsMet(testName, t)
 	}
-	Teardown()
+	testdata.Teardown()
 }

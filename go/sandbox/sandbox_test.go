@@ -1,4 +1,4 @@
-package cmd
+package sandbox
 
 import (
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	"github.com/freneticmonkey/migrate/go/mysql"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/test"
+	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/freneticmonkey/migrate/go/yaml"
 )
@@ -46,7 +47,7 @@ func TestDiffSchema(t *testing.T) {
 	// Mock MySQL
 
 	// Mock Table structs - with the new Address Column
-	dogsTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	expectedAddressMetadata := dogsTbl.Columns[1].Metadata
@@ -93,7 +94,7 @@ func TestDiffSchema(t *testing.T) {
 	projectDB.ShowTables([]test.DBRow{{dogsTbl.Name}}, false)
 
 	// SHOW CREATE TABLE Query
-	projectDB.ShowCreateTable(dogsTbl.Name, GetMySQLCreateTableDogs())
+	projectDB.ShowCreateTable(dogsTbl.Name, testdata.GetMySQLCreateTableDogs())
 
 	mgmtDB.MetadataSelectName(
 		dogsTbl.Name,
@@ -279,7 +280,7 @@ func TestCreateMigration(t *testing.T) {
 	// Validate the DB access
 	mgmtDb.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestRecreateProjectDatabase(t *testing.T) {
@@ -309,7 +310,7 @@ func TestRecreateProjectDatabase(t *testing.T) {
 
 	projectDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 
 }
 
@@ -322,7 +323,7 @@ func TestMigrateSandbox(t *testing.T) {
 
 	testName := "TestMigrateSandbox"
 
-	dogsAddTbl := GetTableAddressDogs()
+	dogsAddTbl := testdata.GetTableAddressDogs()
 
 	// Configuring the expected MDID for the new Column
 	colMd := dogsAddTbl.Columns[1].Metadata
@@ -478,7 +479,7 @@ func TestMigrateSandbox(t *testing.T) {
 	mgmtDb.ExpectionsMet(testName, t)
 	projectDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestRefreshDatabase(t *testing.T) {
@@ -495,8 +496,8 @@ func TestRefreshDatabase(t *testing.T) {
 
 	// Configure the Test Datadata
 
-	dogsTbl := GetTableDogs()
-	dogsAddressTbl := GetTableAddressDogs()
+	dogsTbl := testdata.GetTableDogs()
+	dogsAddressTbl := testdata.GetTableAddressDogs()
 
 	// Push Dogs table into YAML Schema
 	yaml.Schema = []table.Table{dogsTbl}
@@ -518,7 +519,7 @@ func TestRefreshDatabase(t *testing.T) {
 				Op:       table.Add,
 				MDID:     1,
 				Name:     "dogs",
-				Forward:  GetCreateTableDogs(),
+				Forward:  testdata.GetCreateTableDogs(),
 				Backward: "DROP TABLE `dogs`;",
 				Output:   "",
 				Status:   migration.Unapproved,
@@ -689,7 +690,7 @@ func TestRefreshDatabase(t *testing.T) {
 		Type:   test.ExecCmd,
 		Result: sqlmock.NewResult(1, 1),
 	}
-	query.FormatQuery(GetCreateTableDogs())
+	query.FormatQuery(testdata.GetCreateTableDogs())
 
 	projectDB.ExpectExec(query)
 
@@ -749,22 +750,22 @@ func TestRefreshDatabase(t *testing.T) {
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	sandboxAction(testConfig, false, true, "TestRefreshDatabase")
+	Action(testConfig, false, true, "TestRefreshDatabase")
 
 	mgmtDb.ExpectionsMet(testName, t)
 	projectDB.ExpectionsMet(testName, t)
 
-	Teardown()
+	testdata.Teardown()
 }
 
 func TestNewTableApplyImmediately(t *testing.T) {
 	util.LogAlert("TestNewTableApplyImmediately")
-	Teardown()
+	testdata.Teardown()
 
 }
 
 func TestNewColumnApplyImmediately(t *testing.T) {
 	util.LogAlert("TestNewColumnApplyImmediately")
 
-	Teardown()
+	testdata.Teardown()
 }
