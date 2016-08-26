@@ -266,12 +266,19 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 // generateAlterIndex Generate a MySQL ALTER INDEX statement from a
 // Table struct
 func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
-
+	var ok bool
 	var builder StatementBuilder
+	var index table.Index
 
 	// Obtain Index Object
-	diffPair := diff.Value.(table.DiffPair)
-	toIndex, ok := diffPair.To.(table.Index)
+
+	diffPair, ok := diff.Value.(table.DiffPair)
+
+	if !ok {
+		index, ok = diff.Value.(table.Index)
+	} else {
+		index, ok = diffPair.To.(table.Index)
+	}
 
 	if ok {
 		indexName := ""
@@ -280,7 +287,7 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 			indexName = "PRIMARY KEY"
 
 		} else if diff.Field == "SecondaryIndexes" {
-			indexName = fmt.Sprintf("%s", toIndex.Name)
+			indexName = fmt.Sprintf("%s", index.Name)
 		}
 
 		// Drop
@@ -300,7 +307,7 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 		builder.AddQuote(indexName)
 		builder.Add("ON")
 		builder.AddQuote(diff.Table)
-		builder.Add(toIndex.ColumnsSQL())
+		builder.Add(index.ColumnsSQL())
 
 		addOp := SQLOperation{
 			Statement: builder.Format(),
@@ -317,29 +324,36 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 			ops.Add(removeOp)
 
 		case table.Mod:
-			// Process modification by type
-			if diff.Property == "Name" {
+			diffPair := diff.Value.(table.DiffPair)
+			toIndex, ok := diffPair.To.(table.Index)
 
-				fromIndex, ok := diffPair.From.(table.Index)
-				if ok {
-					builder.Reset()
-					builder.Add("ALTER TABLE")
-					builder.AddQuote(diff.Table)
-					builder.Add("RENAME")
-					builder.AddFormat("%s %s", fromIndex.Name, toIndex.Name)
+			if ok {
+				// Process modification by type
+				if diff.Property == "Name" {
 
-					ops.Add(SQLOperation{
-						Statement: builder.Format(),
-						Op:        table.Mod,
-						Metadata:  diff.Metadata,
-					})
+					fromIndex, ok := diffPair.From.(table.Index)
+					if ok {
+						builder.Reset()
+						builder.Add("ALTER TABLE")
+						builder.AddQuote(diff.Table)
+						builder.Add("RENAME")
+						builder.AddFormat("%s %s", fromIndex.Name, toIndex.Name)
+
+						ops.Add(SQLOperation{
+							Statement: builder.Format(),
+							Op:        table.Mod,
+							Metadata:  diff.Metadata,
+						})
+					} else {
+						util.LogError("Gen SQL: ALTER INDEX: MOD: Could not obtain from index")
+					}
 				} else {
-					util.LogError("Gen SQL: ALTER INDEX: MOD: Could not obtain from index")
+					// if anything other than a rename, we need to drop the index and re-add
+					ops.Add(removeOp)
+					ops.Add(addOp)
 				}
 			} else {
-				// if anything other than a rename, we need to drop the index and re-add
-				ops.Add(removeOp)
-				ops.Add(addOp)
+				util.LogError("Obtaining Index FAILED")
 			}
 		}
 	} else {
