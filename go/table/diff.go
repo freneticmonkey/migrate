@@ -128,8 +128,22 @@ func Compare(tableName string, fieldName string, toContainer interface{}, fromCo
 		} else {
 			// strings must be in the same order - important for indexes!
 			for i := 0; i < toField.Len(); i++ {
-				if toField.Index(i).String() != fromField.Index(i).String() {
+				tfv := toField.Index(i)
+				ffv := fromField.Index(i)
+
+				if tfv.Kind() != ffv.Kind() {
 					hasDiff = true
+				} else {
+					switch tfv.Kind() {
+					case reflect.Bool:
+						hasDiff = tfv.Bool() != ffv.Bool()
+					case reflect.String:
+						hasDiff = tfv.String() != ffv.String()
+					case reflect.Int:
+						hasDiff = tfv.Int() != ffv.Int()
+					}
+				}
+				if hasDiff {
 					break
 				}
 			}

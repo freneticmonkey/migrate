@@ -20,7 +20,7 @@ type DiffTest struct {
 }
 
 var diffTests = []DiffTest{
-	// Table Differences - No modifications
+	//Table Differences - No modifications
 	{
 		From: Table{
 			Name:    "TestTable",
@@ -316,6 +316,7 @@ var diffTests = []DiffTest{
 		ExpectFail:  false,
 		Description: "Column Field Diff: Change type",
 	},
+
 	{
 		From: Table{
 			Name: "TestTable",
@@ -366,7 +367,7 @@ var diffTests = []DiffTest{
 					To: Column{
 						ID:   "col1",
 						Name: "Address",
-						Type: "text",
+						Type: "varchar",
 						Size: []int{12},
 						Metadata: metadata.Metadata{
 							PropertyID: "col1",
@@ -867,6 +868,46 @@ var diffTests = []DiffTest{
 		From: Table{
 			Name: "TestTable",
 			PrimaryIndex: Index{
+				ID:   "PrimaryKey",
+				Name: "PrimaryKey",
+				Columns: []IndexColumn{
+					{
+						Name: "address",
+					},
+				},
+				IsPrimary: true,
+				IsUnique:  false,
+				Metadata: metadata.Metadata{
+					PropertyID: "PrimaryKey",
+				},
+			},
+		},
+		To: Table{
+			Name: "TestTable",
+			PrimaryIndex: Index{
+				ID:   "PrimaryKey",
+				Name: "PrimaryKey",
+				Columns: []IndexColumn{
+					{
+						Name: "address",
+					},
+				},
+				IsPrimary: true,
+				IsUnique:  false,
+				Metadata: metadata.Metadata{
+					PropertyID: "PrimaryKey",
+				},
+			},
+		},
+		Expected:    []Diff{},
+		ExpectFail:  false,
+		Description: "Primary Key Field Diff: No Differences one column",
+	},
+
+	{
+		From: Table{
+			Name: "TestTable",
+			PrimaryIndex: Index{
 				Columns: []IndexColumn{
 					{
 						Name: "address",
@@ -1295,9 +1336,19 @@ var diffTests = []DiffTest{
 }
 
 func TestDifferences(t *testing.T) {
-
+	util.VerboseOverrideSet(true)
 	for _, test := range diffTests {
-		if hasDiff, difference := diffTable(test.To, test.From); hasDiff {
+		util.LogAttentionf("Testing %s", test.Description)
+		hasDiff, difference := diffTable(test.To, test.From)
+
+		if len(difference.Slice) != len(test.Expected) {
+			t.Errorf("%s Failed. Unexpected Differences", test.Description)
+
+			util.DebugDumpDiff(test.Expected, difference.Slice)
+		}
+
+		if hasDiff {
+
 			diffs := difference.Slice
 
 			// If difference is INCORRECT
@@ -1305,11 +1356,7 @@ func TestDifferences(t *testing.T) {
 				t.Errorf("%s Failed. Difference is not correct", test.Description)
 
 				util.LogAttentionf("%s Failed. Return object differs from expected object.", test.Description)
-				util.LogWarn("Expected")
-				util.DebugDump(test.Expected)
-
-				util.LogWarn("Result")
-				util.DebugDump(diffs)
+				util.DebugDumpDiff(test.Expected, diffs)
 
 				// if the difference is CORRECT and we expected it to be INCORRECT!
 			} else if !test.ExpectFail && reflect.DeepEqual(diffs, test.Expected) {

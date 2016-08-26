@@ -431,9 +431,8 @@ var genTableAlterTests = []SQLGenTest{
 		Statements: []string{
 			"ALTER TABLE `TestTable` RENAME idx_test idx_address;",
 		},
-		ExpectFail:  false,
-		Description: "Table Index: Rename Index",
-		TestType:    Index,
+		ExpectFail: false,
+		TestType:   Index,
 	},
 
 	{
