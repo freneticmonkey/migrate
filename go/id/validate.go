@@ -23,6 +23,7 @@ func (vi ValidationItem) String() string {
 		"Context: " + vi.Context,
 		"ID: " + vi.ID,
 		"Name: " + vi.Name,
+		"Table: " + vi.Table,
 		"Type: " + vi.Type,
 		"Source: " + vi.Source,
 	}, "\n")
@@ -192,9 +193,13 @@ func ValidateSchema(tables table.Tables, schemaName string, log bool) (validatio
 		validate(tbl.Metadata.PropertyID, "Table", tbl.Name, tbl.Name, tbl.Filename, &tableIds, &validationErrors)
 
 		var tablePropertyIds Properties
+		// Add table info, so that conflicts with the current table will be detected.
+		tablePropertyIds.Add(tbl.Metadata.PropertyID, "Table", tbl.Name, tbl.Name, tbl.Filename)
 
-		// Check Primary Key
-		validate(tbl.PrimaryIndex.Metadata.PropertyID, "Primary Key", "Primary Key", tbl.Name, tbl.Filename, &tablePropertyIds, &validationErrors)
+		// Check Primary Key - if column(s) are defined.
+		if len(tbl.PrimaryIndex.Columns) > 0 {
+			validate(tbl.PrimaryIndex.Metadata.PropertyID, "Primary Key", "Primary Key", tbl.Name, tbl.Filename, &tablePropertyIds, &validationErrors)
+		}
 
 		for _, column := range tbl.Columns {
 			validate(column.Metadata.PropertyID, "Column", column.Name, tbl.Name, tbl.Filename, &tablePropertyIds, &validationErrors)
