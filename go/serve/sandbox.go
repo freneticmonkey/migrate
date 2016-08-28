@@ -84,11 +84,14 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tableName := vars["id"]
 
-	// Configure table filter
-	diffSchema := yaml.Schema[:]
+	// Empty the yaml.Schema prediff
+	yaml.Schema = []table.Table{}
 
 	// Read tables relative to the current working directory (which is the project name)
 	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+
+	// Configure table filter
+	diffSchema := yaml.Schema[:]
 
 	if tableName != "" {
 
@@ -114,6 +117,9 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read the MySQL tables from the target database
+
+	mysql.Schema = []table.Table{}
+
 	err = mysql.ReadTables()
 	if util.ErrorCheck(err) {
 		writeErrorResponse(w, r, "Diff failed.  Unable to read MySQL Schema`", err, nil)
@@ -141,8 +147,13 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 		dbSchema = tgtTbl
 	}
 
+	problems, err = id.ValidatePropertyIDs(yaml.Schema, mysql.Schema, true)
+	if util.ErrorCheck(err) {
+		writeErrorResponse(w, r, "Diff failed due to invalid schema. Detected YAML PropertyID problems", err, problems)
+		return
+	}
+
 	forwardDiff, err = table.DiffTables(diffSchema, dbSchema, true)
-	util.DebugDump(forwardDiff)
 	if util.ErrorCheck(err) {
 		writeErrorResponse(w, r, "Diff failed. Problems while calculating differences.", err, problems)
 		return
