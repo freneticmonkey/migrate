@@ -102,6 +102,11 @@ func create(version string, rollback bool, conf config.Config) *cli.ExitError {
 		return cli.NewExitError("Creation failed. Target Database Validation Errors Detected", problems.Count())
 	}
 
+	problems, err = id.ValidatePropertyIDs(yaml.Schema, mysql.Schema, true)
+	if util.ErrorCheck(err) {
+		return cli.NewExitError("Validation failed. Detected YAML PropertyID problems", problems.Count())
+	}
+
 	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false)
 	if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
 		return cli.NewExitError("Create failed. Unable to generate a forward migration", 1)

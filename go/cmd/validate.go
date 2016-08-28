@@ -105,6 +105,11 @@ func validate(project, version, schemaType string, conf config.Config) *cli.Exit
 		if util.ErrorCheck(err) {
 			return cli.NewExitError("Validation failed. Problems with Target Databse detected", problems.Count())
 		}
+
+		problems, err = id.ValidatePropertyIDs(yaml.Schema, mysql.Schema, true)
+		if util.ErrorCheck(err) {
+			return cli.NewExitError("Validation failed. Detected YAML PropertyID problems", problems.Count())
+		}
 	}
 
 	return cli.NewExitError("Validation completed successfully.  No problems were found. :)", 0)

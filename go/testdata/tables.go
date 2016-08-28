@@ -78,6 +78,7 @@ func GetTableDogs() table.Table {
 			},
 		},
 		PrimaryIndex: table.Index{
+			Name:      "PrimaryKey",
 			IsPrimary: true,
 			Columns: []table.IndexColumn{
 				{
@@ -164,6 +165,7 @@ func GetTableAddressDogs() table.Table {
 			},
 		},
 		PrimaryIndex: table.Index{
+			Name:      "PrimaryKey",
 			IsPrimary: true,
 			Columns: []table.IndexColumn{
 				{

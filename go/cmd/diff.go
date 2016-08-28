@@ -145,6 +145,11 @@ func diff(project, version, tableName string, conf config.Config) *cli.ExitError
 		mysql.Schema = tgtTbl
 	}
 
+	problems, err = id.ValidatePropertyIDs(yaml.Schema, mysql.Schema, true)
+	if util.ErrorCheck(err) {
+		return cli.NewExitError("Validation failed. Detected YAML PropertyID problems", problems.Count())
+	}
+
 	// If a Table Name was specified, and a table wasn't found
 	if !targetTableFound && tableName != "" {
 		return cli.NewExitError(fmt.Sprintf("Diff failed for Table: %s. No found in YAML or MySQL Schemas", tableName), 1)

@@ -98,12 +98,14 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		_, err = id.ValidateSchema(yaml.Schema, "YAML Schema", true)
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. YAML Validation Errors Detected", actionTitle)
+			return forwardOps, backwardOps, err
 		}
 
 		// Read the MySQL tables from the target database
 		err = mysql.ReadTables()
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. Unable to read MySQL Tables", actionTitle)
+			return forwardOps, backwardOps, err
 		}
 
 		// Don't bother validating the database if we're going to wipe it.
@@ -112,7 +114,14 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 			_, err = id.ValidateSchema(mysql.Schema, "Target Database Schema", true)
 			if util.ErrorCheck(err) {
 				err = fmt.Errorf("%s failed. Target Database Validation Errors Detected", actionTitle)
+				return forwardOps, backwardOps, err
 			}
+		}
+
+		_, err = id.ValidatePropertyIDs(yaml.Schema, mysql.Schema, true)
+		if util.ErrorCheck(err) {
+			err = fmt.Errorf("%s failed. YAML Validation Errors Detected", actionTitle)
+			return forwardOps, backwardOps, err
 		}
 
 		// Generate Diffs
