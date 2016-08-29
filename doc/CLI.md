@@ -33,6 +33,8 @@ Apply a migration to the database within the sandbox.  Optionally fully recreate
 > ### pull-diff (Optional value) Table Name
   Read the state of the MySQL Target DB and serialise to YAML.  Intended to be used by MySQL power users to store manual schema changes.
 
+> ### generate (Optional value) Table Name
+  Serialise the YAML tables using a Go template.  Configured in the Options section of configuration
 ## setup
 The setup subcommand is used for configuring the migration environment.  The flags to this command determine which environment is being configured.
 
