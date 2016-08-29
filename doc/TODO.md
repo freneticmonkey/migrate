@@ -85,12 +85,13 @@ A growing list of features and tasks that need to be completed before this proje
         - [x] Migrate
         - [x] Recreate
         - [x] Pull-diff
-        - [ ] Migrate Configuration Status
+        - [x] Health Check (Migrate Configuration Status)
 - [x] Static Serving
 - [ ] REST API Front end - TODO => github.com/freneticmonkey/migrate-ui
 
 # TODO TOOLING
 - [x] Hash generation for embedded identifiers
+- [x] Logging to a log file.
 - [ ] Add MySQL validation option for validate cli
 
 # TODO Polish

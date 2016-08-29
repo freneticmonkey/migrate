@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -10,6 +11,29 @@ import (
 
 var verbose bool
 var originalVerb bool
+var filename string
+
+func SetLogFile(file string) func() {
+	filename = file
+	if file != "" {
+		logFile, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+		if err != nil {
+			log.Panicln(err)
+		}
+
+		log.SetOutput(io.MultiWriter(os.Stderr, logFile))
+
+		return func() {
+			e := logFile.Close()
+			if e != nil {
+				fmt.Fprintf(os.Stderr, "Problem closing the log file: %s\n", e)
+			}
+		}
+	}
+	return func() {
+		LogError("Logging: Invalid Filename. Defaulting to stdout")
+	}
+}
 
 func SetVerbose(v bool) {
 	verbose = v

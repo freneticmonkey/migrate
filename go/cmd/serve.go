@@ -26,6 +26,11 @@ func GetServeCommand() (srv cli.Command) {
 				Value: 8081,
 				Usage: "Server host port",
 			},
+			cli.StringFlag{
+				Name:  "log",
+				Value: "",
+				Usage: "Log File",
+			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
 			var conf config.Config
@@ -38,6 +43,8 @@ func GetServeCommand() (srv cli.Command) {
 			frontend := ctx.IsSet("frontend")
 
 			port := ctx.Int("port")
+
+			defer util.SetLogFile(ctx.String("log"))()
 
 			// Setup the management database and configuration settings
 			conf, err = configsetup.ConfigureManagement()
