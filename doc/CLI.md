@@ -18,34 +18,34 @@ Apply a migration to the database within the sandbox.  Optionally fully recreate
 
 ### flags
 
->  ### migrate
-   Apply any changes to the local YAML schema to the target project database
+> ### migrate
+  Apply any changes to the local YAML schema to the target project database
 
->  ### recreate
-   Recreate the target database from the YAML Schema in the working folder and insert the metadata into the management database
+> ### recreate
+  Recreate the target database from the YAML Schema in the working folder and insert the metadata into the management database
 
->  ### dryrun
-   Perform a migration dryrun
+> ### dryrun
+  Perform a migration dryrun
 
->  ### force
-   Skip the confirmation check before wiping the database and rebuilding the schema
+> ### force
+  Skip the confirmation check before wiping the database and rebuilding the schema
 
->  ### pull-diff (Optional value) Table Name
-   Read the state of the MySQL Target DB and serialise to YAML.  Intended to be used by MySQL power users to store manual schema changes.
+> ### pull-diff (Optional value) Table Name
+  Read the state of the MySQL Target DB and serialise to YAML.  Intended to be used by MySQL power users to store manual schema changes.
 
 ## setup
 The setup subcommand is used for configuring the migration environment.  The flags to this command determine which environment is being configured.
 
 ### flags
 
->  ### init-management
-   Create the management tables in the management database
+> ### init-management
+  Create the management tables in the management database
 
->  ### init-existing
-   Read the target database and generate a YAML schema including PropertyIds
+> ### init-existing
+  Read the target database and generate a YAML schema including PropertyIds
 
->  ### check-config
-   Check the configuration, connectivity to target and management DBs, as well as checking the environment for required tooling.
+> ### check-config
+  Check the configuration, connectivity to target and management DBs, as well as checking the environment for required tooling.
 
 ## diff
 Compare the target database to the YAML schema and output a human readable Git style diff.
