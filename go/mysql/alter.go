@@ -425,6 +425,14 @@ func generateAlterTable(diff table.Diff) (ops SQLOperations) {
 				Name:      diff.Table,
 				Metadata:  diff.Metadata,
 			})
+
+		case "Collation":
+			ops.Add(SQLOperation{
+				Statement: fmt.Sprintf("ALTER TABLE `%s` COLLATE=%s;", diff.Table, diff.Value),
+				Op:        table.Mod,
+				Name:      diff.Table,
+				Metadata:  diff.Metadata,
+			})
 		}
 	}
 
