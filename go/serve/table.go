@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/freneticmonkey/migrate/go/id"
+	"github.com/freneticmonkey/migrate/go/sandbox"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/freneticmonkey/migrate/go/yaml"
@@ -55,6 +56,9 @@ func replaceTable(context string, w http.ResponseWriter, r *http.Request, tbl ta
 
 	// Serialise table to disk
 	err = yaml.WriteTable(yamlPath, tbl)
+
+	// Serialise to template file
+	err = sandbox.GenerateTable(conf, tbl)
 
 	if err != nil {
 		writeErrorResponse(w, r, fmt.Sprintf("%s FAILED! Unable to create YAML Table definition", context), err, errors)
