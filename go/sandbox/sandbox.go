@@ -84,7 +84,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 	var forwardDiff table.Differences
 	var backwardDiff table.Differences
 	// Read the YAML schema
-	err = yaml.ReadTables(conf.Project.LocalSchema.Path)
+	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
 	if util.ErrorCheck(err) {
 		err = fmt.Errorf("%s failed. Unable to read YAML Tables", actionTitle)
 	}
