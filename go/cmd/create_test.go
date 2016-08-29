@@ -147,7 +147,7 @@ schemaTwo/*`
 			//
 
 			test.WriteFile(
-				"UnitTestProject/dogs.yml",
+				"unittestproject/dogs.yml",
 				testdata.GetYAMLTableAddressDogs(),
 				0644,
 				false,
@@ -514,7 +514,7 @@ schemaTwo/*`
 			//
 
 			test.WriteFile(
-				"UnitTestProject/dogs.yml",
+				"unittestproject/dogs.yml",
 				testdata.GetYAMLTableAddressDogs(),
 				0644,
 				false,

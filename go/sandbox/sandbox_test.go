@@ -16,7 +16,6 @@ import (
 	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
-	"github.com/freneticmonkey/migrate/go/yaml"
 )
 
 func setupRecreateDBSchema(projectDB *test.ProjectDB, result []test.DBRow, tables []string) {
@@ -43,6 +42,16 @@ func TestDiffSchema(t *testing.T) {
 
 	// Test Configuration
 	testConfig := test.GetTestConfig()
+	util.SetConfigTesting()
+	util.Config(testConfig)
+
+	// Create a YAML file for the diff to read
+	test.WriteFile(
+		"unittestproject/dogs.yml",
+		testdata.GetYAMLTableAddressDogs(),
+		0644,
+		false,
+	)
 
 	// Mock MySQL
 
@@ -70,9 +79,6 @@ func TestDiffSchema(t *testing.T) {
 			Metadata:  expectedAddressMetadata,
 		},
 	}
-
-	// Push Dogs table into YAML Schema for Diffing
-	yaml.Schema = append(yaml.Schema, dogsTbl)
 
 	// Setup the mock project database
 	projectDB, _ = test.CreateProjectDB(testName+"", t)
@@ -196,6 +202,17 @@ func TestCreateMigration(t *testing.T) {
 	testConfig := test.GetTestConfig()
 	testName := "TestCreateMigration"
 
+	util.SetConfigTesting()
+	util.Config(testConfig)
+
+	// Create a YAML file for the diff to read
+	test.WriteFile(
+		"unittestproject/dogs.yml",
+		testdata.GetYAMLTableAddressDogs(),
+		0644,
+		false,
+	)
+
 	forwards := mysql.SQLOperations{
 		mysql.SQLOperation{
 			Statement: "ALTER TABLE `dogs` ADD COLUMN `address` varchar(128) NOT NULL;",
@@ -293,6 +310,17 @@ func TestRecreateProjectDatabase(t *testing.T) {
 
 	// Test Configuration
 	testConfig := test.GetTestConfig()
+
+	util.SetConfigTesting()
+	util.Config(testConfig)
+
+	// Create a YAML file for the diff to read
+	test.WriteFile(
+		"unittestproject/dogs.yml",
+		testdata.GetYAMLTableAddressDogs(),
+		0644,
+		false,
+	)
 
 	// Setup the mock project database
 	projectDB, err = test.CreateProjectDB(testName, t)
@@ -494,13 +522,21 @@ func TestRefreshDatabase(t *testing.T) {
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
+	util.SetConfigTesting()
+	util.Config(testConfig)
+
 	// Configure the Test Datadata
 
 	dogsTbl := testdata.GetTableDogs()
 	dogsAddressTbl := testdata.GetTableAddressDogs()
 
-	// Push Dogs table into YAML Schema
-	yaml.Schema = []table.Table{dogsTbl}
+	// Create a YAML file for the diff to read
+	test.WriteFile(
+		"unittestproject/dogs.yml",
+		testdata.GetYAMLTableDogs(),
+		0644,
+		false,
+	)
 
 	// The recreation Migration
 	m := migration.Migration{

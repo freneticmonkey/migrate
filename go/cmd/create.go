@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/configsetup"
@@ -84,7 +85,7 @@ func create(version string, rollback bool, conf config.Config) *cli.ExitError {
 	git.Clone(conf.Project)
 
 	// Read the YAML files cloned from the repo
-	err = yaml.ReadTables(conf.Options.WorkingPath)
+	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Creation failed. Unable to read YAML Tables", 1)
 	}
