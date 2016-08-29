@@ -1,0 +1,35 @@
+id:        {{.ID}}
+name:      {{.Name}}
+engine:    {{.Engine}}{{if .AutoInc}}
+autoinc:   {{.AutoInc}}{{end}}{{if .RowFormat}}
+rowformat: {{.RowFormat}}{{end}}{{if .Collation}}
+collation: {{.Collation}}{{end}}
+charset:   {{.CharSet}}
+columns:{{range $ind, $col := .Columns}}
+    - id:       {{$col.ID}}
+      name:     {{$col.Name}}
+      type:     {{$col.Type}}
+      size:     {{$col.Size}}{{if $col.Nullable}}
+      nullable: {{$col.Nullable}}{{end}}{{if $col.AutoInc}}
+      autoinc:  {{$col.AutoInc}}{{end}}{{if $col.Unsigned}}
+      unsigned: {{$col.Unsigned}}{{end}}{{if $col.Collation}}
+      collation:{{$col.Collation}}{{end}}
+{{end}}{{if .PrimaryIndex.Columns}}
+primaryindex:
+    id:        {{.PrimaryIndex.ID}}
+    name:      {{.PrimaryIndex.Name}}
+    isprimary: true{{if .PrimaryIndex.IsUnique}}
+    isunique:  {{.PrimaryIndex.IsUnique}}{{end}}
+    columns: {{range $ind, $col := .PrimaryIndex.Columns}}
+        - name:    {{$col.Name}}{{if $col.Length}}
+          length:  {{$col.Length}}{{end}}{{end}}
+{{end}}{{if .SecondaryIndexes}}
+secondaryindexes:{{range $ind, $index := .SecondaryIndexes}}
+    - id:      {{$index.ID}}
+      name:    {{$index.Name}}{{if $index.IsUnique}}
+      isunique:{{$index.IsUnique}}{{end}}
+      columns: {{range $ind, $col := $index.Columns}}
+          - name:    {{$col.Name}}{{if $col.Length}}
+            length:  {{$col.Length}}{{end}}{{end}}
+{{end}}
+{{end}}

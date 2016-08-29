@@ -3,6 +3,11 @@ options:
     namespaces: No
     # Relative to this configuration file
     workingpath: "test/working"
+    # Relative to the working path
+    template:
+        file: "yaml.tmpl"
+        path: "yaml"
+        ext:  "yml"
     # Management specific configuration
     management:
         # DB Configuration
@@ -36,9 +41,3 @@ project:
         # Subfolders within the Git repo to checkout which contain db schema
         folders:
             - "test"
-
-    # local project settings used for sandbox development
-    localschema:
-        # This is the working folder, however it is intended to be a path to
-        # schema within a cloned repo
-        path: "test/working"

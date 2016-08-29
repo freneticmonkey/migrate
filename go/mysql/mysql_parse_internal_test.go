@@ -569,9 +569,6 @@ func TestColumnParse(t *testing.T) {
 			DB: config.DB{
 				Database: "project",
 			},
-			LocalSchema: config.LocalSchema{
-				Path: "ignore",
-			},
 		},
 	}
 

@@ -39,11 +39,16 @@ func GetSandboxCommand() (setup cli.Command) {
 				Value: "",
 				Usage: "Serialise manual MySQL Table alteration to YAML. Use '*' for entire schema.",
 			},
+			cli.StringFlag{
+				Name:  "generate",
+				Value: "",
+				Usage: "Serialise a YAML table using the configured template. Use '*' for entire schema.",
+			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
 			var conf config.Config
 
-			if !ctx.IsSet("recreate") && !ctx.IsSet("migrate") && !ctx.IsSet("pull-diff") {
+			if !ctx.IsSet("recreate") && !ctx.IsSet("migrate") && !ctx.IsSet("pull-diff") && !ctx.IsSet("generate") {
 				cli.ShowSubcommandHelp(ctx)
 				return cli.NewExitError("Please provide a valid flag", 1)
 			}
@@ -59,14 +64,24 @@ func GetSandboxCommand() (setup cli.Command) {
 			}
 
 			// Process command line flags
-			return sandboxProcessFlags(conf, ctx.Bool("recreate"), ctx.Bool("migrate"), ctx.Bool("dryrun"), ctx.Bool("force"), ctx.IsSet("pull-diff"), ctx.String("pull-diff"))
+			return sandboxProcessFlags(
+				conf,
+				ctx.Bool("recreate"),
+				ctx.Bool("migrate"),
+				ctx.Bool("dryrun"),
+				ctx.Bool("force"),
+				ctx.IsSet("pull-diff"),
+				ctx.IsSet("generate"),
+				ctx.String("pull-diff"),
+				ctx.String("generate"),
+			)
 		},
 	}
 	return setup
 }
 
 // sandboxProcessFlags Setup the Sandbox operation
-func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force, pulldiff bool, pdTable string) (err error) {
+func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force, pulldiff, generate bool, pdTable string, genTable string) (err error) {
 	var successmsg string
 
 	const YES, NO = "yes", "no"
@@ -127,9 +142,17 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force, p
 		}
 		successmsg, err = sandbox.PullDiff(conf, pdTable)
 		if err != nil {
-			return cli.NewExitError(fmt.Sprintf("Pull-diff FaILED: Error: %v", err), 1)
+			return cli.NewExitError(fmt.Sprintf("Pull-diff FAILED: Error: %v", err), 1)
 		}
 		return cli.NewExitError("Pull-diff completed successfully.", 0)
+	} else if generate {
+
+		err = sandbox.Generate(conf, genTable)
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("Generate FAILED: Error: %v", err), 1)
+		}
+
+		return cli.NewExitError("Generate completed successfully.", 0)
 	}
 	return cli.NewExitError("No known parameters supplied.  Please refer to help for sandbox options.", 1)
 }

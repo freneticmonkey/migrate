@@ -232,6 +232,10 @@ func PullDiff(conf config.Config, tableName string) (result string, err error) {
 		mysql.Schema = tgtTbl
 	}
 
+	if len(mysql.Schema) == 0 {
+		return "", fmt.Errorf("Generate: MySQL Table not found: %s", tableName)
+	}
+
 	// Serialise the MySQL Schema
 	path := util.WorkingSubDir(strings.ToLower(conf.Project.Name))
 

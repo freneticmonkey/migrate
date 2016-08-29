@@ -21,9 +21,6 @@ func GetTestConfig() config.Config {
 					"schemaTwo",
 				},
 			},
-			LocalSchema: config.LocalSchema{
-				Path: "ignore",
-			},
 			DB: config.DB{
 				Database:    "project",
 				Environment: "SANDBOX",

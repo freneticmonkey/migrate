@@ -93,6 +93,7 @@ A growing list of features and tasks that need to be completed before this proje
 - [x] Hash generation for embedded identifiers
 - [x] Logging to a log file.
 - [ ] Add MySQL validation option for validate cli
+- [x] Template serialisation of Tables
 
 # TODO Polish
 - [x] Provide feedback when flags are required

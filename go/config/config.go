@@ -10,7 +10,14 @@ type Config struct {
 type Options struct {
 	Namespaces  bool
 	WorkingPath string
+	Template    Template
 	Management  Management
+}
+
+type Template struct {
+	File string
+	Path string
+	Ext  string
 }
 
 type Management struct {
@@ -18,10 +25,9 @@ type Management struct {
 }
 
 type Project struct {
-	Name        string
-	DB          DB
-	Schema      Schema
-	LocalSchema LocalSchema
+	Name   string
+	DB     DB
+	Schema Schema
 }
 
 type Schema struct {
@@ -29,10 +35,6 @@ type Schema struct {
 	Url     string
 	Version string
 	Folders []string
-}
-
-type LocalSchema struct {
-	Path string
 }
 
 type DB struct {
