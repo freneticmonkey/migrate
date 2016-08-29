@@ -68,7 +68,7 @@ func Setup(conf config.Config) (err error) {
 	}
 
 	if !tablesExist() {
-		return fmt.Errorf("Unable to continue.  Management database is not initialised")
+		return fmt.Errorf("Cannot connect to Management database")
 	}
 
 	// Configure the Database Table packages

@@ -30,7 +30,7 @@ type Response struct {
 var yamlPath string
 var conf config.Config
 
-func setup(apiConfig config.Config) (err error) {
+func setupServer(apiConfig config.Config) (err error) {
 
 	conf = apiConfig
 
@@ -65,7 +65,7 @@ func Run(apiConfig config.Config, frontend bool, port int) (err error) {
 	util.LogInfo("Starting Migrate Server")
 
 	// Configuring server cache
-	err = setup(apiConfig)
+	err = setupServer(apiConfig)
 	if err != nil {
 		return err
 	}
@@ -78,6 +78,7 @@ func Run(apiConfig config.Config, frontend bool, port int) (err error) {
 	registerDatabaseEndpoints(r)
 	registerTableEndpoints(r)
 	registerSandboxEndpoints(r)
+	registerHealthEndpoints(r)
 
 	// Serve the Javascript Frontend UI as well
 	if frontend {

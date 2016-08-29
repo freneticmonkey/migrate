@@ -46,6 +46,8 @@ var databaseColumns = []string{
 	"env",
 }
 
+var databaseValuesTemplate = " values (null,?,?,?)"
+
 func (m *ManagementDB) DatabaseGet(project string, name string, env string, result DBRow, expectEmtpy bool) {
 
 	query := DBQueryMock{
@@ -57,6 +59,18 @@ func (m *ManagementDB) DatabaseGet(project string, name string, env string, resu
 	query.FormatQuery("SELECT * FROM target_database WHERE project=\"%s\" AND name=\"%s\" AND env=\"%s\"", project, name, env)
 
 	m.ExpectQuery(query)
+}
+
+func (m *ManagementDB) DatabaseInsert(args DBRow, lastInsert int64, rowsAffected int64) {
+
+	query := DBQueryMock{
+		Type:   ExecCmd,
+		Result: sqlmock.NewResult(lastInsert, rowsAffected),
+	}
+	query.FormatQuery("insert into `target_database` (`%s`)%s", strings.Join(databaseColumns, "`,`"), databaseValuesTemplate)
+	query.SetArgs(args...)
+
+	m.ExpectExec(query)
 }
 
 func (m *ManagementDB) DatabaseCreateTable() {

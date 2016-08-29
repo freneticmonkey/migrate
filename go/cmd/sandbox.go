@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/configsetup"
 	"github.com/freneticmonkey/migrate/go/sandbox"
 	"github.com/freneticmonkey/migrate/go/util"
 	"github.com/urfave/cli"
@@ -51,7 +52,7 @@ func GetSandboxCommand() (setup cli.Command) {
 			parseGlobalFlags(ctx)
 
 			// Setup the management database and configuration settings
-			conf, err = configureManagement()
+			conf, err = configsetup.ConfigureManagement()
 
 			if err != nil {
 				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)

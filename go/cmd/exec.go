@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/freneticmonkey/migrate/go/configsetup"
 	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -55,7 +56,7 @@ func GetExecCommand() (setup cli.Command) {
 			parseGlobalFlags(ctx)
 
 			// Setup the management database and configuration settings
-			_, err := configureManagement()
+			_, err := configsetup.ConfigureManagement()
 
 			if err != nil {
 				return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", err), 1)

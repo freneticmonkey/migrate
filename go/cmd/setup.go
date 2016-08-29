@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/configsetup"
 	"github.com/freneticmonkey/migrate/go/management"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/mysql"
@@ -46,7 +46,7 @@ func GetSetupCommand() (setup cli.Command) {
 			if ctx.IsSet("management") {
 				util.ConfigFileSystem()
 				// Load Configuration only
-				conf, configError := loadConfig(configURL, configFile)
+				conf, configError := configsetup.LoadConfig(configURL, configFile)
 
 				if configError != nil {
 					return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", configError), 1)
@@ -64,7 +64,7 @@ func GetSetupCommand() (setup cli.Command) {
 
 			} else if ctx.IsSet("existing") {
 				// Read configuration and access the management database
-				conf, configError := configureManagement()
+				conf, configError := configsetup.ConfigureManagement()
 
 				if configError != nil {
 					return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", configError), 1)
@@ -72,7 +72,12 @@ func GetSetupCommand() (setup cli.Command) {
 				return setupExistingDB(conf)
 
 			} else if ctx.IsSet("check-config") {
-				return checkConfig()
+				configHealth := configsetup.CheckConfig(true)
+				if !configHealth.Ok() {
+					return cli.NewExitError("Configuration Check failed.  See log for details", 1)
+				}
+				return cli.NewExitError("Configration OK", 0)
+
 			}
 
 			return cli.NewExitError("No action performed.", 0)
@@ -161,170 +166,6 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 	return cli.NewExitError("Management Database Setup Failed: Invalid option.", 1)
 }
 
-func checkConfig() *cli.ExitError {
-	// Check Configuration
-	valid := true
-
-	// We need to see the output here
-	util.SetVerbose(true)
-
-	// Configuration Load
-	util.ConfigFileSystem()
-
-	// Load Configuration only
-	conf, configError := loadConfig(configURL, configFile)
-
-	if configError != nil {
-		return cli.NewExitError(fmt.Sprintf("Configuration Load failed. Error: %v", configError), 1)
-	}
-
-	// Validate Configuration
-	if conf.Options.WorkingPath == "" {
-		util.LogError("Working Path: MISSING")
-		valid = false
-	} else {
-		util.LogOk("Working Path: OK")
-	}
-
-	// Managment DB
-	mgmtDBOk := true
-	if conf.Options.Management.DB.Username == "" {
-		util.LogError("Management DB Username: MISSING")
-		mgmtDBOk = false
-	}
-	if conf.Options.Management.DB.Password == "" {
-		util.LogError("Management DB Password: MISSING")
-		mgmtDBOk = false
-	}
-	if conf.Options.Management.DB.Ip == "" {
-		util.LogError("Management DB Ip: MISSING")
-		mgmtDBOk = false
-	}
-	if conf.Options.Management.DB.Port == 0 {
-		util.LogError("Management DB Port: MISSING")
-		mgmtDBOk = false
-	}
-	if conf.Options.Management.DB.Database == "" {
-		util.LogError("Management DB Database Name: MISSING")
-		mgmtDBOk = false
-	}
-
-	// Check Management DB access
-	if mgmtDBOk {
-		util.LogOk("Management DB Configuration: OK")
-
-		mgmtDB, err := sql.Open("mysql", conf.Options.Management.DB.ConnectString())
-
-		if err != nil {
-			util.LogErrorf("Management DB Connection: Couldn't Connect: %v", err)
-			valid = false
-		} else {
-			mgmtDB.Close()
-			util.LogOk("Management DB Connection: SUCCESS")
-		}
-
-	} else {
-		valid = false
-	}
-
-	// Project
-	if conf.Project.Name == "" {
-		util.LogError("Project Name: MISSING")
-		valid = false
-	} else {
-		util.LogOk("Project Name: OK")
-	}
-
-	// Target DB
-	targetDBOk := true
-	if conf.Project.DB.Username == "" {
-		util.LogError("Target DB Username: MISSING")
-		targetDBOk = false
-	}
-	if conf.Project.DB.Password == "" {
-		util.LogError("Target DB Password: MISSING")
-		targetDBOk = false
-	}
-	if conf.Project.DB.Ip == "" {
-		util.LogError("Target DB Ip: MISSING")
-		targetDBOk = false
-	}
-	if conf.Project.DB.Port == 0 {
-		util.LogError("Target DB Port: MISSING")
-		targetDBOk = false
-	}
-	if conf.Project.DB.Database == "" {
-		util.LogError("Target DB Database Name: MISSING")
-		targetDBOk = false
-	}
-	if conf.Project.DB.Environment == "" {
-		util.LogError("Target DB Environment Name: MISSING")
-		targetDBOk = false
-	}
-
-	// Check Target DB access
-	if targetDBOk {
-		util.LogOk("Target DB Configuration: OK")
-
-		targetDB, err := sql.Open("mysql", conf.Project.DB.ConnectString())
-
-		if err != nil {
-			util.LogErrorf("Target DB Connection: Couldn't Connect: %v", err)
-			valid = false
-		} else {
-			targetDB.Close()
-			util.LogOk("Target DB Connection: SUCCESS")
-		}
-	} else {
-		valid = false
-	}
-
-	// Check Git Configuration
-	gitConfig := true
-	if conf.Project.Schema.Url == "" {
-		util.LogError("Schema Repo URL: MISSING")
-		gitConfig = false
-	}
-	// All other Git Schema options are optional :)
-	if gitConfig {
-		util.LogOk("Project Schema Repo Config: OK")
-	} else {
-		valid = false
-	}
-
-	buildCheck := func(cmd string) []string {
-		return []string{
-			"-v",
-			cmd,
-			">/dev/null",
-			"2>&1",
-			"||",
-			"{ echo >&2 \"I require foo but it's not installed.  Aborting.\"; exit 1; }",
-		}
-	}
-
-	// Check for git install
-	out, e := util.GetShell().Run("command", buildCheck("git")...)
-
-	if e != nil {
-		util.LogErrorf("Checking for Git: %v", e)
-		valid = false
-	} else {
-		util.LogOk("Checking for Git: OK " + out)
-	}
-
-	// Check for pt-online-schema-change
-	out, e = util.GetShell().Run("command", buildCheck("pt-online-schema-change")...)
-
-	if e != nil {
-		util.LogWarnf("Checking for PTO: FAILED: %v", e)
-		valid = false
-	} else {
-		util.LogOk("Checking for PTO: OK Found: " + out)
-	}
-
-	if valid {
-		return cli.NewExitError("Configuration Test Successful", 0)
-	}
-	return cli.NewExitError("Configuration Test Failed with Errors.", 1)
-}
+//
+// func checkConfig() error {
+// 	}

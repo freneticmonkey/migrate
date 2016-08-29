@@ -8,7 +8,11 @@ import (
 	"testing"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/freneticmonkey/migrate/go/configsetup"
+	"github.com/freneticmonkey/migrate/go/exec"
 	"github.com/freneticmonkey/migrate/go/management"
+	"github.com/freneticmonkey/migrate/go/metadata"
+	"github.com/freneticmonkey/migrate/go/migration"
 	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/testdata"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -85,7 +89,7 @@ func TestConfigReadFile(t *testing.T) {
 
 	// manually setting the default global config filename
 	configFile = configFilename
-
+	configsetup.SetConfigFile(configFile)
 	// Check for mananagement tables
 
 	// Setup the mock Managment DB
@@ -107,14 +111,19 @@ func TestConfigReadFile(t *testing.T) {
 		expectedConfig.Project.Name,
 		expectedConfig.Project.DB.Database,
 		expectedConfig.Project.DB.Environment,
-		test.DBRow{1, "UnitTestProject", "project", "SANDBOX"},
+		test.DBRow{
+			1,
+			expectedConfig.Project.Name,
+			expectedConfig.Project.DB.Database,
+			expectedConfig.Project.DB.Environment,
+		},
 		false,
 	)
 
 	// Set the management DB
 	management.SetManagementDB(mgmtDB.Db)
 
-	fileConfig, err := configureManagement()
+	fileConfig, err := configsetup.ConfigureManagement()
 
 	if err != nil {
 		t.Errorf("Config Read File FAILED with Error: %v", err)
@@ -127,10 +136,16 @@ func TestConfigReadFile(t *testing.T) {
 		util.DebugDumpDiff(expectedConfig, fileConfig)
 	}
 
+	mgmtDB.ExpectionsMet(testName, t)
+
 	testdata.Teardown()
 }
 
 func TestConfigReadURL(t *testing.T) {
+	var mgmtDB test.ManagementDB
+	var err error
+
+	testName := "TestConfigReadURL"
 
 	// TODO: Provide config
 	var remoteConfig = `
@@ -182,12 +197,28 @@ func TestConfigReadURL(t *testing.T) {
 		},
 	}
 
+	// Configure the Mock Managment DB
+	mgmtDB, err = test.CreateManagementDB(testName, t)
+
+	if err == nil {
+		// migration.Setup(mgmtDB.Db, 1)
+		exec.Setup(mgmtDB.Db, 1, expectedConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDB.Db, 1)
+		metadata.Setup(mgmtDB.Db, 1)
+	} else {
+		t.Errorf("%s failed with error: %v", testName, err)
+		return
+	}
+
+	// Configure the mock remote HTTP config host
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, remoteConfig)
 	}))
 	defer ts.Close()
 
-	urlConfig, err := loadConfig(ts.URL, "")
+	configsetup.SetConfigURL(ts.URL)
+
+	urlConfig, err := configsetup.LoadConfig(ts.URL, "")
 
 	if err != nil {
 		t.Errorf("Config Read URL FAILED with Error: %v", err)
@@ -197,6 +228,7 @@ func TestConfigReadURL(t *testing.T) {
 		util.LogWarn("Config Read URL FAILED. Returned config does not match.")
 		util.DebugDumpDiff(expectedConfig, urlConfig)
 	}
+	mgmtDB.ExpectionsMet(testName, t)
 
 	testdata.Teardown()
 }
