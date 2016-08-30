@@ -255,6 +255,10 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 				builder.AddFormat("DEFAULT '%s'", toColumn.Default)
 			}
 		}
+
+		if len(toColumn.Collation) > 0 {
+			builder.AddFormat("COLLATE %s", toColumn.Collation)
+		}
 	}
 
 	operation.Statement = builder.Format()
