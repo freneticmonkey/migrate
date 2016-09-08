@@ -85,102 +85,109 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 	var files []string
 
 	util.SetVerbose(true)
-	tmpOptions := conf.Options.Template
 
-	if tmpOptions.Path == "" || tmpOptions.File == "" || tmpOptions.Ext == "" {
-		return fmt.Errorf("Generate Table: Badly configured template options")
-	}
-
-	templateFile := util.WorkingSubDir(tmpOptions.File)
-
-	// Generation path
-	genPath := util.WorkingSubDir(tmpOptions.Path)
-
-	// Ensure that the path exists
-	exists, err = util.DirExists(genPath)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		err = util.Mkdir(genPath, 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	data, err = util.ReadFile(templateFile)
-	if err != nil {
-		return err
-	}
-	tblTmpl := string(data)
-
-	// Configure the table template
+	// Define the custom template functions
 	funcMap := template.FuncMap{
 		"content":           contentSlice,
 		"removeHungarian":   removeHungarian,
 		"toUpper":           strings.ToUpper,
+		"trimSuffix":        strings.TrimSuffix,
+		"replace":           strings.Replace,
 		"title":             strings.Title,
 		"contains":          strings.Contains,
 		"slice":             stringSlice,
 		"underscoreDelimit": underscoreDelimit,
 	}
 
-	tmpl, err = template.New("t").Funcs(funcMap).Parse(tblTmpl)
-	if err != nil {
-		return err
-	}
+	for _, tmpOptions := range conf.Options.Generation.Templates {
+		util.LogInfof("Generating Schema for Template: %s", tmpOptions.Name)
 
-	files, err = scanGeneratedFiles(genPath)
+		if tmpOptions.Path == "" || tmpOptions.File == "" || tmpOptions.FileFormat == "" {
+			return fmt.Errorf("Generate Table: Badly configured template options")
+		}
 
-	// Generate each table
-	for _, tbl := range tables {
-		var f afero.File
+		templateFile := util.WorkingSubDir(tmpOptions.File)
 
-		// Build a filename and path for the table file
-		tbl.Namespace.SetExistingFilename(files)
+		// Generation path
+		genPath := util.WorkingSubDir(tmpOptions.Path)
 
-		tblFilename := tbl.Namespace.GenerateFilename(tmpOptions.Ext)
-		tblFilename = filepath.Join(genPath, tblFilename)
-
-		// Create Directory if not exists
-		dir := filepath.Dir(tblFilename)
-		exists, err = util.DirExists(dir)
+		// Ensure that the path exists
+		exists, err = util.DirExists(genPath)
 		if err != nil {
 			return err
 		}
+
 		if !exists {
-			util.Mkdir(dir, 0755)
-		}
-
-		// If the file exists, read it and build any content sections
-		exists, err = util.FileExists(tblFilename)
-		if exists {
-			util.LogInfo("File Found: " + tblFilename)
-
-			data, err = util.ReadFile(tblFilename)
+			err = util.Mkdir(genPath, 0755)
 			if err != nil {
-				return fmt.Errorf("Generate Table: Problem reading target file for replacement. Error: %v", err)
+				return err
 			}
-			// Read the current file for content sections
-			err = parseContent(string(data))
-		} else {
-			util.LogInfo("File NOT Found: " + tblFilename)
 		}
 
-		// Create a file
-		f, err = util.Create(tblFilename)
+		data, err = util.ReadFile(templateFile)
+		if err != nil {
+			return err
+		}
+		tblTmpl := string(data)
+
+		// Configure the table template
+		tmpl, err = template.New(tmpOptions.Name).Funcs(funcMap).Parse(tblTmpl)
 		if err != nil {
 			return err
 		}
 
-		// Generate the contents from the template
-		err = tmpl.Execute(f, tbl)
-		if err != nil {
+		files, err = scanGeneratedFiles(genPath)
+
+		// Generate each table
+		for _, tbl := range tables {
+			var f afero.File
+			// Build a filename and path for the table file
+
+			// Set the file format for the output file
+			tbl.Namespace.SetTableFilename(tmpOptions.FileFormat)
+			// Search for an existing file to adopt its naming case
+			tbl.Namespace.SetExistingFilename(files)
+			// Generate the final filename
+			tblFilename := tbl.Namespace.GenerateFilename(tmpOptions.Ext)
+			// Relative to the working directory
+			tblFilename = filepath.Join(genPath, tblFilename)
+
+			// Create Directory if not exists
+			dir := filepath.Dir(tblFilename)
+			exists, err = util.DirExists(dir)
+			if err != nil {
+				return err
+			}
+			if !exists {
+				util.Mkdir(dir, 0755)
+			}
+
+			// If the file exists, read it and build any content sections
+			exists, err = util.FileExists(tblFilename)
+			if exists {
+				data, err = util.ReadFile(tblFilename)
+				if err != nil {
+					return fmt.Errorf("Generate Table: Problem reading target file for replacement. Error: %v", err)
+				}
+				// Read the current file for content sections
+				err = parseContent(string(data))
+			}
+
+			// Create a file
+			f, err = util.Create(tblFilename)
+			if err != nil {
+				return err
+			}
+
+			// Generate the contents from the template
+			err = tmpl.Execute(f, tbl)
+			if err != nil {
+				f.Close()
+				return err
+			}
 			f.Close()
-			return err
 		}
-		f.Close()
+
 	}
 
 	return err

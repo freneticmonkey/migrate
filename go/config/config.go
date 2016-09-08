@@ -10,14 +10,20 @@ type Config struct {
 type Options struct {
 	Namespaces  bool
 	WorkingPath string
-	Template    Template
+	Generation  Generation
 	Management  Management
 }
 
+type Generation struct {
+	Templates []Template
+}
+
 type Template struct {
-	File string
-	Path string
-	Ext  string
+	Name       string
+	File       string
+	Path       string
+	FileFormat string
+	Ext        string
 }
 
 type Management struct {

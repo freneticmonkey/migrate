@@ -42,6 +42,11 @@ type Namespace struct {
 	TableFilename string
 }
 
+// SetTableFilename Sets the expected table filename format ahead of searching for existing files.
+func (tn *Namespace) SetTableFilename(fileformat string) {
+	tn.TableFilename = strings.Replace(fileformat, "<table>", tn.TableName, 1)
+}
+
 // SetExistingFilename Search the files parameter for a file matching the Table
 // Will match a file either namespaced, or not.  For example:
 //
@@ -63,7 +68,7 @@ type Namespace struct {
 // Will both match.
 func (tn *Namespace) SetExistingFilename(files []string) {
 
-	tnl := strings.ToLower(tn.TableName)
+	tnl := strings.ToLower(tn.TableFilename)
 	tnsn := strings.ToLower(tn.ShortName)
 	for _, file := range files {
 		// check if the file is in a folder
@@ -86,7 +91,7 @@ func (tn *Namespace) SetExistingFilename(files []string) {
 		// If the lowercase filename matches the lowercase tablename
 		if strings.ToLower(fn) == tnl {
 			// set the filename
-			tn.TableFilename = strings.TrimSuffix(filepath.Base(file), filepath.Ext(f))
+			tn.TableFilename = strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 			// stop searching
 			break
 		}
