@@ -105,7 +105,6 @@ func (tn Namespace) GenerateFilename(ext string) string {
 		path = append(path)
 	}
 	genpath := filepath.Join(path...)
-	util.LogError("Generating Path: " + genpath)
 	return genpath
 }
 
