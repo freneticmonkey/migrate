@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/configsetup"
@@ -82,7 +81,7 @@ func validate(project, version, schemaType string, conf config.Config) *cli.Exit
 
 	if schemaType == "yaml" || schemaType == "both" {
 		// Read the YAML files cloned from the repo
-		err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+		err = yaml.ReadTables(conf)
 		if util.ErrorCheck(err) {
 			return cli.NewExitError("Validation failed. Unable to read YAML Tables", 1)
 		}
@@ -97,7 +96,7 @@ func validate(project, version, schemaType string, conf config.Config) *cli.Exit
 	if schemaType == "mysql" || schemaType == "both" {
 
 		// Read the MySQL tables from the target database
-		err = mysql.ReadTables()
+		err = mysql.ReadTables(conf)
 		if util.ErrorCheck(err) {
 			return cli.NewExitError("Validation failed. Unable to read MySQL Tables", 1)
 		}

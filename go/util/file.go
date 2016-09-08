@@ -100,6 +100,14 @@ func WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return afero.WriteFile(fs, filename, data, 0644)
 }
 
+func Open(filename string) (afero.File, error) {
+	return fs.Open(filename)
+}
+
+func Create(filename string) (afero.File, error) {
+	return fs.Create(filename)
+}
+
 func DeleteFile(filename string) error {
 	if !filepath.IsAbs(filename) {
 		filename = filepath.Join(WorkingPathAbs, filename)

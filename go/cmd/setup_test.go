@@ -227,6 +227,7 @@ func TestSetupExistingDB(t *testing.T) {
 	filepath := util.WorkingSubDir(
 		filepath.Join(
 			strings.ToLower(testConfig.Project.Name),
+			testConfig.Project.Schema.Namespaces[0].ShortName,
 			dogsTbl.Name+".yml",
 		),
 	)

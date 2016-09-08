@@ -2,7 +2,6 @@ package yaml
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -19,10 +18,7 @@ func WriteTables(path string, tables table.Tables) (err error) {
 
 // WriteTable Serialise the Table has YAML and write it to path
 func WriteTable(path string, tbl table.Table) (err error) {
-	if useNamespaces {
-		tbl.RemoveNamespace()
-	}
-	filename := strings.ToLower(tbl.Name) + ".yml"
+	filename := tbl.Namespace.GenerateFilename("yml")
 	filepath := filepath.Join(path, filename)
 
 	util.LogInfof("Writing Table: %s to YAML File: %s", tbl.Name, filepath)

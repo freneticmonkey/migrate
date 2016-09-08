@@ -97,7 +97,7 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 	metadata.UseCache(true)
 
 	// Read the MySQL Database and generate Tables
-	err := mysql.ReadTables()
+	err := mysql.ReadTables(conf)
 	if util.ErrorCheck(err) {
 		return cli.NewExitError("Setup Existing failed. Unable to read MySQL Tables", 1)
 	}

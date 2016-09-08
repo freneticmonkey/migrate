@@ -16,9 +16,17 @@ func GetTestConfig() config.Config {
 			Schema: config.Schema{
 				Url:     "http://git.test.com/test/repo",
 				Version: "abc123",
-				Folders: []string{
-					"schema",
-					"schemaTwo",
+				Namespaces: []config.SchemaNamespace{
+					{
+						Name:      "Schema",
+						ShortName: "SS",
+						Folder:    "schema",
+					},
+					{
+						Name:      "SchemaTwo",
+						ShortName: "ST",
+						Folder:    "schemaTwo",
+					},
 				},
 			},
 			DB: config.DB{

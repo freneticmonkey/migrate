@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"path/filepath"
+
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -31,10 +33,22 @@ func ReadData(data []byte, out interface{}) (err error) {
 }
 
 func WriteFile(file string, tbl table.Table) (err error) {
-	if useNamespaces {
-		tbl.RemoveNamespace()
-	}
+	var exists bool
+
 	filedata, err := yaml.Marshal(tbl)
+	if err != nil {
+		return err
+	}
+
+	// Create Directory if not exists
+	dir := filepath.Dir(file)
+	exists, err = util.DirExists(dir)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		util.Mkdir(dir, 0755)
+	}
 
 	if !util.ErrorCheck(err) {
 		err = util.WriteFile(file, filedata, 0644)

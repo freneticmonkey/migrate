@@ -5,13 +5,15 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
 )
 
 // ReadTables Read all of the files at path that have the extension 'yml' and parse them
 // into table.Table structs
-func ReadTables(path string) (err error) {
+func ReadTables(conf config.Config) (err error) {
+	path := strings.ToLower(conf.Project.Name)
 	var schemaList []string
 
 	// If the path has been defined as ignore, then immediately return without error.
@@ -40,10 +42,8 @@ func ReadTables(path string) (err error) {
 			// Process the table metadata
 			processMetadata(&tbl)
 
-			if useNamespaces {
-				// Calculate the table's namespace
-				tbl.SetNamespace(path, filename)
-			}
+			// Calculate the table's namespace
+			tbl.SetNamespace(conf)
 
 			// If the table has an Id, then it can be used.
 			// Otherwise ignore it.

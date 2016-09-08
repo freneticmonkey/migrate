@@ -31,10 +31,17 @@ type Project struct {
 }
 
 type Schema struct {
-	Name    string
-	Url     string
-	Version string
-	Folders []string
+	Name       string
+	Url        string
+	Version    string
+	Namespaces []SchemaNamespace
+}
+
+type SchemaNamespace struct {
+	Name        string
+	ShortName   string
+	TablePrefix string
+	Folder      string
 }
 
 type DB struct {

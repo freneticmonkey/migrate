@@ -3,7 +3,6 @@ package serve
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/freneticmonkey/migrate/go/id"
 	"github.com/freneticmonkey/migrate/go/mysql"
@@ -88,7 +87,7 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 	yaml.Schema = []table.Table{}
 
 	// Read tables relative to the current working directory (which is the project name)
-	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+	err = yaml.ReadTables(conf)
 
 	// Configure table filter
 	diffSchema := yaml.Schema[:]
@@ -120,7 +119,7 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 
 	mysql.Schema = []table.Table{}
 
-	err = mysql.ReadTables()
+	err = mysql.ReadTables(conf)
 	if util.ErrorCheck(err) {
 		writeErrorResponse(w, r, "Diff failed.  Unable to read MySQL Schema`", err, nil)
 		return

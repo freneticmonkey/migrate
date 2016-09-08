@@ -96,7 +96,7 @@ func Clone(project config.Project) (err error) {
 	})
 
 	// If folders have been specified for the repo
-	if len(project.Schema.Folders) > 0 {
+	if len(project.Schema.Namespaces) > 0 {
 
 		// git config core.sparseCheckout true
 		gitCmd(path, []string{
@@ -108,9 +108,9 @@ func Clone(project config.Project) (err error) {
 		var repoFolders []string
 
 		// for each of the configured folders
-		for _, folder := range project.Schema.Folders {
+		for _, namespace := range project.Schema.Namespaces {
 			// echo <repo_path>/*> .git/info/sparse-checkout
-			repoFolders = append(repoFolders, folder+"/*")
+			repoFolders = append(repoFolders, namespace.Folder+"/*")
 
 		}
 		filedata := strings.Join(repoFolders, "\n")

@@ -4,12 +4,110 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/util"
 )
+
+// NewNamespace Initialise a new Namespace
+func NewNamespace(ns *config.SchemaNamespace, tableName string) Namespace {
+
+	if ns != nil {
+		tableName = strings.TrimPrefix(tableName, ns.TablePrefix)
+		return Namespace{
+			SchemaName:    ns.Name,
+			ShortName:     ns.ShortName,
+			TablePrefix:   ns.TablePrefix,
+			TableName:     tableName,
+			TableFilename: tableName,
+		}
+	}
+	return Namespace{
+		TableName:     tableName,
+		TableFilename: tableName,
+	}
+
+}
+
+// Namespace Stores the namespacing metadata for the Table
+type Namespace struct {
+	SchemaName    string
+	ShortName     string
+	TablePrefix   string
+	TableName     string
+	TableFilename string
+}
+
+// SetExistingFilename Search the files parameter for a file matching the Table
+// Will match a file either namespaced, or not.  For example:
+//
+// For DB table:
+// 		animals_dogs
+//
+// Where SchemaNamespace:
+// 		SchemaNamespace {
+//			SchemaName:  "Animals",
+//			ShortName:   "ani",
+//			TablePrefix: "animals",
+//			TableName:   "dogs",
+//		}
+//
+// Namespaced:
+// <root>/ani/dogs.txt
+// Regular:
+// <root>/dogs.txt
+// Will both match.
+func (tn *Namespace) SetExistingFilename(files []string) {
+
+	tnl := strings.ToLower(tn.TableName)
+	tnsn := strings.ToLower(tn.ShortName)
+	for _, file := range files {
+		// check if the file is in a folder
+		pathPieces := strings.Split(path.Dir(file), fmt.Sprintf("%c", os.PathSeparator))
+
+		if len(pathPieces) > 1 {
+			dir := strings.ToLower(pathPieces[len(pathPieces)-1])
+
+			// If the folder of the file doesn't match the SchemaNamespace short name,
+			// ignore it.
+			if dir != tnsn {
+				continue
+			}
+			// If the folder is correct, keep checking the file
+		}
+		// extract the filename without the extension
+		f := strings.ToLower(filepath.Base(file))
+		fn := strings.TrimSuffix(f, filepath.Ext(f))
+
+		// If the lowercase filename matches the lowercase tablename
+		if strings.ToLower(fn) == tnl {
+			// set the filename
+			tn.TableFilename = strings.TrimSuffix(filepath.Base(file), filepath.Ext(f))
+			// stop searching
+			break
+		}
+	}
+}
+
+// GenerateFilename Generate a filename for the table given its namespace and a file extension
+func (tn Namespace) GenerateFilename(ext string) string {
+	path := []string{}
+	if tn.ShortName != "" {
+		path = append(path, tn.ShortName)
+	}
+	if tn.TableFilename != "" {
+		path = append(path, tn.TableFilename+"."+ext)
+	} else {
+		path = append(path)
+	}
+	genpath := filepath.Join(path...)
+	util.LogError("Generating Path: " + genpath)
+	return genpath
+}
 
 // Tables Helper type for a slice of Table structs
 type Tables []Table
@@ -28,35 +126,26 @@ type Table struct {
 	PrimaryIndex     Index   `yaml:",omitempty"`
 	SecondaryIndexes []Index `yaml:",omitempty"`
 
-	namespace []string
+	Namespace Namespace         `yaml:"-"`
 	Filename  string            `yaml:"-"`
 	Metadata  metadata.Metadata `yaml:"-"`
 }
 
 // SetNamespace Use the path and filename parameters to rename the table
 // into an underscore delimited namespace
-func (t *Table) SetNamespace(path string, filename string) (err error) {
-	wd, err := os.Getwd()
+func (t *Table) SetNamespace(conf config.Config) (err error) {
 
-	t.Filename = filename
+	var ns *config.SchemaNamespace
 
-	relativePath, err := filepath.Rel(filepath.Join(wd, path), filename)
-
-	dir, _ := filepath.Split(relativePath)
-
-	var ns []string
-
-	if len(dir) > 0 {
-		ns = strings.Split(dir, fmt.Sprintf("%c", os.PathSeparator))
-		t.namespace = ns[:len(ns)-1]
-
-		// rewrite tablenames
-		t.Name = fmt.Sprintf("%s_%s", strings.Join(t.namespace, "_"), t.Name)
-
-		// Ensure lower
-		t.Name = strings.ToLower(t.Name)
+	// Search for configured Schema Namespaces
+	for _, sns := range conf.Project.Schema.Namespaces {
+		if strings.HasPrefix(t.Name, sns.TablePrefix) {
+			ns = &sns
+			break
+		}
 	}
 
+	t.Namespace = NewNamespace(ns, t.Name)
 	return err
 }
 
@@ -226,17 +315,9 @@ func (t *Table) GeneratePropertyIDs() error {
 	}
 
 	// Primary Key
-	if t.PrimaryIndex.Metadata.PropertyID == "" {
-		pkID := "primarykey"
-
-		t.PrimaryIndex.ID = pkID
-		t.PrimaryIndex.Metadata.PropertyID = pkID
-		t.PrimaryIndex.Metadata.ParentID = tableID
-
-	} else {
-		t.PrimaryIndex.ID = t.Metadata.PropertyID
-		t.PrimaryIndex.Metadata.ParentID = tableID
-	}
+	t.PrimaryIndex.ID = "primarykey"
+	t.PrimaryIndex.Metadata.PropertyID = "primarykey"
+	t.PrimaryIndex.Metadata.ParentID = tableID
 
 	// Indexes
 	for i := 0; i < len(t.SecondaryIndexes); i++ {

@@ -49,7 +49,7 @@ func setupServer(apiConfig config.Config) (err error) {
 	}
 
 	// Read tables relative to the current working directory (which is the project name)
-	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+	err = yaml.ReadTables(conf)
 
 	if util.ErrorCheck(err) {
 		return fmt.Errorf("Table Setup failed. Unable to read YAML Tables")

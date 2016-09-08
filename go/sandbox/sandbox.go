@@ -84,7 +84,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 	var forwardDiff table.Differences
 	var backwardDiff table.Differences
 	// Read the YAML schema
-	err = yaml.ReadTables(strings.ToLower(conf.Project.Name))
+	err = yaml.ReadTables(conf)
 	if util.ErrorCheck(err) {
 		err = fmt.Errorf("%s failed. Unable to read YAML Tables", actionTitle)
 	}
@@ -102,7 +102,7 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		}
 
 		// Read the MySQL tables from the target database
-		err = mysql.ReadTables()
+		err = mysql.ReadTables(conf)
 		if util.ErrorCheck(err) {
 			err = fmt.Errorf("%s failed. Unable to read MySQL Tables", actionTitle)
 			return forwardOps, backwardOps, err
@@ -213,7 +213,7 @@ func PullDiff(conf config.Config, tableName string) (result string, err error) {
 	metadata.UseCache(true)
 
 	// Read the MySQL tables from the target database
-	err = mysql.ReadTables()
+	err = mysql.ReadTables(conf)
 	if util.ErrorCheck(err) {
 		err = fmt.Errorf("Pull-Diff failed. Unable to read MySQL Tables")
 	}

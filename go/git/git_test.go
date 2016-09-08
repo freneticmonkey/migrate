@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/test"
 	"github.com/freneticmonkey/migrate/go/util"
 )
@@ -137,9 +138,17 @@ schemaTwo/*`
 	// Add additional git configuration
 	testConfig.Project.Schema.Url = "http://git.test.com/test/repo"
 	testConfig.Project.Schema.Version = version
-	testConfig.Project.Schema.Folders = []string{
-		"schema",
-		"schemaTwo",
+	testConfig.Project.Schema.Namespaces = []config.SchemaNamespace{
+		{
+			Name:      "Schema",
+			ShortName: "SS",
+			Folder:    "schema",
+		},
+		{
+			Name:      "SchemaTwo",
+			ShortName: "ST",
+			Folder:    "schemaTwo",
+		},
 	}
 
 	// Configure unit test shell

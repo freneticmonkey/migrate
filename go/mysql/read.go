@@ -8,6 +8,7 @@ import (
 	// Get a MySQL Database Connection
 	"database/sql"
 
+	"github.com/freneticmonkey/migrate/go/config"
 	"github.com/freneticmonkey/migrate/go/metadata"
 	"github.com/freneticmonkey/migrate/go/table"
 	"github.com/freneticmonkey/migrate/go/util"
@@ -498,6 +499,8 @@ func buildPrimaryKey(pk string, tblPropertyID string, tblName string) (primaryKe
 	primaryKey.IsPrimary = true
 	primaryKey.Name = table.PrimaryKey
 
+	md.PropertyID = "primarykey"
+	md.ParentID = tblPropertyID
 	md.Name = primaryKey.Name
 	md.Type = "PrimaryKey"
 	md.Exists = true
@@ -535,6 +538,8 @@ func buildIndex(key string, tblPropertyID string, tblName string) (index table.I
 	// Extract Columns
 	index.Columns, err = buildIndexColumns(key)
 
+	md.PropertyID = index.Name
+	md.ParentID = tblPropertyID
 	md.Name = index.Name
 	md.Type = "Index"
 	md.Exists = true
@@ -659,7 +664,7 @@ func ReadTableNames() (tables []string, err error) {
 
 // ReadTables Reads the database for the project parameter and parses the
 // show create table result for each into table.Table structs
-func ReadTables() (err error) {
+func ReadTables(conf config.Config) (err error) {
 
 	type CreateTable struct {
 		Name            string
@@ -714,6 +719,7 @@ func ReadTables() (err error) {
 			if err != nil {
 				return err
 			}
+			tbl.SetNamespace(conf)
 			Schema = append(Schema, tbl)
 		}
 	}
