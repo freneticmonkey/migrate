@@ -117,22 +117,26 @@ func Load(mdid int64) (m *Metadata, err error) {
 
 		for i := range cache {
 			if cache[i].MDID == mdid {
-				return &md, nil
+				return &cache[i], nil
 			}
 		}
-
-	} else {
-
-		if err = configured(); err != nil {
-			return m, err
-		}
-		query := fmt.Sprintf("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
-		err = mgmtDb.SelectOne(&md, query)
-
-		if err == nil {
-			m = &md
-		}
 	}
+
+	if err = configured(); err != nil {
+		return m, err
+	}
+	query := fmt.Sprintf("SELECT * FROM `metadata` WHERE mdid=%d", mdid)
+	err = mgmtDb.SelectOne(&md, query)
+
+	if err == nil {
+		m = &md
+	}
+
+	// If there was a cache miss, push it into the cache
+	if usingCache {
+		cache = append(cache, md)
+	}
+
 	return m, err
 }
 
@@ -146,6 +150,12 @@ func TableRegistered(name string) (reg bool, err error) {
 	query := fmt.Sprintf("SELECT count(*) from metadata WHERE name=\"%s\" and type=\"Table\"", name)
 	count, err := mgmtDb.SelectInt(query)
 	return count > 0, err
+}
+
+// SetTableExists Set all fields on the table to exist
+func SetTableExists(name string) (err error) {
+	_, err = mgmtDb.Exec(fmt.Sprintf("UPDATE metadata SET `exists` = 1 WHERE name = \"%s\" OR parent_id = \"%s\" AND db = %d", name, name, targetDBID))
+	return err
 }
 
 // LoadAllTableMetadata Load all of the Metadata rows for a table with the
@@ -181,6 +191,23 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 
 	util.ErrorCheckf(err, "There was a problem retrieving Metadata for Table with Name: [%s] and PropertyID: [%s]", name, tblMd.PropertyID)
 	return md, err
+}
+
+// DeleteAllTableMetadata Delete all of a Table's metadata.
+func DeleteAllTableMetadata(name string) (err error) {
+
+	_, err = mgmtDb.Exec(fmt.Sprintf("DELETE FROM metadata WHERE name = \"%s\" OR parent_id = \"%s\" AND db = %d", name, name, targetDBID))
+
+	return err
+}
+
+// DeleteAllTargetDBMetadata Delete all of a Table's metadata.  Intended for sandbox use.
+func DeleteAllTargetDBMetadata() (err error) {
+
+	query := fmt.Sprintf("DELETE FROM metadata WHERE db = %d", targetDBID)
+	_, err = mgmtDb.Exec(query)
+
+	return err
 }
 
 // GetTableByName Get a Table metadata object from the database by name

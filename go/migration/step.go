@@ -60,16 +60,22 @@ func (s *Step) UpdateMetadata() (err error) {
 	if s.Status == Forced || s.Status == Complete {
 
 		m, err = metadata.Load(s.MDID)
-
 		if util.ErrorCheckf(err, "Failed to load Metadata from the database") {
 			return err
 		}
+
 		switch s.Op {
 
 		case table.Add:
 			// Mark exists
 			m.Exists = true
 			err = m.Update()
+
+			if m.IsTable() {
+				// Update all table fields to exist
+				metadata.SetTableExists(m.Name)
+			}
+
 		case table.Mod:
 			// If a rename has occurred, be sure to update the new name in the Metadata
 			if m.Name != s.Name {
@@ -79,6 +85,11 @@ func (s *Step) UpdateMetadata() (err error) {
 		case table.Del:
 			// If the operation is removing something, delete the associated Metadata
 			err = m.Delete()
+
+			if m.IsTable() {
+				// Delete all table fields
+				metadata.DeleteAllTableMetadata(m.Name)
+			}
 		}
 	}
 

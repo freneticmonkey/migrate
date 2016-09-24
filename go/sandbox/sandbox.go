@@ -189,6 +189,11 @@ func recreateProjectDatabase(conf config.Config, dryrun bool) (err error) {
 				return fmt.Errorf("Sandbox Recreation failed. Couldn't DROP ALL TABLES for Project Database")
 			}
 
+			err = metadata.DeleteAllTargetDBMetadata()
+			if util.ErrorCheckf(err, "Problem deleting all Metadata from Management Database") {
+				return fmt.Errorf("Sandbox Recreation failed. Couldn't delete all Management Database")
+			}
+
 			// Force a Reconnect to the database because the DB was just recreated
 			// exec.ConnectProjectDB(true)
 
