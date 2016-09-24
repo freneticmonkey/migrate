@@ -1,42 +1,42 @@
 name:     dogs
 charset:  latin1
 engine:   InnoDB
-id:       tbl1
+id:       dogs
 columns:
     - name:     id
       type:     int
       size:     [11]
       nullable: No
-      # autoinc:  Yes
-      id:       col1
+      autoinc:  Yes
+      id:       id
 
     - name:     name
       type:     varchar
       size:     [64]
       nullable: No
-      id:       col2
+      id:       name
 
     - name:     age
       type:     int
       size:     [11]
       nullable: No
-      id:       col3
+      id:       age
 
     - name:     address
       type:     varchar
       size:     [256]
       nullable: No
-      id:       col4
+      id:       address
 
 primaryindex:
     columns:
-      - name
+      - name: name
     isprimary: Yes
     id: pi
 
 secondaryindexes:
   - name: idx_id_name
-    id: sc1
+    id: idx_id_name
     columns:
-        - id
-        - name
+        - name: id
+        - name: name

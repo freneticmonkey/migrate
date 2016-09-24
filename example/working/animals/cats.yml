@@ -1,36 +1,36 @@
 name:     cats
 charset:  latin1
 engine:   InnoDB
-id:       tbl1
+id:       cats
 columns:
     - name:     id
       type:     int
       size:     [11]
       nullable: No
-      # autoinc:  Yes
-      id:       col1
+      autoinc:  Yes
+      id:       id
 
     - name:     name
       type:     varchar
       size:     [64]
       nullable: No
-      id:       col2
+      id:       name
 
     - name:     age
       type:     int
       size:     [11]
       nullable: No
-      id:       col3
+      id:       age
 
 primaryindex:
     columns:
-      - name
+      - name: name
     isprimary: Yes
     id: pi
 
 secondaryindexes:
   - name: idx_id_name
-    id: sc1
+    id: idx_id_name
     columns:
-        - id
-        - name
+        - name: id
+        - name: name
