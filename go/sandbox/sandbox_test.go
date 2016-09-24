@@ -307,7 +307,7 @@ func TestRecreateProjectDatabase(t *testing.T) {
 	testName := "TestRecreateProjectDatabase"
 
 	var projectDB test.ProjectDB
-
+	var mgmtDb test.ManagementDB
 	// Test Configuration
 	testConfig := test.GetTestConfig()
 
@@ -331,7 +331,21 @@ func TestRecreateProjectDatabase(t *testing.T) {
 		mysql.SetProjectDB(projectDB.Db.Db)
 	}
 
+	// Configure the Mock Managment DB
+	mgmtDb, err = test.CreateManagementDB(testName, t)
+
+	if err == nil {
+		// migration.Setup(mgmtDb.Db, 1)
+		exec.Setup(mgmtDb.Db, 1, testConfig.Project.DB.ConnectString())
+		migration.Setup(mgmtDb.Db, 1)
+		metadata.Setup(mgmtDb.Db, 1)
+	}
+
+	// Expect all tables to be dropped
 	setupRecreateDBSchema(&projectDB, []test.DBRow{{"dogs"}}, []string{"dogs"})
+
+	// Expect all metadata to be deleted
+	mgmtDb.Mock.ExpectExec("DELETE FROM metadata WHERE db = 1").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// Execute the recreation!
 	recreateProjectDatabase(testConfig, false)
