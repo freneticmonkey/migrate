@@ -32,7 +32,6 @@ func (m *Metadata) Insert() error {
 	if err := configured(); err != nil {
 		return err
 	}
-
 	err := mgmtDb.Insert(m)
 	if usingCache {
 		if err == nil {
@@ -157,6 +156,11 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 	tblMd, err = GetTableByName(name)
 
 	if err != nil {
+		return md, err
+	}
+
+	// If there isn't any metadata for the table, early exit, all metadata needs to be created
+	if tblMd.Name == "" {
 		return md, err
 	}
 
