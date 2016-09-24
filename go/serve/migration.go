@@ -21,6 +21,8 @@ type migrationList struct {
 // registerMigrationEndpoints Register the migration functions for the REST API
 func registerMigrationEndpoints(r *mux.Router) {
 	r.HandleFunc("/api/migration/{id}", getMigration)
+	r.HandleFunc("/api/migration/list/", listMigrations)
+	r.HandleFunc("/api/migration/list/{start}", listMigrations)
 	r.HandleFunc("/api/migration/list/{start}/{count}", listMigrations)
 }
 
@@ -65,6 +67,11 @@ func listMigrations(w http.ResponseWriter, r *http.Request) {
 			start, err = strconv.ParseInt(value, 10, 64)
 		case "count":
 			count, err = strconv.ParseInt(value, 10, 64)
+		}
+
+		if util.ErrorCheck(err) {
+			writeErrorResponse(w, r, fmt.Sprintf("Unable to parse. Param: %s value: %s", key, value), err, nil)
+			return
 		}
 	}
 

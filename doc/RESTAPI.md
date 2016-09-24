@@ -22,6 +22,12 @@ Interact with migrations in the Management DB
 #### /api/migration/{id}
 Get the Migration with ID {id}
 
+#### /api/migration/list/
+Get the first 10 Migrations
+
+#### /api/migration/list/{start}
+Get the first 10 Migrations from id {start}
+
 #### /api/migration/list/{start}/{count}
 Get all Migrations with IDs between {start} and {start} + {count}
 
@@ -106,6 +112,12 @@ The JSON structure for tables can be seen below.
             ...
         ]
     }
+
+#### /api/table/list/
+Get the first 10 tables
+
+#### /api/table/list/{start}
+Get the first 10 tables from id {start}
 
 #### /api/table/list/{start}/{count}
 Get all Tables with with pagination offsets {start} and {start} + {count}

@@ -21,6 +21,8 @@ func registerTableEndpoints(r *mux.Router) {
 	r.HandleFunc("/api/table/{id}", getTable)
 	r.HandleFunc("/api/table/{id}/edit", editTable).Methods("POST")
 	r.HandleFunc("/api/table/{id}/delete", deleteTable).Methods("DELETE")
+	r.HandleFunc("/api/table/list/", listTables)
+	r.HandleFunc("/api/table/list/{start}", listTables)
 	r.HandleFunc("/api/table/list/{start}/{count}", listTables)
 }
 
@@ -259,12 +261,13 @@ func listTables(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if numTables < start+count {
-		writeErrorResponse(w, r, fmt.Sprintf("Invalid parameters. Out of bounds Start: %d Count: %d ", start, count), err, nil)
-		return
+	until := start + count
+
+	if until > int64(len(yaml.Schema)-1) {
+		until = int64(len(yaml.Schema) - 1)
 	}
 
-	listTables := yaml.Schema[start : start+count]
+	listTables := yaml.Schema[start:until]
 
 	payload := TableList{
 		Tables: listTables,
