@@ -38,7 +38,6 @@ func ReadTables(conf config.Config) (err error) {
 			if err != nil {
 				return err
 			}
-
 			// Process the table metadata
 			processMetadata(&tbl)
 
@@ -52,6 +51,8 @@ func ReadTables(conf config.Config) (err error) {
 				// FIXME: This is a clunky way of doing this.
 				if len(tbl.PrimaryIndex.Columns) > 0 {
 					tbl.PrimaryIndex.IsPrimary = true
+					tbl.PrimaryIndex.Name = "PrimaryKey"
+					tbl.PrimaryIndex.ID = "primarykey"
 				}
 
 				Schema = append(Schema, tbl)

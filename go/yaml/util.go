@@ -74,9 +74,9 @@ func processMetadata(t *table.Table) {
 		}
 	}
 
-	pk := t.PrimaryIndex
+	// Set the name and id for the PrimaryIndex as it can only ever be the same value
 	t.PrimaryIndex.Metadata = metadata.Metadata{
-		PropertyID: pk.ID,
+		PropertyID: "primarykey",
 		ParentID:   t.ID,
 		Name:       "PrimaryKey",
 		Type:       "Index",
