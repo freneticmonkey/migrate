@@ -2,7 +2,7 @@ options:
     # Use namespace functionality to allow for subfolder schema
     namespaces: No
     # Relative to this configuration file
-    workingpath: "test/working"
+    workingpath: "working"
     # Relative to the working path
     template:
         file: "yaml.tmpl"
@@ -29,7 +29,7 @@ project:
         ip:          127.0.0.1
         port:        3500
         database:    test
-        environment: PROD
+        environment: SANDBOX
     # The Project schema configuration
     schema:
         # Schema name.  Not currently used
