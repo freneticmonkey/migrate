@@ -99,7 +99,7 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 		"underscoreDelimit": underscoreDelimit,
 	}
 
-	for _, tmpOptions := range conf.Options.Generation.Templates {
+	for _, tmpOptions := range conf.Project.Generation.Templates {
 		util.LogInfof("Generating Schema for Template: %s", tmpOptions.Name)
 
 		if tmpOptions.Path == "" || tmpOptions.File == "" || tmpOptions.FileFormat == "" {
