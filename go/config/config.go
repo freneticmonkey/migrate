@@ -10,7 +10,6 @@ type Config struct {
 type Options struct {
 	Namespaces  bool
 	WorkingPath string
-	Generation  Generation
 	Management  Management
 }
 
@@ -31,9 +30,10 @@ type Management struct {
 }
 
 type Project struct {
-	Name   string
-	DB     DB
-	Schema Schema
+	Name       string
+	DB         DB
+	Generation Generation
+	Schema     Schema
 }
 
 type Schema struct {
