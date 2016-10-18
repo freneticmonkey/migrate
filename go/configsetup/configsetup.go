@@ -76,7 +76,7 @@ func LoadConfig(configURL, configFile string) (targetConfig config.Config, err e
 
 			if !util.ErrorCheckf(err, "Problem reading the response for the config-url request") {
 				// Unmarshal the YAML config
-				err = yaml.ReadData(data, &targetConfig)
+				err = yaml.ReadData(configURL, data, &targetConfig)
 				configSource = configURL
 			}
 		}

@@ -269,7 +269,7 @@ func TestYAMLParse(t *testing.T) {
 	for _, test := range yamlTests {
 		var result table.Table
 
-		err = ReadData([]byte(test.Str), &result)
+		err = ReadData("testfile", []byte(test.Str), &result)
 		validateResult(test, result, err, t)
 	}
 
