@@ -3,11 +3,6 @@ options:
     namespaces: No
     # Relative to this configuration file
     workingpath: "working"
-    # Relative to the working path
-    template:
-        file: "yaml.tmpl"
-        path: "yaml"
-        ext:  "yml"
     # Management specific configuration
     management:
         # DB Configuration
@@ -30,6 +25,11 @@ project:
         port:        3500
         database:    test
         environment: SANDBOX
+    generation:
+        templates:
+            - file: "yaml.tmpl"
+              path: "yaml"
+              ext:  "yml"
     # The Project schema configuration
     schema:
         # Schema name.  Not currently used
