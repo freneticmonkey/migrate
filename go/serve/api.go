@@ -135,3 +135,7 @@ func writeErrorResponse(w http.ResponseWriter, r *http.Request, detail string, e
 	}
 	return err
 }
+
+func verboseLogging(r *http.Request) {
+	util.LogGreen("REQUEST: " + r.URL.String())
+}

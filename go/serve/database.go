@@ -17,6 +17,7 @@ func registerDatabaseEndpoints(r *mux.Router) {
 
 // getDatabase Temporary REST test function
 func getDatabase(w http.ResponseWriter, r *http.Request) {
+	verboseLogging(r)
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 

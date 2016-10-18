@@ -37,6 +37,8 @@ func setStatus(w http.ResponseWriter, r *http.Request) {
 	migrations := []migration.Migration{}
 	var err error
 
+	verboseLogging(r)
+
 	stepIds := []int64{}
 	steps := []migration.Step{}
 

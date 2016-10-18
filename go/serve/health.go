@@ -15,6 +15,7 @@ func registerHealthEndpoints(r *mux.Router) {
 
 // getHealth Get server health
 func getHealth(w http.ResponseWriter, r *http.Request) {
+	verboseLogging(r)
 	health := configsetup.CheckConfig(false)
 	if !health.Ok() {
 		writeErrorResponse(w, r, "Health Check State: BAD", fmt.Errorf("Health Check State: BAD"), health)

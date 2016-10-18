@@ -14,22 +14,20 @@ func ReadFile(file string, out interface{}) (err error) {
 
 	data, err := util.ReadFile(file)
 
-	if !util.ErrorCheck(err) {
-		err = ReadData(data, out)
+	if !util.ErrorCheckf(err, "Error Reading File: %s Error: %v", file, err) {
+		err = ReadData(file, data, out)
 	}
 
 	return err
 
 }
 
-func ReadData(data []byte, out interface{}) (err error) {
-
+func ReadData(file string, data []byte, out interface{}) (err error) {
 	err = yaml.Unmarshal(data, out)
 
-	util.ErrorCheck(err)
+	util.ErrorCheckf(err, "Error Unmarshalling File: %s Error: %v", file, err)
 
 	return err
-
 }
 
 func WriteFile(file string, tbl table.Table) (err error) {

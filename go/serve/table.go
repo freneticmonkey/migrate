@@ -96,6 +96,8 @@ func createTable(w http.ResponseWriter, r *http.Request) {
 	var newTable table.Table
 	var err error
 
+	verboseLogging(r)
+
 	// Parse table from post body
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&newTable)
@@ -110,6 +112,7 @@ func createTable(w http.ResponseWriter, r *http.Request) {
 func getTable(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var t *table.Table
+	verboseLogging(r)
 	vars := mux.Vars(r)
 
 	tableID := vars["id"]
@@ -131,6 +134,7 @@ func getTable(w http.ResponseWriter, r *http.Request) {
 func editTable(w http.ResponseWriter, r *http.Request) {
 	var editTable table.Table
 	var err error
+	verboseLogging(r)
 	vars := mux.Vars(r)
 
 	// Parse table from post body
@@ -159,6 +163,7 @@ func editTable(w http.ResponseWriter, r *http.Request) {
 
 func deleteTable(w http.ResponseWriter, r *http.Request) {
 	var deleteRequest DeleteRequest
+	verboseLogging(r)
 	// Parse table from post body
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&deleteRequest)
@@ -232,6 +237,7 @@ func listTables(w http.ResponseWriter, r *http.Request) {
 	start = 0
 	count = 10
 
+	verboseLogging(r)
 	vars := mux.Vars(r)
 
 	numTables := int64(len(yaml.Schema))
@@ -263,8 +269,8 @@ func listTables(w http.ResponseWriter, r *http.Request) {
 
 	until := start + count
 
-	if until > int64(len(yaml.Schema)-1) {
-		until = int64(len(yaml.Schema) - 1)
+	if until > int64(len(yaml.Schema)) {
+		until = int64(len(yaml.Schema))
 	}
 
 	listTables := yaml.Schema[start:until]

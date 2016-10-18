@@ -28,6 +28,7 @@ func registerMigrationEndpoints(r *mux.Router) {
 
 // getMigration Get Migration by Id
 func getMigration(w http.ResponseWriter, r *http.Request) {
+	verboseLogging(r)
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 
@@ -58,6 +59,7 @@ func listMigrations(w http.ResponseWriter, r *http.Request) {
 	start = 0
 	count = 10
 
+	verboseLogging(r)
 	vars := mux.Vars(r)
 
 	for key, value := range vars {

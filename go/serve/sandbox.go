@@ -27,6 +27,7 @@ func migrate(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var result string
 
+	verboseLogging(r)
 	yaml.Schema = []table.Table{}
 
 	result, err = sandbox.Action(conf, false, false, "REST API Migrate")
@@ -43,6 +44,7 @@ func recreate(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var result string
 
+	verboseLogging(r)
 	yaml.Schema = []table.Table{}
 
 	result, err = sandbox.Action(conf, false, true, "REST API Recreate Database")
@@ -59,6 +61,7 @@ func pullDiff(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var result string
 
+	verboseLogging(r)
 	vars := mux.Vars(r)
 
 	tableName := vars["id"]
@@ -78,6 +81,8 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 	var forwardOps mysql.SQLOperations
 	var problems id.ValidationErrors
 	var err error
+
+	verboseLogging(r)
 
 	// Extract the table name
 	vars := mux.Vars(r)
