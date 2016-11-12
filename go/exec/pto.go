@@ -23,6 +23,7 @@ func executePTO(statement string, dryrun bool) (output string, err error) {
 	if dryrun {
 		output = fmt.Sprintf("PTO: [pt-online-schema-change %s]", strings.Join(params, " "))
 	} else {
+		util.LogAlertf("PTO: Executing Migration: [%s]", strings.Join(params, " "))
 		output, err = shell.Run("pt-online-schema-change", params...)
 	}
 

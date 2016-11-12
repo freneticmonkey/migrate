@@ -24,6 +24,7 @@ func ExecuteSQL(statement string, dryrun bool) (output string, err error) {
 		if ready && !util.ErrorCheckf(err, "Failed to open connection to Project DB") {
 
 			// Execute the migration
+			util.LogAlertf("SQL: Executing Migration: [%s]", statement)
 			result, err = projectDB.Exec(statement)
 			if !util.ErrorCheck(err) {
 
