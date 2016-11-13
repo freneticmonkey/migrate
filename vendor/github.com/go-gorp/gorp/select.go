@@ -15,6 +15,8 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+
+	"github.com/freneticmonkey/migrate/go/util"
 )
 
 // SelectInt executes the given query, which should be a SELECT statement for a single
@@ -162,6 +164,8 @@ func selectVal(e SqlExecutor, holder interface{}, query string, args ...interfac
 			query, args = maybeExpandNamedQuery(m.dbmap, query, args)
 		}
 	}
+	util.LogAttention("DEBUG SELECT QUERY: " + query)
+
 	rows, err := e.query(query, args...)
 	if err != nil {
 		return err
@@ -246,6 +250,8 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	if len(args) == 1 {
 		query, args = maybeExpandNamedQuery(m, query, args)
 	}
+
+	util.LogAttention("DEBUG RAW SELECT QUERY: " + query)
 
 	// Run the query
 	rows, err := exec.query(query, args...)

@@ -19,6 +19,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/freneticmonkey/migrate/go/util"
 )
 
 // OracleString (empty string is null)
@@ -159,6 +161,8 @@ func exec(e SqlExecutor, query string, args ...interface{}) (sql.Result, error) 
 	if len(args) == 1 {
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
+
+	util.LogAttention("GORP >> DEBUG EXEC QUERY: [%s] ARGS: [%s]", query, args)
 
 	return executor.Exec(query, args...)
 }

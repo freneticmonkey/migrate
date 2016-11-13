@@ -15,6 +15,8 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"regexp"
+
+	"github.com/freneticmonkey/migrate/go/util"
 )
 
 // Sqlmock interface serves to create expectations
@@ -199,6 +201,11 @@ func (c *sqlmock) Exec(query string, args []driver.Value) (res driver.Result, er
 	var expected *ExpectedExec
 	var fulfilled int
 	var ok bool
+
+	util.LogWarnf("MOCK >> Exec: [ %s : %v ]", query, args)
+
+	// fmt.Println(query)
+	// fmt.Println(args)
 	for _, next := range c.expected {
 		next.Lock()
 		if next.fulfilled() {
@@ -209,6 +216,7 @@ func (c *sqlmock) Exec(query string, args []driver.Value) (res driver.Result, er
 
 		if c.ordered {
 			if expected, ok = next.(*ExpectedExec); ok {
+				util.LogWarnf("MOCK >> NOW EXPECTING ORDERED: [%s]", fmt.Sprintf(expected.sqlRegex.String(), expected.args))
 				break
 			}
 			next.Unlock()
@@ -216,6 +224,7 @@ func (c *sqlmock) Exec(query string, args []driver.Value) (res driver.Result, er
 		}
 		if exec, ok := next.(*ExpectedExec); ok {
 			if err := exec.attemptMatch(query, args); err == nil {
+				util.LogWarnf("MOCK >> NOW EXPECTING UNORDERED: [%s]", fmt.Sprintf(expected.sqlRegex.String(), expected.args))
 				expected = exec
 				break
 			}
@@ -231,16 +240,20 @@ func (c *sqlmock) Exec(query string, args []driver.Value) (res driver.Result, er
 	}
 
 	defer expected.Unlock()
-
+	// fmt.Println(expected.sqlRegex.String())
+	// fmt.Println(expected.args)
 	if !expected.queryMatches(query) {
+		util.LogErrorf("exec query '%s', does not match regex '%s'", query, expected.sqlRegex.String())
 		return nil, fmt.Errorf("exec query '%s', does not match regex '%s'", query, expected.sqlRegex.String())
 	}
 
 	if err := expected.argsMatches(args); err != nil {
+		util.LogErrorf("exec query '%s', arguments do not match: %s", query, err)
 		return nil, fmt.Errorf("exec query '%s', arguments do not match: %s", query, err)
 	}
 
 	expected.triggered = true
+	util.LogAlert("MOCK >> DETECTED: ###> [" + expected.sqlRegex.String() + "]\n\n")
 
 	if expected.err != nil {
 		return nil, expected.err // mocked to return error
@@ -309,6 +322,9 @@ func (c *sqlmock) Query(query string, args []driver.Value) (rw driver.Rows, err 
 	var expected *ExpectedQuery
 	var fulfilled int
 	var ok bool
+
+	util.LogWarnf("MOCK >> QUERY: [ %s : %v ]", query, args)
+
 	for _, next := range c.expected {
 		next.Lock()
 		if next.fulfilled() {
@@ -319,6 +335,7 @@ func (c *sqlmock) Query(query string, args []driver.Value) (rw driver.Rows, err 
 
 		if c.ordered {
 			if expected, ok = next.(*ExpectedQuery); ok {
+				util.LogWarnf("MOCK >> NOW EXPECTING: [%s : %v]", expected.sqlRegex.String(), expected.args)
 				break
 			}
 			next.Unlock()
@@ -352,6 +369,7 @@ func (c *sqlmock) Query(query string, args []driver.Value) (rw driver.Rows, err 
 	}
 
 	expected.triggered = true
+	util.LogAlert("MOCK >> DETECTED: ###> [" + expected.sqlRegex.String() + "]\n\n")
 
 	if expected.err != nil {
 		return nil, expected.err // mocked to return error
