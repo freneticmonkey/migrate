@@ -25,6 +25,11 @@ _testmain.go
 
 # Ignoring Go debugging
 debug
+example/migrate
 
-# Ignoring the working folder
+# Ignoring the working folders
 test/working/*
+# tmp/*
+
+# Ignoring sql files for now
+*.sql
