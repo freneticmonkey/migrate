@@ -94,11 +94,11 @@ func create(version string, gitinfo string, clone bool, rollback bool, conf conf
 	if len(gitinfo) > 0 {
 		version, info, ts, err = git.GetVersionDetailsFile(gitinfo)
 
-		util.LogInfof("Detected gitinfo file. Parsed:\nVersion: %s\nTime: %s\nInfo:\n>>>\n%s\n<<<", version, ts, info)
-
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("Creation failed.  Unable to read the gitinfo file: %v", err), 1)
 		}
+
+		util.LogInfof("Detected gitinfo file. Parsed:\nVersion: %s\nTime: %s\nInfo:\n>>>\n%s\n<<<", version, ts, info)
 	}
 
 	// Override the project settings with the command line flags
