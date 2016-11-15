@@ -75,7 +75,7 @@ func GetExecCommand() (setup cli.Command) {
 					return cli.NewExitError("Migration failed. Unable to parse gitinfo file", 1)
 				}
 
-				util.LogErrorf("Detected gitinfo file. Parsed:\nVersion: %s\nTime: %s\nInfo:\n>>>\n%s\n<<<", version, ts, info)
+				util.LogInfof("Detected gitinfo file. Parsed:\nVersion: %s\nTime: %s\nInfo:\n>>>\n%s\n<<<", version, ts, info)
 
 				m, err = migration.LoadVersion(version)
 
