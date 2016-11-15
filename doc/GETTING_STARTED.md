@@ -229,9 +229,9 @@ Date:   Tue Nov 16 14:55:56 2016 +1100
 
 Applying a migration doesn't require the yaml schema, the migration process just applies each of the approved steps of a migration to the project database.  Migrations that have been approved cannot be executed if they are outdated by a newer migration.
 
-Below is an example of a migration using the `--gitinfo` flag as in the previous example to select the migration associated with the appropriate git version.
+Below is an example of a migration using the `--gitinfo` flag as in the previous example to select the migration associated with the appropriate git version. The `--pto-disabled` flag disables using pt-online-schema-change and just executes the schema change using a MySQL command.
 
-`./migrate exec --gitinfo gitinfo.txt`
+`./migrate exec --gitinfo gitinfo.txt --pto-disabled`
 
 This will produce the following output.
 
