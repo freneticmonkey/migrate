@@ -24,9 +24,11 @@ func TestCreateFailNoProject(t *testing.T) {
 	testConfig := test.GetTestConfig()
 
 	version := ""
+	gitinfo := ""
+	clone := true
 	rollback := false
 
-	result := create(version, rollback, testConfig)
+	result := create(version, gitinfo, clone, rollback, testConfig)
 
 	if result.ExitCode() < 1 {
 		t.Errorf("%s succeeded when it should have failed.", testName)
@@ -43,11 +45,13 @@ func TestCreateFailNoProjectVersion(t *testing.T) {
 	testConfig := test.GetTestConfig()
 
 	version := ""
+	gitinfo := ""
+	clone := true
 	rollback := false
 
 	testConfig.Project.Schema.Version = version
 
-	result := create(version, rollback, testConfig)
+	result := create(version, gitinfo, clone, rollback, testConfig)
 
 	if result.ExitCode() < 1 {
 		t.Errorf("%s succeeded when it should have failed.", testName)
@@ -67,6 +71,8 @@ func TestCreate(t *testing.T) {
 	util.SetConfigTesting()
 
 	version := "abc123"
+	gitinfo := ""
+	clone := true
 	rollback := false
 
 	// Configure testing data
@@ -363,7 +369,7 @@ schemaTwo/*`
 	//
 	////////////////////////////////////////////////////////
 
-	result = create(version, rollback, testConfig)
+	result = create(version, gitinfo, clone, rollback, testConfig)
 
 	if result.ExitCode() > 0 {
 		t.Errorf("%s failed with error: %v", testName, result)
@@ -424,6 +430,8 @@ func TestCreateRollback(t *testing.T) {
 	util.SetConfigTesting()
 
 	version := "abc123"
+	gitinfo := ""
+	clone := true
 	rollback := true
 
 	// Configure testing data
@@ -735,7 +743,7 @@ schemaTwo/*`
 	//
 	////////////////////////////////////////////////////////
 
-	result = create(version, rollback, testConfig)
+	result = create(version, gitinfo, clone, rollback, testConfig)
 
 	if result.ExitCode() > 0 {
 		t.Errorf("%s failed with error: %v", testName, result)

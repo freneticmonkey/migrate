@@ -27,7 +27,7 @@ func (m *Metadata) Insert() error {
 		return fmt.Errorf("Inserting empty Metadata")
 	}
 	if len(m.ParentID) == 0 && m.Type != "Table" {
-		return fmt.Errorf("Inserting Table field Metadata with no ParentID")
+		return fmt.Errorf("Inserting Table field Metadata with no ParentID. PropertyID: [%s] Name: [%s] ParentID: [%s]", m.PropertyID, m.Name, m.ParentID)
 	}
 	if err := configured(); err != nil {
 		return err

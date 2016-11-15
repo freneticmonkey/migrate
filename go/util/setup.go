@@ -63,6 +63,8 @@ func Config(conf config.Config) afero.Fs {
 	WorkingPathAbs = filepath.Join(cwd, strings.ToLower(conf.Options.WorkingPath))
 	WorkingPathAbs, err = filepath.Abs(WorkingPathAbs)
 
+	LogInfof("Set Working Path: %s", WorkingPathAbs)
+
 	if err != nil {
 		LogErrorf("Problem configuring the Working Directory to: %s", WorkingPathAbs)
 	}

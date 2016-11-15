@@ -35,7 +35,7 @@ Apply a migration to the database within the sandbox.  Optionally fully recreate
 
 > ### generate (Optional value) Table Name
   Serialise the YAML tables using a Go template.  Configured in the Options section of configuration
-  
+
 ## setup
 The setup subcommand is used for configuring the migration environment.  The flags to this command determine which environment is being configured.
 
@@ -89,6 +89,14 @@ This subcommand is used to create a migration and register it with the managemen
 
 > ### rollback
   Allows for a rollback migration to be created
+
+> ### gitinfo
+  Provide a path to a file containing the output of the git command `git show -s --pretty=medium`.
+  This is used to create migrations against the git version of the schema without having to have a git repo checked out.
+  _**NOTE:**_ Do not modify or use code versions that do not align with the version provided in this file.
+
+> ### no-clone
+  Skip all git operations.  This is intended to be used if the schema has been provided via another mechanism, e.g. CI.  When used with `--gitinfo` it allows for schema versions to be defined and deployed without git, for instance in a docker image.
 
 ## exec
 Migrations created by the **create** are executed by this subcommand.  Migrations are identified by an id.  The *dryrun* flag ensures that the migration is only tested and not applied to the target database.

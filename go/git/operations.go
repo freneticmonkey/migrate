@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -61,6 +62,50 @@ func GetVersionDetails(project string, version string) (details string, err erro
 	})
 
 	return details, err
+}
+
+// GetVersionDetailsFile Reads the file defined by the file parameter and returns
+// the versions and details info.
+func GetVersionDetailsFile(file string) (version string, info string, ts string, err error) {
+	var exists bool
+	var data []byte
+	var tm time.Time
+
+	exists, err = util.FileExists(file)
+
+	if !exists {
+		file = filepath.Join(util.WorkingPathAbs, file)
+	}
+
+	exists, err = util.FileExists(file)
+
+	if !exists || err != nil {
+
+		// if the gitinfo file doesn't exist
+		return "", "", "", fmt.Errorf("gitinfo file doesn't exist.  Unable to generate a migration as a version isn't defined")
+	}
+
+	// read the gitinfo contents
+	data, err = util.ReadFile(file)
+
+	if err != nil {
+		// if the gitinfo file doesn't exist
+		return "", "", "", fmt.Errorf("Reading gitinfo file failed.  Unable to generate a migration as a version isn't defined")
+	}
+
+	info = string(data)
+
+	// extract the version from the gitinfo
+	lines := strings.Split(info, "\n")
+	version = strings.TrimPrefix(lines[0], "commit ")
+	ts = strings.TrimPrefix(lines[2], "Date:")
+	ts = strings.Trim(ts, " ")
+
+	// Format the time value correctly
+	tm, err = time.Parse("Mon Jan 2 15:04:05 2006 -0700", ts)
+	formattedTime := tm.UTC().Format(mysql.TimeFormat)
+
+	return version, info, formattedTime, err
 }
 
 // Clone performs a check out into a new (project) sub folder underneath WorkingPath
