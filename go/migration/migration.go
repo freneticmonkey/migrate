@@ -121,6 +121,34 @@ func Load(mid int64) (m *Migration, err error) {
 	return m, err
 }
 
+// LoadVersion Load a migation from the DB using the Git version
+func LoadVersion(version string) (m *Migration, err error) {
+
+	var mig Migration
+	if err = configured(); err != nil {
+		return m, err
+	}
+	query := fmt.Sprintf("SELECT * FROM `migration` WHERE version = '%s'", version)
+	err = mgmtDb.SelectOne(&mig, query)
+
+	if err == nil {
+		m = &mig
+	} else if err == sql.ErrNoRows {
+		err = fmt.Errorf("Migration: Version: [%s] not found in the DB", version)
+	}
+
+	if err == nil {
+
+		var steps []Step
+		query := fmt.Sprintf("SELECT * FROM `migration_steps` WHERE mid=%d", m.MID)
+		_, err = mgmtDb.Select(&steps, query)
+		if err == nil {
+			m.Steps = steps
+		}
+	}
+	return m, err
+}
+
 // LoadList Build a slice of Migrations.  count has a maximum size of 50
 func LoadList(start int64, count int64) (migrations []Migration, end int64, total int64, err error) {
 

@@ -105,6 +105,11 @@ Migrations created by the **create** are executed by this subcommand.  Migration
 > ### id
   The id of the migration to execute
 
+> ### gitinfo
+  Provide a path to a file containing the output of the git command `git show -s --pretty=medium`.
+  This is used to find migrations by the git version of the schema without having to have a git repo checked out.
+  _**NOTE:**_ Do not modify or use code versions that do not align with the version provided in this file.
+
 > ### print
   Display the current state of the migration with ID as recorded in the management DB.
 
