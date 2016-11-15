@@ -11,7 +11,6 @@ import (
 )
 
 func ReadFile(file string, out interface{}) (err error) {
-
 	data, err := util.ReadFile(file)
 
 	if !util.ErrorCheckf(err, "Error Reading File: %s Error: %v", file, err) {
@@ -24,8 +23,9 @@ func ReadFile(file string, out interface{}) (err error) {
 
 func ReadData(file string, data []byte, out interface{}) (err error) {
 	err = yaml.Unmarshal(data, out)
-
-	util.ErrorCheckf(err, "Error Unmarshalling File: %s Error: %v", file, err)
+	if err != nil {
+		util.LogErrorf("Unmarshalling File: %s Error: %v", file, err)
+	}
 
 	return err
 }
