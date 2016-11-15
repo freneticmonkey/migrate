@@ -77,7 +77,7 @@ func processMetadata(t *table.Table) {
 		PropertyID: "primarykey",
 		ParentID:   t.ID,
 		Name:       "PrimaryKey",
-		Type:       "Index",
+		Type:       "PrimaryKey",
 	}
 
 	for i, index := range t.SecondaryIndexes {
