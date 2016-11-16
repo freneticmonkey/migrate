@@ -22,6 +22,9 @@ Interact with migrations in the Management DB
 #### /api/migration/{id}
 Get the Migration with ID {id}
 
+#### /api/migration/version/{version}
+Get the Migration with Git Version {version} (if it exists)
+
 #### /api/migration/list/
 Get the first 10 Migrations
 

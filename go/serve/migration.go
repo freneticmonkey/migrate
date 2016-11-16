@@ -21,6 +21,7 @@ type migrationList struct {
 // registerMigrationEndpoints Register the migration functions for the REST API
 func registerMigrationEndpoints(r *mux.Router) {
 	r.HandleFunc("/api/migration/{id}", getMigration)
+	r.HandleFunc("/api/migration/version/{version}", getMigrationByVersion)
 	r.HandleFunc("/api/migration/list/", listMigrations)
 	r.HandleFunc("/api/migration/list/{start}", listMigrations)
 	r.HandleFunc("/api/migration/list/{start}/{count}", listMigrations)
@@ -45,6 +46,22 @@ func getMigration(w http.ResponseWriter, r *http.Request) {
 	}
 	writeResponse(w, m, err)
 }
+
+// getMigrationByVersion Get Migration by Git Version
+func getMigrationByVersion(w http.ResponseWriter, r *http.Request) {
+	verboseLogging(r)
+	vars := mux.Vars(r)
+	version, err := vars["version"]
+
+	m, err := migration.LoadVersion(version)
+
+	if util.ErrorCheck(err) {
+		writeErrorResponse(w, r, fmt.Sprintf("Unable find a Migration for Version: %s", version), err, nil)
+		return
+	}
+	writeResponse(w, m, err)
+}
+
 
 // listMigrations List all migrations
 func listMigrations(w http.ResponseWriter, r *http.Request) {
