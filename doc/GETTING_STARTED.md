@@ -158,6 +158,7 @@ Apply the change using the same command with which you created the inital schema
 The database schema will now reflect the change.
 
 ```
+
 docker exec -t -i example_target_db_1 mysql -ptest -e 'show tables;show create table `cats`; show create table `dogs`' test
 ```
 
@@ -200,11 +201,21 @@ Result:
 
 Outside of the sandbox environment migrations cannot be applied without validation.  Migrations are created, viewed, and then approved before they can be applied to the project database.
 
-Migrations are created with the `create` subcommand.  The example below shows the use of additional flags `--gifinfo` which provides a 'gitinfo' file in place of a local repository, and `--no-clone` which disabled git cloning and relies on any schema located within the working directory.
+Migrations are created with the `create` subcommand.  
 
 `./migrate create --gitinfo gitinfo.txt --no-clone`
 
-This command will create a migration in the management database.  An example of this is shown below (formatted from the actual output for readability):
+This command will create a migration in the management database.  
+
+> ### gitinfo
+  'gitinfo' files are files that contain the output of the `git show -s --pretty=medium` command.  By placing a file containing this text alongside the yaml schema, a local git repository is not required to create a migration.
+
+> ### no-clone
+  The example below also shows the use of the `--no-clone` flag which disables git cloning and relies on any schema located within the working directory.
+
+Migrate also supports cloning yaml schema from a git repo.  For simplicity this process won't be covered in this document, more information will be provided at a later date.
+
+An example usage of the create command is shown below (formatted from the actual output for readability):
 
 ```
 +-----+----+---------+----------------------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
@@ -228,7 +239,7 @@ This command will create a migration in the management database.  An example of 
 
 Applying a migration doesn't require the yaml schema, the migration process just applies each of the approved steps of a migration to the project database.  Migrations that have been approved cannot be executed if they are outdated by a newer migration.
 
-Below is an example of a migration using the `--gitinfo` flag as in the previous example to select the migration associated with the appropriate git version. The `--pto-disabled` flag disables using pt-online-schema-change and just executes the schema change using a MySQL command.
+Below is an example of a migration using the `--gitinfo` flag as in the previous example to select the migration associated with the appropriate git version. The `--pto-disabled` flag disables using `pt-online-schema-change` and executes the schema change using the Go SQL driver.
 
 `./migrate exec --gitinfo gitinfo.txt --pto-disabled`
 
