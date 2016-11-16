@@ -37,7 +37,7 @@ func GetExecCommand() (setup cli.Command) {
 			},
 			cli.BoolFlag{
 				Name:  "rollback",
-				Usage: "Allows for a rollback to be created",
+				Usage: "Executes a rollback of the migration",
 			},
 			cli.BoolFlag{
 				Name:  "pto-disabled",

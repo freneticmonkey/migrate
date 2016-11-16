@@ -12,14 +12,14 @@ import (
 
 // Options A helper struct for parameters when executing a Migration
 type Options struct {
-	MID              int64
-	Dryrun           bool
-	Force            bool
-	Rollback         bool
-	PTODisabled      bool
-	AllowDestructive bool
-	Migration        *migration.Migration
-	Sandbox          bool
+	MID               int64
+	Dryrun            bool
+	Force             bool
+	Rollback          bool
+	PTODisabled       bool
+	AllowDestructive  bool
+	Migration         *migration.Migration
+	Sandbox           bool
 }
 
 // Exec Apply the migration to the project database.  The parmeters can be used to just execute a dryrun, force past
@@ -30,6 +30,7 @@ func Exec(options Options) (err error) {
 	dryrun := options.Dryrun
 	force := options.Force
 	rollback := options.Rollback
+	sandbox := options.Sandbox
 	ptodisbled := options.PTODisabled
 	allowDestructive := options.AllowDestructive
 	m := options.Migration
@@ -38,6 +39,12 @@ func Exec(options Options) (err error) {
 	var output string
 	var success bool
 	var action string
+
+	// If we are in the sandbox, rollback migrations are allowed.
+	if sandbox {
+		rollback = true
+	}
+
 
 	// If a Migration ID was supplied in the Migration Options, then attempt to load from the DB
 	if mid > 0 {
@@ -69,8 +76,8 @@ func Exec(options Options) (err error) {
 		// By default we assume that another migration is running until proven otherwise
 		migrationRunning = true
 
-		// If we aren't knowingly applying an older state (rollback)
-		if !rollback {
+		// If we aren't knowingly applying an older state (rollback) and we aren't in the sandbox
+		if !rollback && !sandbox {
 			// Ensure that this migration is the latest migration known to the DB
 			lm, err = migration.GetLatest()
 			if err != nil {
@@ -118,7 +125,7 @@ func Exec(options Options) (err error) {
 		}
 
 		// if not forced, and  prompt for destructive approval
-		if !options.Force && len(destructiveChanges) > 0 && !unapprovedDestructive {
+		if !force && len(destructiveChanges) > 0 && !unapprovedDestructive {
 			util.LogWarn("The following DESTRUCTIVE changes have been detected.")
 			util.LogAttentionf("\t%s", strings.Join(destructiveChanges, "\n\t"))
 			action, err = util.SelectAction("Do you wish to continue? (y/n)", []string{"y", "n"})
@@ -133,8 +140,8 @@ func Exec(options Options) (err error) {
 		// We assume that everything is ok by default
 		migrationCanExecute := true
 
-		// If the migration isn't a rollback, ensure that it's the latest migration
-		if !rollback && !isLatest {
+		// If the migration isn't a rollback and we're not in the sandbox, ensure that it's the latest migration
+		if !rollback && !sandbox && !isLatest {
 
 			// if it's the sandbox we can ignore this fail state
 			if !options.Sandbox {
@@ -196,6 +203,11 @@ func Exec(options Options) (err error) {
 						success = false
 						statement = step.Forward
 
+						// If we are performing a rollback and we're not in the sandbox, use the backward migration
+						if rollback && !sandbox {
+							statement = step.Backward
+						}
+
 						if dryrun {
 
 							if !allowDestructive && isDestructive {
@@ -246,6 +258,8 @@ func Exec(options Options) (err error) {
 
 									if force {
 										m.Steps[i].Status = migration.Forced
+									} else if rollback {
+										m.Steps[i].Status = migration.Rollback
 									} else {
 										m.Steps[i].Status = migration.Complete
 									}
@@ -322,6 +336,8 @@ func Exec(options Options) (err error) {
 				if !dryrun {
 					if force {
 						m.Status = migration.Forced
+					} else if rollback {
+						m.Status = migration.Rollback
 					} else {
 						m.Status = migration.Complete
 					}

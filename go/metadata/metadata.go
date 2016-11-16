@@ -193,6 +193,14 @@ func LoadAllTableMetadata(name string) (md []Metadata, err error) {
 	return md, err
 }
 
+// MarkNonExistAllTableMetadata Delete all of a Table's metadata.
+func MarkNonExistAllTableMetadata(name string) (err error) {
+
+	_, err = mgmtDb.Exec(fmt.Sprintf("UPDATE `metadata` SET `exists` = 0 WHERE name = \"%s\" OR parent_id = \"%s\" AND db = %d", name, name, targetDBID))
+
+	return err
+}
+
 // DeleteAllTableMetadata Delete all of a Table's metadata.
 func DeleteAllTableMetadata(name string) (err error) {
 

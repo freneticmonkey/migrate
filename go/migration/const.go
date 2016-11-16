@@ -20,9 +20,11 @@ const (
 	Failed
 	// Skipped application
 	Skipped
+	// Has been rolled back
+	Rollback
 )
 
-var StatusString = [9]string{
+var StatusString = [10]string{
 	"Unapproved",
 	"Denied",
 	"Depreciated",
@@ -32,4 +34,5 @@ var StatusString = [9]string{
 	"InProgress",
 	"Failed",
 	"Skipped",
+	"Rollback",
 }

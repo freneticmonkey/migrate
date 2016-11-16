@@ -286,38 +286,6 @@ func TestExecRollback(t *testing.T) {
 		Sandbox: true,
 	}
 
-	// Define the Latest Migration
-
-	// Migration id
-	// latestMID := int64(1)
-	//
-	// latestStep := migration.Step{
-	// 	SID:      2,
-	// 	MID:      latestMID,
-	// 	Op:       table.Add,
-	// 	MDID:     1,
-	// 	Name:     "address",
-	// 	Forward:  "DROP TABLE `unittestproject_dogs`;",
-	// 	Backward: "CREATE TABLE `unittestproject_dogs` BLAH BLAH BLAH;",
-	// 	Output:   "",
-	// 	Status:   migration.Unapproved,
-	// }
-	//
-	// latestMig := migration.Migration{
-	// 	MID:                latestMID,
-	// 	DB:                 1,
-	// 	Project:            testConfig.Project.Name,
-	// 	Version:            testConfig.Project.Schema.Version,
-	// 	VersionTimestamp:   migrationTimeLatest,
-	// 	VersionDescription: gitDetailsLatest,
-	// 	Status:             migration.Unapproved,
-	// 	Timestamp:          migrationTimeLatest,
-	// 	Steps: []migration.Step{
-	// 		latestStep,
-	// 	},
-	// 	Sandbox: true,
-	// }
-
 	//
 	////////////////////////////////////////////////////////
 
@@ -449,7 +417,7 @@ func TestExecRollback(t *testing.T) {
 		Result: sqlmock.NewResult(1, 1),
 	}
 
-	query.FormatQuery(olderStep.Forward)
+	query.FormatQuery(olderStep.Backward)
 	projectDB.ExpectExec(query)
 
 	//
@@ -459,7 +427,7 @@ func TestExecRollback(t *testing.T) {
 	// Update the Management DB with the result of the migration
 	// in this case success.
 
-	// Set Migration Step to Complete
+	// Set Migration Step to Rollback
 	mgmtDB.Mock.ExpectExec("update `migration_steps`").WithArgs(
 		olderStep.MID,
 		olderStep.Op,
@@ -468,7 +436,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Forward,
 		olderStep.Backward,
 		"Row(s) Affected: 1",
-		migration.Complete,
+		migration.Rollback,
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -486,18 +454,18 @@ func TestExecRollback(t *testing.T) {
 		colMd.ParentID,
 		colMd.Type,
 		colMd.Name,
-		true,
+		false,
 		colMd.MDID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	// Update Migration with completed
+	// Update Migration with Rollback
 	mgmtDB.Mock.ExpectExec("update `migration`").WithArgs(
 		olderMig.DB,
 		testConfig.Project.Name,
 		testConfig.Project.Schema.Version,
 		olderMig.VersionTimestamp,
 		olderMig.VersionDescription,
-		migration.Complete,
+		migration.Rollback,
 		olderMig.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -510,7 +478,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Forward,
 		olderStep.Backward,
 		"Row(s) Affected: 1",
-		migration.Complete,
+		migration.Rollback,
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1137,8 +1105,14 @@ func TestExecAllowDestructive(t *testing.T) {
 		false,
 	)
 
-	// Delete the Metadata for the dropped table
-	mgmtDB.Mock.ExpectExec("delete from `metadata`").WithArgs(
+	// Mark table in metadata as non-existant
+	mgmtDB.Mock.ExpectExec("update `metadata`").WithArgs(
+		tableMD.DB,
+		tableMD.PropertyID,
+		tableMD.ParentID,
+		tableMD.Type,
+		tableMD.Name,
+		false,
 		tableMD.MDID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 

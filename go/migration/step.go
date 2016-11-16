@@ -57,7 +57,7 @@ func LoadStepsList(sids []int64) (s []Step, err error) {
 func (s *Step) UpdateMetadata() (err error) {
 	var m *metadata.Metadata
 
-	if s.Status == Forced || s.Status == Complete {
+	if s.Status == Forced || s.Status == Complete || s.Status == Rollback {
 
 		m, err = metadata.Load(s.MDID)
 		if util.ErrorCheckf(err, "Failed to load Metadata from the database") {
@@ -69,6 +69,12 @@ func (s *Step) UpdateMetadata() (err error) {
 		case table.Add:
 			// Mark exists
 			m.Exists = true
+
+			// if rollback apply the reverse
+			if s.Status == Rollback {
+				m.Exists = false
+			}
+
 			err = m.Update()
 
 			if m.IsTable() {
@@ -83,12 +89,20 @@ func (s *Step) UpdateMetadata() (err error) {
 				err = m.Update()
 			}
 		case table.Del:
-			// If the operation is removing something, delete the associated Metadata
-			err = m.Delete()
+
+			// Mark not existant
+			m.Exists = false
+
+			// if rollback apply the reverse
+			if s.Status == Rollback {
+				m.Exists = true
+			}
+
+			err = m.Update()
 
 			if m.IsTable() {
 				// Delete all table fields
-				metadata.DeleteAllTableMetadata(m.Name)
+				metadata.MarkNonExistAllTableMetadata(m.Name)
 			}
 		}
 	}
