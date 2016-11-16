@@ -20,6 +20,7 @@ type Options struct {
 	AllowDestructive  bool
 	Migration         *migration.Migration
 	Sandbox           bool
+	StepConfirm    	  bool
 }
 
 // Exec Apply the migration to the project database.  The parmeters can be used to just execute a dryrun, force past
@@ -33,6 +34,8 @@ func Exec(options Options) (err error) {
 	sandbox := options.Sandbox
 	ptodisbled := options.PTODisabled
 	allowDestructive := options.AllowDestructive
+	stepConfirm := options.StepConfirm
+
 	m := options.Migration
 
 	var statement string
@@ -235,65 +238,93 @@ func Exec(options Options) (err error) {
 								m.Steps[i].Status = migration.Skipped
 
 							} else {
+								skipped := false
 
-								// Indicate that the step is going to be applied
-								m.Steps[i].Status = migration.InProgress
-								err = m.Steps[i].Update()
-								if util.ErrorCheck(err) {
-									return err
+								// If the alter statements are going to be manually confirmed
+								if stepConfirm {
+									action := "no"
+
+									action, err = util.SelectAction(fmt.Sprintf("SQL: [%s]\nApply ALTER?", statement), []string{"yes", "no"})
+									if util.ErrorCheck(err) {
+										util.LogError("There was a problem confirming the action.")
+									}
+
+									if action == "no" {
+										skipped = false
+									}
 								}
 
-								// execute the migration
-								if usePTO {
-									output, err = executePTO(statement, dryrun)
+								if skipped {
+
+									// Indicate that the step is going to be applied
+									m.Steps[i].Status = migration.Skipped
+									m.Steps[i].Output = fmt.Sprintf("Skipping Migration Step: [%d]: Manually skipped ", step.SID)
+									err = m.Steps[i].Update()
+									if util.ErrorCheck(err) {
+										return err
+									}
+
 								} else {
-									// otherwise use the regular go sql driver
-									output, err = ExecuteSQL(statement, dryrun)
-									util.ErrorCheckf(err, "Migration Step: ALTER TABLE Failed: [%v]", err)
-								}
 
-								if !util.ErrorCheckf(err, "Migration Step: [%d] Apply Failed with ERROR: ", output) {
-									// Record the result into the step table
-									m.Steps[i].Output = output
+									// Indicate that the step is going to be applied
+									m.Steps[i].Status = migration.InProgress
+									err = m.Steps[i].Update()
+									if util.ErrorCheck(err) {
+										return err
+									}
 
-									if force {
-										m.Steps[i].Status = migration.Forced
-									} else if rollback {
-										m.Steps[i].Status = migration.Rollback
+									// execute the migration
+									if usePTO {
+										output, err = executePTO(statement, dryrun)
 									} else {
-										m.Steps[i].Status = migration.Complete
+										// otherwise use the regular go sql driver
+										output, err = ExecuteSQL(statement, dryrun)
+										util.ErrorCheckf(err, "Migration Step: ALTER TABLE Failed: [%v]", err)
 									}
 
-									// Message that the migration step was successful
-									success = true
+									if !util.ErrorCheckf(err, "Migration Step: [%d] Apply Failed with ERROR: ", output) {
+										// Record the result into the step table
+										m.Steps[i].Output = output
 
-								} else {
+										if force {
+											m.Steps[i].Status = migration.Forced
+										} else if rollback {
+											m.Steps[i].Status = migration.Rollback
+										} else {
+											m.Steps[i].Status = migration.Complete
+										}
 
-									// Record the step failure into the DB
-									failReason = fmt.Sprintf("Failed with Error: %v", err)
-									m.Steps[i].Output = failReason
-									m.Steps[i].Status = migration.Failed
-									err = step.Update()
+										// Message that the migration step was successful
+										success = true
 
-									if err != nil {
-										return err
+									} else {
+
+										// Record the step failure into the DB
+										failReason = fmt.Sprintf("Failed with Error: %v", err)
+										m.Steps[i].Output = failReason
+										m.Steps[i].Status = migration.Failed
+										err = step.Update()
+
+										if err != nil {
+											return err
+										}
+
+										failReason = fmt.Sprintf("Step: [%d] ", step.SID) + failReason
+
+										// Record the Migration as failed into the DB
+										m.Status = migration.Failed
+										err = m.Update()
+
+										if err != nil {
+											return err
+										}
+
+										// Format an error message
+										err = fmt.Errorf("Migration with ID: [%d] failed during apply. Reason: %s", m.MID, failReason)
+
+										success = false
+										break
 									}
-
-									failReason = fmt.Sprintf("Step: [%d] ", step.SID) + failReason
-
-									// Record the Migration as failed into the DB
-									m.Status = migration.Failed
-									err = m.Update()
-
-									if err != nil {
-										return err
-									}
-
-									// Format an error message
-									err = fmt.Errorf("Migration with ID: [%d] failed during apply. Reason: %s", m.MID, failReason)
-
-									success = false
-									break
 								}
 							}
 

@@ -47,6 +47,10 @@ func GetExecCommand() (setup cli.Command) {
 				Name:  "allow-destructive",
 				Usage: "Explictly allow rename and delete migration actions",
 			},
+			cli.BoolFlag{
+				Name:  "step-confirm",
+				Usage: "Manually confirm each migration step. Skipped steps will be marked as skipped.",
+			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
 			var mid int64
@@ -115,6 +119,7 @@ func GetExecCommand() (setup cli.Command) {
 			rollback := ctx.Bool("rollback")
 			PTODisabled := ctx.Bool("pto-disabled")
 			allowDestructive := ctx.Bool("allow-destructive")
+			stepConfirm := ctx.Bool("step-confirm")
 
 			err = exec.Exec(exec.Options{
 				MID:              mid,
@@ -122,6 +127,7 @@ func GetExecCommand() (setup cli.Command) {
 				Rollback:         rollback,
 				PTODisabled:      PTODisabled,
 				AllowDestructive: allowDestructive,
+				StepConfirm:	  stepConfirm,
 			})
 
 			if util.ErrorCheck(err) {
