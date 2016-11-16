@@ -1,13 +1,5 @@
 version: "2"
 services:
-    gogs_db:
-      image: mysql:5.6
-      environment:
-          - MYSQL_ROOT_PASSWORD=test
-          - MYSQL_DATABASE=gogs
-      ports:
-          - "3306:3306"
-
     management_db:
       image: mysql:5.6
       environment:

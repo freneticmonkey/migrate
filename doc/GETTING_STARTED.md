@@ -125,11 +125,11 @@ This will show the following output:
 
 ## Altering a table in the sandbox
 
-The sandbox environment is different to other enviroments in that the verification process is not required to apply migration changes.  In order to achieve this there is a separate subcommand `sandbox` which provides additional sandbox specific operations.  For more info see the CLI documentation.
+The sandbox environment is different to other environments in that the verification process is not required to apply migration changes.  In order to achieve this there is a separate subcommand `sandbox` which provides additional sandbox specific operations.  For more info see the CLI documentation.
 
 The setup will have created a migration for the initial create table statements, however what we really want to look at is how migrations are created inside the sandbox.
 
-Open working/animals/cats.yml and add the following column to the columns array
+Open `example/working/animals/cats.yml` and uncomment the following column in the columns array
 
 ```
 
@@ -204,20 +204,19 @@ Migrations are created with the `create` subcommand.  The example below shows th
 
 `./migrate create --gitinfo gitinfo.txt --no-clone`
 
-This command will create a migration in the management database.  An example of this is shown below:
+This command will create a migration in the management database.  An example of this is shown below (formatted from the actual output for readability):
 
 ```
-+-----+----+---------+------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
-| mid | db | project | version                                  | version_timestamp   | version_description                              | status | timestamp           |
-+-----+----+---------+------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
-|   1 |  1 | animals |                                          | 2016-11-15 12:54:11 | Sandbox Migration                                |      5 | 2016-11-15 10:26:21 |
-|   2 |  1 | animals | 2932b57948f65a2e9a97713fe51718a86d6acabc | 2016-11-16 03:55:56 | commit 2932b57948f65a2e9a97713fe51718a86d6acabc
-Author: freneticmonkey <scottporter@neuroticstudios.com>
-Date:   Tue Nov 16 14:55:56 2016 +1100
++-----+----+---------+----------------------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
+| mid | db | project | version                                                  | version_timestamp   | version_description                              | status | timestamp           |
++-----+----+---------+----------------------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
+|   1 |  1 | animals |                                                          | 2016-11-15 12:54:11 | Sandbox Migration                                |      5 | 2016-11-15 10:26:21 |
+|   2 |  1 | animals | 2932b57948f65a2e9a97713fe51718a86d6acabc                 | 2020-11-16 05:00:00 | commit 2932b57948f65a2e9a97713fe51718a86d6acabc  |      0 | 2016-11-15 10:30:06 |
+                       Author: freneticmonkey <scottporter@neuroticstudios.com>
+                       Date:   Tue Nov 16 16:00:00 2020 +1100
 
-    Fixed slight verbose logging for YAML issues.
- |      0 | 2016-11-15 10:30:06 |
-+-----+----+---------+------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
+                       Fixed slight verbose logging for YAML issues.
++-----+----+---------+----------------------------------------------------------+---------------------+--------------------------------------------------+--------+---------------------+
 +-----+------+------+------+-----------+-----------------------------------------------------------------+---------------------------------------------+--------+--------+
 | sid | mid  | op   | mdid | name      | forward                                                         | backward                                    | output | status |
 +-----+------+------+------+-----------+-----------------------------------------------------------------+---------------------------------------------+--------+--------+

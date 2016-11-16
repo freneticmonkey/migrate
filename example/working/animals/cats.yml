@@ -22,6 +22,20 @@ columns:
       nullable: No
       id:       age
 
+    # Additional columns for testing
+
+    # - name:     address
+    #   type:     int
+    #   size:     [11]
+    #   nullable: No
+    #   id:       address
+
+    # - name:     phonenumber
+    #   type:     varchar
+    #   size:     [64]
+    #   nullable: No
+    #   id:       phonenumber
+
 primaryindex:
     columns:
       - name: name
@@ -34,3 +48,9 @@ secondaryindexes:
     columns:
         - name: id
         - name: name
+  
+  # - name: idx_id_address
+  #   id: idx_id_address
+  #   columns:
+  #       - name: id
+  #       - name: address
