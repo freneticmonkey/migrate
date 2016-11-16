@@ -117,13 +117,16 @@ Migrations created by the **create** are executed by this subcommand.  Migration
   Execute a dryrun of the migration
 
 > ### rollback
-  Allows for a rollback migration to be executed
+  Executes a rollback of the migration.  Migrations need to be have their status set to Approved before they can be rolled back.
 
 > ### pto-disabled
   Execute the migration without using pt-online-schema-change
 
 > ### allow-destructive
   Specifically allow migrations containing rename or delete actions.
+
+> ### step-confirm
+  Manually confirm each migration step during the apply process. Skipped steps will be marked as skipped in the database.
 
 ## serve
 Starts a REST API Server which provides access to the management database.  Optionally, if the --frontend flag is used, the contents of a subfolder named 'static' will also be served.  The REST API provides endpoints for listing Migrations and Migration Steps, and allows for the status of Migration and Migration Steps to be updated.
