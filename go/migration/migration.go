@@ -22,6 +22,7 @@ type Migration struct {
 	VersionTimestamp   string `db:"version_timestamp" json:"version_timestamp"`
 	VersionDescription string `db:"version_description,size:512" json:"version_description"`
 	Status             int    `db:"status" json:"status"`
+	VettedBy		   string `db:"vetted_by" json:"vetted_by"`
 	Timestamp          string `db:"timestamp" json:"timestamp"`
 
 	Steps   []Step `db:"-" json:"steps"`
@@ -80,6 +81,7 @@ func (m Migration) ToDBRow() test.DBRow {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		m.Status,
+		m.VettedBy,
 		m.Timestamp,
 	}
 }
@@ -206,14 +208,14 @@ func Print(mid int64) (err error) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', tabwriter.Debug)
 
 	fmt.Fprintf(w, "---- Migration: %d ----\n", mid)
-	fmt.Fprintln(w, "Project\tVersion\tVersion Timestamp (Git)\tVersion Description\tStatus\tLast Modified")
-	fmt.Fprintf(w, "|%s\t%s\t%s\t%s\t%s\t%s|\n", m.Project, m.Version, m.VersionTimestamp, m.VersionDescription, StatusString[m.Status], m.Timestamp)
+	fmt.Fprintln(w, "Project\tVersion\tVersion Timestamp (Git)\tVersion Description\tStatus\tVettedBy\tLast Modified")
+	fmt.Fprintf(w, "|%s\t%s\t%s\t%s\t%s\t%s|\n", m.Project, m.Version, m.VersionTimestamp, m.VersionDescription, StatusString[m.Status], m.VettedBy, m.Timestamp)
 	w.Flush()
 
 	fmt.Fprintln(w, "")
 
 	fmt.Fprintln(w, " --- Steps ---")
-	fmt.Fprintln(w, "|#\tID\tOp Type\tMetadata ID\tName\tForward\tBackward\tOutput\tStatus|")
+	fmt.Fprintln(w, "|#\tID\tOp Type\tMetadata ID\tName\tForward\tBackward\tOutput\tStatus\tVettedBy|")
 	for i, step := range m.Steps {
 		fmt.Fprintf(w, "|%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s|\n",
 			i,
@@ -225,6 +227,7 @@ func Print(mid int64) (err error) {
 			step.Backward,
 			step.Output,
 			StatusString[step.Status],
+			step.VettedBy,
 		)
 	}
 	fmt.Fprintln(w, "")

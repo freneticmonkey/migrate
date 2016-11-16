@@ -197,10 +197,11 @@ var migrationColumns = []string{
 	"version_timestamp",
 	"version_description",
 	"status",
+	"vetted_by",
 	"timestamp",
 }
 
-var migrationValuesTemplate = " values (null,?,?,?,?,?,?,?)"
+var migrationValuesTemplate = " values (null,?,?,?,?,?,?,?,?)"
 
 func (m *ManagementDB) MigrationGet(mid int64, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{
@@ -280,7 +281,7 @@ func (m *ManagementDB) MigrationSetStatus(mid int64, status int) {
 func (m *ManagementDB) MigrationInsert(args DBRow, lastInsert int64, rowsAffected int64) {
 
 	queryStr := fmt.Sprintf(
-		"insert into `migration` (`%s`) values (null,?,?,?,?,?,?)",
+		"insert into `migration` (`%s`) values (null,?,?,?,?,?,?,?)",
 		strings.Join(migrationColumns[:len(migrationColumns)-1], "`,`"),
 	)
 	query := DBQueryMock{
@@ -327,9 +328,10 @@ var migrationStepsColumns = []string{
 	"backward",
 	"output",
 	"status",
+	"vetted_by",
 }
 
-var migrationStepsValuesTemplate = " values (null,?,?,?,?,?,?,?,?)"
+var migrationStepsValuesTemplate = " values (null,?,?,?,?,?,?,?,?,?)"
 
 func (m *ManagementDB) MigrationStepGet(mid int64, result DBRow, expectEmpty bool) {
 	query := DBQueryMock{

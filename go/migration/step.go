@@ -22,6 +22,7 @@ type Step struct {
 	Backward string `db:"backward" json:"backward"`
 	Output   string `db:"output,size:1024" json:"output"`
 	Status   int    `db:"status" json:"status"`
+	VettedBy string `db:"vetted_by" json:"vetted_by"`
 }
 
 // Insert Insert the Step into the Management DB
@@ -122,5 +123,6 @@ func (s Step) ToDBRow() test.DBRow {
 		s.Backward,
 		s.Output,
 		s.Status,
+		s.VettedBy,
 	}
 }

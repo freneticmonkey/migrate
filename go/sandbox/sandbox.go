@@ -156,6 +156,7 @@ func createMigration(conf config.Config, actionTitle string, dryrun bool, forwar
 			Forwards:    forwardOps,
 			Backwards:   backwardOps,
 			Sandbox:     true,
+			VettedBy:    "sandbox",
 		})
 
 		if util.ErrorCheck(err) {

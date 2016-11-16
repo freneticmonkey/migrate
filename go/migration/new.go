@@ -17,6 +17,7 @@ type Param struct {
 	Backwards   mysql.SQLOperations
 	Rollback    bool
 	Sandbox     bool
+	VettedBy	string
 }
 
 // New Migration constructor which also creates Steps and add everything
@@ -86,6 +87,7 @@ func New(p Param) (m Migration, err error) {
 				VersionDescription: p.Description,
 				Status:             Unapproved,
 				Sandbox:            p.Sandbox,
+				VettedBy:           p.VettedBy,
 			}
 
 			for i := 0; i < len(p.Forwards); i++ {
@@ -104,6 +106,7 @@ func New(p Param) (m Migration, err error) {
 					Op:       forward.Op,
 					MDID:     forward.Metadata.MDID,
 					Name:     forward.Name,
+					VettedBy: p.VettedBy,
 				}
 				m.AddStep(step)
 			}

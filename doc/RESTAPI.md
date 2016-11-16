@@ -35,6 +35,7 @@ Get all Migrations with IDs between {start} and {start} + {count}
 Update Migration and Step Status can be updated with the following POST structure
 
     {
+        "vetted_by" : "<name of vetter>",
         "migrations": [
             {
                 "mid" : <mid>,

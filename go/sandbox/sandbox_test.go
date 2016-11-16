@@ -261,6 +261,7 @@ func TestCreateMigration(t *testing.T) {
 			mysql.GetTimeNow(),
 			testName,
 			0,
+			"sandbox",
 		},
 		1,
 		1,
@@ -278,6 +279,7 @@ func TestCreateMigration(t *testing.T) {
 			backwards[0].Statement,
 			"",
 			0,
+			"sandbox",
 		},
 		1,
 		1,
@@ -379,6 +381,7 @@ func TestMigrateSandbox(t *testing.T) {
 		VersionTimestamp:   mysql.GetTimeNow(),
 		VersionDescription: "Testing a Migration",
 		Status:             migration.Unapproved,
+		VettedBy:			"sandbox",
 		Timestamp:          mysql.GetTimeNow(),
 		Steps: []migration.Step{
 			{
@@ -391,6 +394,7 @@ func TestMigrateSandbox(t *testing.T) {
 				Backward: "ALTER TABLE `dogs` DROP COLUMN `address`;",
 				Output:   "",
 				Status:   migration.Unapproved,
+				VettedBy: "sandbox",
 			},
 		},
 		Sandbox: true,
@@ -446,6 +450,7 @@ func TestMigrateSandbox(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.InProgress,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -467,6 +472,7 @@ func TestMigrateSandbox(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -496,6 +502,7 @@ func TestMigrateSandbox(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Forced,
+		"sandbox",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -509,6 +516,7 @@ func TestMigrateSandbox(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -576,6 +584,7 @@ func TestRefreshDatabase(t *testing.T) {
 			},
 		},
 		Sandbox: true,
+		VettedBy: "sandbox",
 	}
 
 	step := m.Steps[0]
@@ -683,6 +692,7 @@ func TestRefreshDatabase(t *testing.T) {
 			mysql.GetTimeNow(),
 			testName,
 			0,
+			"sandbox",
 		},
 		1,
 		1,
@@ -700,6 +710,7 @@ func TestRefreshDatabase(t *testing.T) {
 			backwards[0].Statement,
 			"",
 			0,
+			"sandbox",
 		},
 		1,
 		1,
@@ -733,6 +744,7 @@ func TestRefreshDatabase(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.InProgress,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -754,6 +766,7 @@ func TestRefreshDatabase(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -784,6 +797,7 @@ func TestRefreshDatabase(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Forced,
+		"sandbox",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -797,6 +811,7 @@ func TestRefreshDatabase(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 

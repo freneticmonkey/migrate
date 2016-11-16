@@ -23,6 +23,7 @@ type stepStatus struct {
 type editStatus struct {
 	Migrations []migrationStatus `json:"migrations"`
 	Steps      []stepStatus      `json:"steps"`
+	VettedBy   string            `json:"vetted_by"`
 }
 
 // registerStatusEndpoints Register the migration functions for the REST API
@@ -47,6 +48,12 @@ func setStatus(w http.ResponseWriter, r *http.Request) {
 
 	if util.ErrorCheck(err) {
 		writeErrorResponse(w, r, fmt.Sprintf("Unable to Read Migration"), err, nil)
+		return
+	}
+
+	// Verify that a valid string has been supplied for the vetter
+	if status.VettedBy == "" {
+		writeErrorResponse(w, r, fmt.Sprintf("Unable to update status.  No vetter supplied"), nil, nil)
 		return
 	}
 
@@ -78,6 +85,7 @@ func setStatus(w http.ResponseWriter, r *http.Request) {
 		for _, dbstep := range steps {
 			if dbstep.SID == step.SID {
 				dbstep.Status = step.Status
+				dbstep.VettedBy = status.VettedBy
 				err = dbstep.Update()
 
 				if util.ErrorCheck(err) {
@@ -93,6 +101,7 @@ func setStatus(w http.ResponseWriter, r *http.Request) {
 		for _, migration := range migrations {
 			if migration.MID == migrationStatus.MID {
 				migration.Status = migrationStatus.Status
+				migration.VettedBy = status.VettedBy
 
 				err = migration.Update()
 

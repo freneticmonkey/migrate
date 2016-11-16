@@ -368,6 +368,7 @@ func TestExecRollback(t *testing.T) {
 		olderMig.VersionTimestamp,
 		olderMig.VersionDescription,
 		migration.InProgress,
+		"",
 		olderMig.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -381,6 +382,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Backward,
 		olderStep.Output,
 		migration.Approved,
+		"",
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -403,6 +405,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Backward,
 		olderStep.Output,
 		migration.InProgress,
+		"",
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -437,6 +440,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Backward,
 		"Row(s) Affected: 1",
 		migration.Rollback,
+		"",
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -466,6 +470,7 @@ func TestExecRollback(t *testing.T) {
 		olderMig.VersionTimestamp,
 		olderMig.VersionDescription,
 		migration.Rollback,
+		"",
 		olderMig.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -479,6 +484,7 @@ func TestExecRollback(t *testing.T) {
 		olderStep.Backward,
 		"Row(s) Affected: 1",
 		migration.Rollback,
+		"",
 		olderStep.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -927,6 +933,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		Backward: "CREATE TABLE `unittestproject_dogs` BLAH BLAH BLAH",
 		Output:   "",
 		Status:   migration.Approved,
+		VettedBy: "",
 	}
 
 	m := migration.Migration{
@@ -942,6 +949,7 @@ func TestExecAllowDestructive(t *testing.T) {
 			step,
 		},
 		Sandbox: true,
+		VettedBy: "",
 	}
 
 	//
@@ -1026,6 +1034,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.InProgress,
+		"",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1039,6 +1048,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.Approved,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1061,6 +1071,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.InProgress,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1095,6 +1106,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1124,6 +1136,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Forced,
+		"",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1137,6 +1150,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Forced,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1955,6 +1969,7 @@ func TestExec(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.InProgress,
+		"",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1968,6 +1983,7 @@ func TestExec(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.Approved,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -1990,6 +2006,7 @@ func TestExec(t *testing.T) {
 		step.Backward,
 		step.Output,
 		migration.InProgress,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -2024,6 +2041,7 @@ func TestExec(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Complete,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -2053,6 +2071,7 @@ func TestExec(t *testing.T) {
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Complete,
+		"",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -2066,6 +2085,7 @@ func TestExec(t *testing.T) {
 		step.Backward,
 		"Row(s) Affected: 1",
 		migration.Complete,
+		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 
