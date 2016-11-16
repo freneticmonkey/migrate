@@ -11,8 +11,8 @@ Each supported property of a table is assigned a unique identifier which is stor
 ## Migration execution
 Migrate uses the built in Go MySQL database driver for simple operations such as CREATE/DROP TABLE, with the option to use the pt-online-schema-change tool developed by Percona for long running operations, without requiring the downtime for the database.
 
-For quick introduction on how to use Migrate see the [CLI](docs/CLI.md) and [Getting Started](docs/GETTING_STARTED.md) docs.
+For quick introduction on how to use Migrate see the [CLI](doc/CLI.md) and [Getting Started](doc/GETTING_STARTED.md) docs.
 
 ## REST API
 
-Migrate can also run as a REST API service which allows for schema management via a REST API.  For more info see the [REST API](docs/RESTAPI.md) docs.
+Migrate can also run as a REST API service which allows for schema management via a REST API.  For more info see the [REST API](doc/RESTAPI.md) docs.
