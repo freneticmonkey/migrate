@@ -77,6 +77,12 @@
 			"revisionTime": "2016-07-21T23:14:53Z"
 		},
 		{
+			"checksumSHA1": "1XJ7vBh9WiFoBQIvQmXwaKvxn70=",
+			"path": "github.com/robertkowalski/graylog-golang",
+			"revision": "e5295cfa28272ada50cb9b5d97696ee06e49ed42",
+			"revisionTime": "2015-11-21T03:10:40Z"
+		},
+		{
 			"checksumSHA1": "Eqqfq9sidPELWayIuFe4Y4Pmm40=",
 			"path": "github.com/spf13/afero",
 			"revision": "cc9c21814bb945440253108c4d3c65c85aac3c68",
