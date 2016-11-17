@@ -49,9 +49,10 @@ func getMigration(w http.ResponseWriter, r *http.Request) {
 
 // getMigrationByVersion Get Migration by Git Version
 func getMigrationByVersion(w http.ResponseWriter, r *http.Request) {
+	var err error
 	verboseLogging(r)
 	vars := mux.Vars(r)
-	version, err := vars["version"]
+	version := vars["version"]
 
 	m, err := migration.LoadVersion(version)
 
