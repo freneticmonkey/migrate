@@ -11,6 +11,7 @@ type Options struct {
 	Namespaces  bool
 	WorkingPath string
 	Management  Management
+	GrayLog     GrayLog
 }
 
 type Generation struct {
@@ -23,6 +24,20 @@ type Template struct {
 	Path       string
 	FileFormat string
 	Ext        string
+}
+
+type GrayLog struct {
+	Hostname        string
+	Port            int
+	Connection      string
+	MaxChunkSizeWan int
+	MaxChunkSizeLan int
+	Parameters      []GrayLogParameter
+}
+
+type GrayLogParameter struct {
+	Name  string
+	Value string
 }
 
 type Management struct {

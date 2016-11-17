@@ -12,6 +12,20 @@ options:
             ip:       127.0.0.1
             port:     3400
             database: management
+    # Example graylog logging configuration
+    # graylog:
+    #     hostname:       "127.0.0.1"
+    #     port:           80
+    #     connection:     "wan"
+    #     maxchunksizewan: 42
+    #     maxchunksizelan: 1337
+    # parameters will be prefixed to log messages
+    #     parameters:
+    #         - name:  "hostname"
+    #           value: "myhost"
+    #
+    #         - name:  "env"
+    #           value: "live"
 
 # Project Definition
 project:

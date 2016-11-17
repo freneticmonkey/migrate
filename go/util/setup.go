@@ -1,11 +1,13 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/freneticmonkey/migrate/go/config"
+	"github.com/robertkowalski/graylog-golang"
 	"github.com/spf13/afero"
 )
 
@@ -27,6 +29,28 @@ func GetShell() ShellRunner {
 // SetConfigTesting Enable unit test file and command subsystems
 func SetConfigTesting() {
 	isTesting = true
+}
+
+// configGrayLog Configure the Gray Log Driver
+func configGrayLog(conf config.GrayLog) {
+	gelfDriver = gelf.New(gelf.Config{
+		GraylogPort:     conf.Port,
+		GraylogHostname: conf.Hostname,
+		Connection:      conf.Connection,
+		MaxChunkSizeWan: conf.MaxChunkSizeWan,
+		MaxChunkSizeLan: conf.MaxChunkSizeLan,
+	})
+
+	headers := []string{}
+
+	for _, param := range conf.Parameters {
+		headers = append(headers, fmt.Sprintf("\t\"%s\":\"%s\"", param.Name, param.Value))
+	}
+
+	gelfMessageFormat = `{
+		` + strings.Join(headers, ",\n") + `,
+		"message":"%s"
+	}`
 }
 
 func ConfigFileSystem() {
@@ -54,6 +78,11 @@ func ShutdownFileSystem() {
 // Config Configure the utility subsystems depending on testing
 func Config(conf config.Config) afero.Fs {
 	var err error
+
+	// If Graylog configured
+	if conf.Options.GrayLog.Hostname != "" {
+		configGrayLog(conf.Options.GrayLog)
+	}
 
 	// Make path absolute
 	cwd, err := os.Getwd()

@@ -7,11 +7,14 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/robertkowalski/graylog-golang"
 )
 
 var verbose bool
 var originalVerb bool
 var filename string
+var gelfDriver *gelf.Gelf
+var gelfMessageFormat string
 
 func SetLogFile(file string) func() {
 	filename = file
@@ -53,6 +56,16 @@ func LogColour(out string, attr color.Attribute) {
 		color.Set(attr)
 		log.Printf(out)
 		color.Unset()
+	}
+
+	// If gelf is configured log regardless of verbosity
+	if gelfDriver != nil {
+		gelfDriver.Log(
+			fmt.Sprintf(
+				gelfMessageFormat,
+				out,
+			),
+		)
 	}
 }
 
