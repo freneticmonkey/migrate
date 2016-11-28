@@ -6,9 +6,21 @@ Install Go 1.7
 
 Clone and build migrate
 
+Using git
+
 ```
-git clone https://github.com/freneticmonkey/migrate
-cd migrate
+cd $GOPATH
+mkdir -p src/github.com/freneticmonkey/migrate
+cd src/github.com/freneticmonkey/migrate
+git clone https://github.com/freneticmonkey/migrate .
+go build -o examples/migrate ./go
+```
+
+Using Go
+
+```
+go get github.com/freneticmonkey/migrate
+cd $GOPATH/src/github.com/freneticmonkey/migrate
 go build -o examples/migrate ./go
 ```
 
