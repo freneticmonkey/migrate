@@ -38,6 +38,7 @@ func CreateTables() (result bool, err error) {
 		"  `version_timestamp` datetime NOT NULL,",
 		"  `version_description` text,",
 		"  `status` int(11) NOT NULL,",
+		"  `vetted_by` varchar(255) NOT NULL,",
 		"  `timestamp` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
 		"  PRIMARY KEY (`mid`)",
 		") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
@@ -61,6 +62,7 @@ func CreateTables() (result bool, err error) {
 			"  `backward` varchar(255) DEFAULT NULL,",
 			"  `output` text,",
 			"  `status` int(11) DEFAULT NULL,",
+			"  `vetted_by` varchar(255) NOT NULL,",
 			"  PRIMARY KEY (`sid`)",
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8;",
 		}
