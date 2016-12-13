@@ -10,8 +10,7 @@ Using git
 
 ```
 cd $GOPATH
-mkdir -p src/github.com/freneticmonkey/migrate
-cd src/github.com/freneticmonkey/migrate
+mkdir -p src/github.com/freneticmonkey/migrate && cd "$_"
 git clone https://github.com/freneticmonkey/migrate .
 go build -o examples/migrate ./go
 ```

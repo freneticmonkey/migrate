@@ -220,13 +220,13 @@ func CheckConfig(log bool) (checks Health) {
 
 		// Check Git Configuration
 		gitConfig := true
-		if conf.Project.Schema.Url == "" {
-			checks.AddFail("Schema Repo URL: MISSING")
+		if conf.Project.Git.Url == "" {
+			checks.AddFail("Git Repo URL: MISSING")
 			gitConfig = false
 		}
 		// All other Git Schema options are optional :)
 		if gitConfig {
-			checks.AddPass("Project Schema Repo Config: OK")
+			checks.AddPass("Project Git Repo Config: OK")
 		} else {
 			checks.AddFail("Git Configuration: BAD")
 		}

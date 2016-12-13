@@ -1,0 +1,36 @@
+name:     ferrari_models
+charset:  latin1
+engine:   InnoDB
+id:       ferrari_models
+columns:
+    - name:     id
+      type:     int
+      size:     [11]
+      nullable: No
+      autoinc:  Yes
+      id:       id
+
+    - name:     name
+      type:     varchar
+      size:     [64]
+      nullable: No
+      id:       name
+
+    - name:     year
+      type:     varchar
+      size:     [64]
+      nullable: No
+      id:       year
+
+primaryindex:
+    columns:
+      - name: name
+    isprimary: Yes
+    id: pi
+
+secondaryindexes:
+  - name: idx_id_name
+    id: idx_id_name
+    columns:
+        - name: id
+        - name: name

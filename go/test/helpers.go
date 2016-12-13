@@ -14,20 +14,22 @@ func GetTestConfig() config.Config {
 		Project: config.Project{
 			Name: "UnitTestProject",
 			Schema: config.Schema{
-				Url:     "http://git.test.com/test/repo",
-				Version: "abc123",
 				Namespaces: []config.SchemaNamespace{
 					{
-						Name:      "Schema",
-						ShortName: "SS",
-						Folder:    "schema",
+						Name:      	 "Schema",
+						TablePrefix: "ss",
+						Path:    	 "schema",
 					},
 					{
-						Name:      "SchemaTwo",
-						ShortName: "ST",
-						Folder:    "schemaTwo",
+						Name:      	 "SchemaTwo",
+						TablePrefix: "st",
+						Path:    	 "schemaTwo",
 					},
 				},
+			},
+			Git: config.Git {
+				Url:     "http://git.test.com/test/repo",
+				Version: "abc123",
 			},
 			DB: config.DB{
 				Database:    "project",
@@ -52,7 +54,7 @@ func CreateTestConfigFile() {
 		        database:    project
 		        environment: SANDBOX
 		    # The Project schema configuration
-		    schema:
+		    git:
 		        # Schema name.  Not currently used
 		        name: "unittestconfig"
 		        # Git Repo

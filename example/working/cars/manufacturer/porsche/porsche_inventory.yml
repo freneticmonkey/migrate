@@ -1,7 +1,7 @@
-name:     cats
+name:     porsche_inventory
 charset:  latin1
 engine:   InnoDB
-id:       cats
+id:       porsche_inventory
 columns:
     - name:     id
       type:     int
@@ -16,25 +16,17 @@ columns:
       nullable: No
       id:       name
 
-    - name:     age
-      type:     int
-      size:     [11]
+    - name:     dealer
+      type:     varchar
+      size:     [64]
       nullable: No
-      id:       age
-
-    # Additional columns for testing
+      id:       dealer
 
     - name:     address
-      type:     int
-      size:     [11]
+      type:     varchar
+      size:     [256]
       nullable: No
       id:       address
-
-    # - name:     phonenumber
-    #   type:     varchar
-    #   size:     [64]
-    #   nullable: No
-    #   id:       phonenumber
 
 primaryindex:
     columns:
@@ -48,9 +40,3 @@ secondaryindexes:
     columns:
         - name: id
         - name: name
-
-  - name: idx_id_address
-    id: idx_id_address
-    columns:
-        - name: id
-        - name: address

@@ -24,11 +24,11 @@ columns:
 
     # Additional columns for testing
 
-    - name:     address
-      type:     int
-      size:     [11]
-      nullable: No
-      id:       address
+    # - name:     address
+    #   type:     int
+    #   size:     [11]
+    #   nullable: No
+    #   id:       address
 
     # - name:     phonenumber
     #   type:     varchar
@@ -49,8 +49,8 @@ secondaryindexes:
         - name: id
         - name: name
 
-  - name: idx_id_address
-    id: idx_id_address
-    columns:
-        - name: id
-        - name: address
+  # - name: idx_id_address
+  #   id: idx_id_address
+  #   columns:
+  #       - name: id
+  #       - name: address

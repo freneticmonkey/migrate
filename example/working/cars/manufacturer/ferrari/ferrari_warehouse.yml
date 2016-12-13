@@ -1,7 +1,7 @@
-name:     cats
+name:     ferrari_warehouse
 charset:  latin1
 engine:   InnoDB
-id:       cats
+id:       ferrari_warehouse
 columns:
     - name:     id
       type:     int
@@ -16,25 +16,11 @@ columns:
       nullable: No
       id:       name
 
-    - name:     age
-      type:     int
-      size:     [11]
-      nullable: No
-      id:       age
-
-    # Additional columns for testing
-
     - name:     address
-      type:     int
-      size:     [11]
+      type:     varchar
+      size:     [256]
       nullable: No
       id:       address
-
-    # - name:     phonenumber
-    #   type:     varchar
-    #   size:     [64]
-    #   nullable: No
-    #   id:       phonenumber
 
 primaryindex:
     columns:
@@ -48,9 +34,3 @@ secondaryindexes:
     columns:
         - name: id
         - name: name
-
-  - name: idx_id_address
-    id: idx_id_address
-    columns:
-        - name: id
-        - name: address

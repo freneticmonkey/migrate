@@ -85,7 +85,7 @@ func diff(project, version, tableName string, conf config.Config) *cli.ExitError
 
 	// Override the project settings with the command line flags
 	if version != "" {
-		conf.Project.Schema.Version = version
+		conf.Project.Git.Version = version
 	}
 
 	if project != "" {

@@ -1,6 +1,6 @@
 options:
     # Use namespace functionality to allow for subfolder schema
-    namespaces: No
+    namespaces: Yes
     # Relative to this configuration file
     workingpath: "working"
     # Management specific configuration
@@ -12,14 +12,14 @@ options:
             ip:       127.0.0.1
             port:     3400
             database: management
-    # Example graylog logging configuration
+    # # Example graylog logging configuration
     # graylog:
     #     hostname:       "127.0.0.1"
     #     port:           80
     #     connection:     "wan"
     #     maxchunksizewan: 42
     #     maxchunksizelan: 1337
-    # parameters will be prefixed to log messages
+    # # parameters will be prefixed to log messages
     #     parameters:
     #         - name:  "hostname"
     #           value: "myhost"
@@ -44,14 +44,28 @@ project:
             - file: "yaml.tmpl"
               path: "yaml"
               ext:  "yml"
-    # The Project schema configuration
+    # Project Schema Path Configuration
     schema:
-        # Schema name.  Not currently used
-        name: "remotetest"
-        # Git Repo
-        url:  "http://localhost:3000/sporter/remotetestlocal.git"
-        # Default Version of the Schema
-        version: ""
-        # Subfolders within the Git repo to checkout which contain db schema
-        folders:
-            - "test"
+        # Relative to the Working Path - otherwise absolute path
+        workingrelative: true
+        # Paths to the Schema
+        namespaces:
+            - name:         "Ferrari"
+              tableprefix:  "ferrari_"
+              path:         "cars/manufacturer/ferrari"
+
+            - name:         "Porsche"
+              tableprefix:  "porsche_"
+              path:         "cars/manufacturer/porsche"
+
+    # The Project Git configuration
+    # git:
+    #     # Schema name.  Not currently used
+    #     name: "remotetest"
+    #     # Git Repo
+    #     url:  "http://localhost:3000/sporter/remotetestlocal.git"
+    #     # Default Version of the Schema
+    #     version: ""
+    #     # Subfolders within the Git repo to checkout which contain db schema
+    #     folders:
+    #         - "test"

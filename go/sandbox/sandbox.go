@@ -147,7 +147,7 @@ func createMigration(conf config.Config, actionTitle string, dryrun bool, forwar
 		// Create a temporary migration.  If there a way we can avoid this?
 		m, err = migration.New(migration.Param{
 			Project: conf.Project.Name,
-			Version: conf.Project.Schema.Version,
+			Version: conf.Project.Git.Version,
 			// Use the current state of the local Git repo (Don't do a git checkout )
 			// Migration Database doesn't need to have any git info in it because this feature is for testing
 			// migrations without having checked them in

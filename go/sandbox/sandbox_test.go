@@ -257,7 +257,7 @@ func TestCreateMigration(t *testing.T) {
 		test.DBRow{
 			1,
 			testConfig.Project.Name,
-			testConfig.Project.Schema.Version,
+			testConfig.Project.Git.Version,
 			mysql.GetTimeNow(),
 			testName,
 			0,
@@ -377,7 +377,7 @@ func TestMigrateSandbox(t *testing.T) {
 		MID:                1,
 		DB:                 1,
 		Project:            testConfig.Project.Name,
-		Version:            testConfig.Project.Schema.Version,
+		Version:            testConfig.Project.Git.Version,
 		VersionTimestamp:   mysql.GetTimeNow(),
 		VersionDescription: "Testing a Migration",
 		Status:             migration.Unapproved,
@@ -498,7 +498,7 @@ func TestMigrateSandbox(t *testing.T) {
 	mgmtDb.Mock.ExpectExec("update `migration`").WithArgs(
 		m.DB,
 		testConfig.Project.Name,
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Forced,
@@ -565,7 +565,7 @@ func TestRefreshDatabase(t *testing.T) {
 		MID:                1,
 		DB:                 1,
 		Project:            testConfig.Project.Name,
-		Version:            testConfig.Project.Schema.Version,
+		Version:            testConfig.Project.Git.Version,
 		VersionTimestamp:   mysql.GetTimeNow(),
 		VersionDescription: testName,
 		Status:             migration.Unapproved,
@@ -688,7 +688,7 @@ func TestRefreshDatabase(t *testing.T) {
 		test.DBRow{
 			1,
 			testConfig.Project.Name,
-			testConfig.Project.Schema.Version,
+			testConfig.Project.Git.Version,
 			mysql.GetTimeNow(),
 			testName,
 			0,
@@ -793,7 +793,7 @@ func TestRefreshDatabase(t *testing.T) {
 	mgmtDb.Mock.ExpectExec("update `migration`").WithArgs(
 		m.DB,
 		testConfig.Project.Name,
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 		m.VersionTimestamp,
 		m.VersionDescription,
 		migration.Forced,
@@ -817,8 +817,8 @@ func TestRefreshDatabase(t *testing.T) {
 
 	Action(testConfig, false, true, "TestRefreshDatabase")
 
-	mgmtDb.ExpectionsMet(testName, t)
 	projectDB.ExpectionsMet(testName, t)
+	mgmtDb.ExpectionsMet(testName, t)
 
 	testdata.Teardown()
 }
