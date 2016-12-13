@@ -16,3 +16,7 @@ For quick introduction on how to use Migrate see the [CLI](doc/CLI.md) and [Gett
 ## REST API
 
 Migrate can also run as a REST API service which allows for schema management via a REST API.  For more info see the [REST API](doc/RESTAPI.md) docs.
+
+# Version 0.1.0
+- Added Namespace support
+  Namespaces are intended to support deploying multiple projects to the same database.  Config has been modified to separate Git options from Schema options.  Namespace configuration has also been moved into Schema.  Namespace paths are used to define subfolders containing the schema YAML.

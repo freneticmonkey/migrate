@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"os"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 // into table.Table structs
 func ReadTables(conf config.Config) (err error) {
 	path := strings.ToLower(conf.Project.Name)
-	var schemaList []string
 
 	// If the path has been defined as ignore, then immediately return without error.
 	// This is intended to be used for unit tests which will manually add Tables to the
@@ -25,14 +25,41 @@ func ReadTables(conf config.Config) (err error) {
 
 	path = strings.ToLower(path)
 
-	// Recursively build a list of YAML schema files
-	err = util.ReadDirRelative(path, "yml", &schemaList)
+	// Read path under the project name
+	err = readPath(path, false, conf)
 
-	if !util.ErrorCheckf(err, "Error reading YAML files in path: [%s]", path) {
+	// Read any Schema namespaces
+	for _, ns := range conf.Project.Schema.Namespaces {
+		nsPath := ns.Path//filepath.Join(path, ns.Path)
+		err = readPath(nsPath, true, conf)
+
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Warn about missing schema
+				util.LogWarnf("Schema Namespace path doesn't exist: %s", nsPath)
+				// Disable the error
+				err = nil
+			} else {
+				// Otherwise let it hit the fan
+				util.ErrorCheckf(err, "Error reading YAML files in path: [%s]", path)
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+func readPath(path string, recursive bool, conf config.Config) (err error) {
+	var schemaList []string
+
+	// Recursively build a list of YAML schema files
+	err = util.ReadDirRelative(path, "yml", recursive, &schemaList)
+
+	if err == nil {
 		for _, filename := range schemaList {
 
 			var tbl table.Table
-
 			err = ReadFile(filename, &tbl)
 
 			if err != nil {

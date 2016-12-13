@@ -311,7 +311,7 @@ schemaTwo/*`
 		"add",
 		"-f",
 		"origin",
-		testConfig.Project.Schema.Url,
+		testConfig.Project.Git.Url,
 	}
 	shell.ExpectExec("git", params, "", nil)
 
@@ -331,7 +331,7 @@ schemaTwo/*`
 		"-C",
 		checkoutPath,
 		"checkout",
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 	}
 	shell.ExpectExec("git", params, "", nil)
 

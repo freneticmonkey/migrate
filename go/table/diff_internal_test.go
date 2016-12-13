@@ -1338,7 +1338,6 @@ var diffTests = []DiffTest{
 func TestDifferences(t *testing.T) {
 	util.VerboseOverrideSet(true)
 	for _, test := range diffTests {
-		util.LogAttentionf("Testing %s", test.Description)
 		hasDiff, difference := diffTable(test.To, test.From)
 
 		if len(difference.Slice) != len(test.Expected) {

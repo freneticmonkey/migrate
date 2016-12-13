@@ -103,7 +103,7 @@ func create(version string, gitinfo string, clone bool, rollback bool, conf conf
 
 	// Override the project settings with the command line flags
 	if version != "" {
-		conf.Project.Schema.Version = version
+		conf.Project.Git.Version = version
 	} else {
 		// if the version hasn't been defined
 		return cli.NewExitError("Creation failed.  Unable to generate a migration as no version was defined to migrate to", 1)
@@ -116,11 +116,11 @@ func create(version string, gitinfo string, clone bool, rollback bool, conf conf
 		// Clone the target Git Repo
 		git.Clone(conf.Project)
 
-		ts, err = git.GetVersionTime(conf.Project.Name, conf.Project.Schema.Version)
+		ts, err = git.GetVersionTime(conf.Project.Name, conf.Project.Git.Version)
 		if util.ErrorCheck(err) {
 			return cli.NewExitError("Create failed. Unable to obtain Version Timestamp from Git checkout", 1)
 		}
-		info, err = git.GetVersionDetails(conf.Project.Name, conf.Project.Schema.Version)
+		info, err = git.GetVersionDetails(conf.Project.Name, conf.Project.Git.Version)
 		if util.ErrorCheck(err) {
 			return cli.NewExitError("Create failed. Unable to obtain Version Details from Git checkout", 1)
 		}
@@ -165,7 +165,7 @@ func create(version string, gitinfo string, clone bool, rollback bool, conf conf
 
 	m, err := migration.New(migration.Param{
 		Project:     conf.Project.Name,
-		Version:     conf.Project.Schema.Version,
+		Version:     conf.Project.Git.Version,
 		Timestamp:   ts,
 		Description: info,
 		Forwards:    forwardOps,

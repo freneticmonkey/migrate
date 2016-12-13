@@ -136,18 +136,18 @@ schemaTwo/*`
 	testConfig := test.GetTestConfig()
 
 	// Add additional git configuration
-	testConfig.Project.Schema.Url = "http://git.test.com/test/repo"
-	testConfig.Project.Schema.Version = version
+	testConfig.Project.Git.Url = "http://git.test.com/test/repo"
+	testConfig.Project.Git.Version = version
 	testConfig.Project.Schema.Namespaces = []config.SchemaNamespace{
 		{
 			Name:      "Schema",
-			ShortName: "SS",
-			Folder:    "schema",
+			TablePrefix: "SS",
+			Path:    "schema",
 		},
 		{
 			Name:      "SchemaTwo",
-			ShortName: "ST",
-			Folder:    "schemaTwo",
+			TablePrefix: "ST",
+			Path:    "schemaTwo",
 		},
 	}
 
@@ -177,7 +177,7 @@ schemaTwo/*`
 		"add",
 		"-f",
 		"origin",
-		testConfig.Project.Schema.Url,
+		testConfig.Project.Git.Url,
 	}
 	shell.ExpectExec("git", params, "", nil)
 
@@ -197,7 +197,7 @@ schemaTwo/*`
 		"-C",
 		checkoutPath,
 		"checkout",
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 	}
 	shell.ExpectExec("git", params, "", nil)
 

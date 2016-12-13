@@ -137,10 +137,10 @@ func Clone(project config.Project) (err error) {
 		"add",
 		"-f",
 		"origin",
-		project.Schema.Url,
+		project.Git.Url,
 	})
 
-	// If folders have been specified for the repo
+	// If folders have been specified for the project
 	if len(project.Schema.Namespaces) > 0 {
 
 		// git config core.sparseCheckout true
@@ -155,7 +155,7 @@ func Clone(project config.Project) (err error) {
 		// for each of the configured folders
 		for _, namespace := range project.Schema.Namespaces {
 			// echo <repo_path>/*> .git/info/sparse-checkout
-			repoFolders = append(repoFolders, namespace.Folder+"/*")
+			repoFolders = append(repoFolders, namespace.Path+"/*")
 
 		}
 		filedata := strings.Join(repoFolders, "\n")
@@ -171,9 +171,9 @@ func Clone(project config.Project) (err error) {
 	}
 
 	// If a version was specified append it to the checkout command
-	if len(project.Schema.Version) > 0 {
+	if len(project.Git.Version) > 0 {
 		// git checkout <version>
-		params = append(params, project.Schema.Version)
+		params = append(params, project.Git.Version)
 	} else {
 		params = append(params, "master")
 	}

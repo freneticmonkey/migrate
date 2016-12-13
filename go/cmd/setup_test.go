@@ -132,6 +132,7 @@ func TestSetupExistingDB(t *testing.T) {
 	var err error
 	var exists bool
 	var data []byte
+	testdata.Teardown()
 	util.SetConfigTesting()
 
 	testName := "TestSetupExistingDB"
@@ -227,11 +228,9 @@ func TestSetupExistingDB(t *testing.T) {
 	filepath := util.WorkingSubDir(
 		filepath.Join(
 			strings.ToLower(testConfig.Project.Name),
-			testConfig.Project.Schema.Namespaces[0].ShortName,
 			dogsTbl.Name+".yml",
 		),
 	)
-	util.LogAttention("Trying Filepath: " + filepath)
 	exists, err = util.FileExists(filepath)
 
 	failed := true

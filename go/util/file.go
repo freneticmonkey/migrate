@@ -16,15 +16,15 @@ func WorkingSubDir(subDir string) string {
 
 // Recursively check the path for typetype files and add them to the
 // schema list as we're going
-func ReadDirRelative(path string, fileType string, files *[]string) (err error) {
+func ReadDirRelative(path string, fileType string, recursive bool, files *[]string) (err error) {
 
 	// Make path absolute to the working folder
 	path = filepath.Join(WorkingPathAbs, path)
 
-	return ReadDirAbsolute(path, fileType, files)
+	return ReadDirAbsolute(path, fileType, recursive, files)
 }
 
-func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) {
+func ReadDirAbsolute(path string, fileType string, recursive bool, files *[]string) (err error) {
 	// Basic path check
 	if _, err = fs.Stat(path); os.IsNotExist(err) {
 		// This path is busted
@@ -62,9 +62,11 @@ func ReadDirAbsolute(path string, fileType string, files *[]string) (err error) 
 		}
 	}
 
-	// Process any subdirectories
-	for _, dir := range subdirs {
-		ReadDirAbsolute(dir, fileType, files)
+	if recursive {
+		// Process any subdirectories
+		for _, dir := range subdirs {
+			ReadDirAbsolute(dir, fileType, recursive, files)
+		}
 	}
 
 	return err

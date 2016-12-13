@@ -49,7 +49,7 @@ func TestCreateFailNoProjectVersion(t *testing.T) {
 	clone := true
 	rollback := false
 
-	testConfig.Project.Schema.Version = version
+	testConfig.Project.Git.Version = version
 
 	result := create(version, gitinfo, clone, rollback, testConfig)
 
@@ -118,7 +118,7 @@ schemaTwo/*`
 		"add",
 		"-f",
 		"origin",
-		testConfig.Project.Schema.Url,
+		testConfig.Project.Git.Url,
 	}
 	shell.ExpectExec("git", params, "", nil)
 
@@ -138,7 +138,7 @@ schemaTwo/*`
 		"-C",
 		checkoutPath,
 		"checkout",
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 	}
 
 	shell.ExpectExecWithLambda(
@@ -341,7 +341,7 @@ schemaTwo/*`
 		test.DBRow{
 			1,
 			testConfig.Project.Name,
-			testConfig.Project.Schema.Version,
+			testConfig.Project.Git.Version,
 			mysqlTime,
 			gitDetails,
 			0,
@@ -489,7 +489,7 @@ schemaTwo/*`
 		"add",
 		"-f",
 		"origin",
-		testConfig.Project.Schema.Url,
+		testConfig.Project.Git.Url,
 	}
 	shell.ExpectExec("git", params, "", nil)
 
@@ -509,7 +509,7 @@ schemaTwo/*`
 		"-C",
 		checkoutPath,
 		"checkout",
-		testConfig.Project.Schema.Version,
+		testConfig.Project.Git.Version,
 	}
 
 	shell.ExpectExecWithLambda(
@@ -717,7 +717,7 @@ schemaTwo/*`
 		test.DBRow{
 			1,
 			testConfig.Project.Name,
-			testConfig.Project.Schema.Version,
+			testConfig.Project.Git.Version,
 			mysqlTime,
 			gitDetails,
 			0,

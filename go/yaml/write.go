@@ -21,8 +21,7 @@ func WriteTable(path string, tbl table.Table) (err error) {
 	tbl.Namespace.SetTableFilename("<table>")
 	filename := tbl.Namespace.GenerateFilename("yml")
 	filepath := filepath.Join(path, filename)
-
-	util.LogInfof("Writing Table: %s to YAML File: %s", tbl.Name, filepath)
+	util.LogInfof("Writing to File PATH: %s", filepath)
 	err = WriteFile(filepath, tbl)
 
 	return err

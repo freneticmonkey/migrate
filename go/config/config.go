@@ -48,21 +48,24 @@ type Project struct {
 	Name       string
 	DB         DB
 	Generation Generation
-	Schema     Schema
+	Schema 	   Schema
+	Git        Git
 }
 
 type Schema struct {
+	Namespaces []SchemaNamespace
+}
+
+type Git struct {
 	Name       string
 	Url        string
 	Version    string
-	Namespaces []SchemaNamespace
 }
 
 type SchemaNamespace struct {
 	Name        string
-	ShortName   string
 	TablePrefix string
-	Folder      string
+	Path        string
 }
 
 type DB struct {

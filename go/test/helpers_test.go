@@ -17,7 +17,7 @@ project:
         database:    project
         environment: SANDBOX
     # The Project schema configuration
-    schema:
+    git:
         # Schema name.  Not currently used
         name: "unittestconfig"
         # Git Repo
