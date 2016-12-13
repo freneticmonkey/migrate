@@ -278,6 +278,24 @@ var colTests = []ParseTest{
 		Description: "Parse Column: int default '1'",
 	},
 
+	{
+		Str: "`created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+		Expected: table.Column{
+			Name:     "created_time",
+			Type:     "timestamp",
+			Nullable: false,
+			Default:  "CURRENT_TIMESTAMP",
+			OnUpdate: "CURRENT_TIMESTAMP",
+			Metadata: metadata.Metadata{
+				Name:   "created_time",
+				Type:   "Column",
+				Exists: true,
+			},
+		},
+		ExpectFail:  false,
+		Description: "Parse Column: `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+	},
+
 	// Test malformed sql parse fails
 	{
 		Str:         "`age` NOT NULL",

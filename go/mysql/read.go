@@ -18,16 +18,18 @@ import (
 
 // MySQL Keywords
 const (
-	NULL            = "NULL"
-	DEFAULT         = "DEFAULT"
-	NOT_NULL        = "NOT NULL"
-	UNSIGNED        = "UNSIGNED"
-	AUTO_INCREMENT  = "AUTO_INCREMENT"
-	ENGINE          = "ENGINE"
-	DEFAULT_CHARSET = "DEFAULT CHARSET"
-	ROW_FORMAT      = "ROW_FORMAT"
-	COLLATE         = "COLLATE"
-	DEFAULT_COLLATE = "DEFAULT COLLATE"
+	NULL              = "NULL"
+	DEFAULT           = "DEFAULT"
+	NOT_NULL          = "NOT NULL"
+	UNSIGNED          = "UNSIGNED"
+	AUTO_INCREMENT    = "AUTO_INCREMENT"
+	ENGINE            = "ENGINE"
+	DEFAULT_CHARSET   = "DEFAULT CHARSET"
+	ROW_FORMAT        = "ROW_FORMAT"
+	COLLATE           = "COLLATE"
+	DEFAULT_COLLATE   = "DEFAULT COLLATE"
+	CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP"
+	ON_UPDATE 		  = "ON UPDATE"
 )
 
 var alters []string
@@ -344,6 +346,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	autoinc := false
 	defaultValue := ""
 	collationValue := ""
+	updateValue := ""
 
 	// If unsigned is present
 	if strings.Index(parameters, UNSIGNED) != -1 {
@@ -387,18 +390,25 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 			}
 		} else {
 
-			// Check for NULL default value if there aren't any quotes.  Can only be NULL
-			if len(defaultStr) >= 4 {
-				if defaultStr != NULL {
-					dCmp := strings.Split(defaultStr, " ")
-					if len(dCmp) > 0 && dCmp[0] == NULL {
-						defaultValue = NULL
-					}
-				} else {
-					defaultValue = defaultStr
+			// If the column is a timestamp column, check for CURRENT_TIMESTAMP
+			if datatype == "timestamp" {
+				if strings.HasPrefix(defaultStr, CURRENT_TIMESTAMP){
+					defaultValue = CURRENT_TIMESTAMP
 				}
+			} else {
+				// Check for NULL default value if there aren't any quotes.  Can only be NULL
+				if len(defaultStr) >= 4 {
+					if defaultStr != NULL {
+						dCmp := strings.Split(defaultStr, " ")
+						if len(dCmp) > 0 && dCmp[0] == NULL {
+							defaultValue = NULL
+						}
+					} else {
+						defaultValue = defaultStr
+					}
+				}
+				// If the default value is shorter than NULL, then there's a problem
 			}
-			// If the default value is shorter than NULL, then there's a problem
 
 			// If we're unable to parse the default value
 			if defaultValue == "" {
@@ -428,6 +438,28 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 		}
 	}
 
+	// if ON UPDATE is present
+	updatePos := strings.Index(parameters, ON_UPDATE)
+	if updatePos != -1 {
+
+		// Grab the string after COLLATE, trim it, and split on whitespace.
+		// Check that the line contains a COLLATION value
+		if len(parameters) < updatePos+len(ON_UPDATE)+1 {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: 'ON UPDATE' action missing: [%s]", line))
+		}
+
+		// Now extract value of the parameter from the original line (non-ToUpper())
+		lineEnd := line[paramOffset+updatePos+len(ON_UPDATE):]
+		updateStr := strings.TrimSpace(lineEnd)
+
+		cCmp := strings.Split(updateStr, " ")
+		if len(cCmp) > 0 && cCmp[0] != "" {
+			updateValue = cCmp[0]
+		} else {
+			return column, parseError(fmt.Sprintf("Invalid Column Definition: Couldn't extract 'ON UPDATE' action: [%s]", line))
+		}
+	}
+
 	// Build Column result
 	column.Name = name
 	column.Type = datatype
@@ -437,6 +469,7 @@ func buildColumn(line string, tblPropertyID string, tblName string) (column tabl
 	column.Nullable = nullable
 	column.AutoInc = autoinc
 	column.Collation = collationValue
+	column.OnUpdate = updateValue
 
 	md.Name = column.Name
 	md.Type = "Column"

@@ -102,6 +102,44 @@ var createTableTests = []SQLCTTest{
 		ExpectFail:  false,
 		Description: "Create Table: No Index",
 	},
+
+	{
+		Table: table.Table{
+			Name:    "TestTable",
+			Engine:  "InnoDB",
+			CharSet: "latin1",
+			Columns: []table.Column{
+				table.Column{
+					Name:     "age",
+					Type:     "int",
+					Size:     []int{11},
+					Default:  "1",
+					Nullable: false,
+					AutoInc:  false,
+					Metadata: metadata.Metadata{
+						Name:   "age",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+				table.Column{
+					Name:     "created_time",
+					Type:     "timestamp",
+					Nullable: false,
+					Default:  "CURRENT_TIMESTAMP",
+					OnUpdate: "CURRENT_TIMESTAMP",
+					Metadata: metadata.Metadata{
+						Name:   "created_time",
+						Type:   "Column",
+						Exists: true,
+					},
+				},
+			},
+		},
+		Statement:   "CREATE TABLE `TestTable` (`age` int(11) NOT NULL DEFAULT '1',`created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+		ExpectFail:  false,
+		Description: "Create Table: With Timestamp",
+	},
 }
 
 func TestCreateTable(t *testing.T) {
