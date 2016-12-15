@@ -96,7 +96,7 @@ func getTableDogs() table.Table {
 		Namespace: table.Namespace{
 			SchemaName:    "",
 			TablePrefix:   "",
-			Path:          "",
+			SchemaPath:    "",
 			TableName:     "dogs",
 			TableFilename: "dogs",
 		},
@@ -153,7 +153,7 @@ func getTableNamespacedDogs() table.Table {
 		Namespace: table.Namespace{
 			SchemaName:    "Schema",
 			TablePrefix:   "ss",
-			Path:          "schema",
+			SchemaPath:    "schema",
 			TableName:     "dogs",
 			TableFilename: "dogs",
 		},
@@ -204,7 +204,7 @@ func writeTableStructToPath(testName string, t *testing.T, path string, expected
 	// Verify that the generated YAML is in the correct path and in the expected format
 	fp := filepath.Join(
 		path,
-		tbl.Namespace.Path,
+		tbl.Namespace.SchemaPath,
 		tbl.Name+".yml",
 	)
 

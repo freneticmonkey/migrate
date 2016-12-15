@@ -155,7 +155,7 @@ func Clone(project config.Project) (err error) {
 		// for each of the configured folders
 		for _, namespace := range project.Schema.Namespaces {
 			// echo <repo_path>/*> .git/info/sparse-checkout
-			repoFolders = append(repoFolders, namespace.Path+"/*")
+			repoFolders = append(repoFolders, namespace.SchemaPath+"/*")
 
 		}
 		filedata := strings.Join(repoFolders, "\n")

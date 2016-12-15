@@ -83,6 +83,7 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 	var tmpl *template.Template
 	var exists bool
 	var files []string
+	var templateDestPath string
 
 	util.SetVerbose(true)
 
@@ -102,25 +103,28 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 	for _, tmpOptions := range conf.Project.Generation.Templates {
 		util.LogInfof("Generating Schema for Template: %s", tmpOptions.Name)
 
-		if tmpOptions.Path == "" || tmpOptions.File == "" || tmpOptions.FileFormat == "" {
+		if tmpOptions.File == "" || tmpOptions.FileFormat == "" {
 			return fmt.Errorf("Generate Table: Badly configured template options")
 		}
 
 		templateFile := util.WorkingSubDir(tmpOptions.File)
 
-		// Generation path
-		genPath := util.WorkingSubDir(tmpOptions.Path)
+		// If a Template path has been set
+		if tmpOptions.Path != "" {
+			// Generation path
+			templateDestPath = util.WorkingSubDir(tmpOptions.Path)
 
-		// Ensure that the path exists
-		exists, err = util.DirExists(genPath)
-		if err != nil {
-			return err
-		}
-
-		if !exists {
-			err = util.Mkdir(genPath, 0755)
+			// Ensure that the path exists
+			exists, err = util.DirExists(templateDestPath)
 			if err != nil {
 				return err
+			}
+
+			if !exists {
+				err = util.Mkdir(templateDestPath, 0755)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -136,7 +140,25 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 			return err
 		}
 
-		files, err = scanGeneratedFiles(genPath)
+		// If a Template path has NOT been set
+		if tmpOptions.Path == "" {
+			var nsFiles []string
+
+			// For each namespace, scan template paths
+			for _, ns := range conf.Project.Schema.Namespaces {
+				nsPath := util.WorkingSubDir(ns.GenPath)
+				nsFiles, err = scanGeneratedFiles(nsPath)
+
+				if err != nil {
+					return fmt.Errorf("Generate Table: Problem scanning for files for namespace: %s. Error: %v", ns.Name, err)
+				}
+			}
+
+			files = nsFiles
+
+		} else {
+			files, err = scanGeneratedFiles(templateDestPath)
+		}
 
 		// Generate each table
 		for _, tbl := range tables {
@@ -146,11 +168,18 @@ func writeTables(conf config.Config, tables []table.Table) (err error) {
 			// Set the file format for the output file
 			tbl.Namespace.SetTableFilename(tmpOptions.FileFormat)
 			// Search for an existing file to adopt its naming case
-			tbl.Namespace.SetExistingFilename(files)
+			tbl.Namespace.SetExistingFilename(files, tmpOptions)
 			// Generate the final filename
-			tblFilename := tbl.Namespace.GenerateFilename(tmpOptions.Ext)
-			// Relative to the working directory
-			tblFilename = filepath.Join(genPath, tblFilename)
+			tblFilename := tbl.Namespace.GenerateGenFilename(tmpOptions.Ext)
+
+			// If a Template path has been set
+			if templateDestPath != "" {
+				// Relative to the working directory
+				tblFilename = filepath.Join(templateDestPath, tblFilename)
+			} else {
+				// To the destination template path
+				tblFilename = util.WorkingSubDir(tblFilename)
+			}
 
 			// Create Directory if not exists
 			dir := filepath.Dir(tblFilename)

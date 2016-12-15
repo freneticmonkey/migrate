@@ -16,7 +16,7 @@ func main() {
 	app.Author = "Scott Porter"
 	app.Copyright = "MIT"
 	app.Email = "scottporter@neuroticstudios.com"
-	app.Version = "0.1.0"
+	app.Version = "0.1.1"
 
 	// Configure the app
 

@@ -140,14 +140,14 @@ schemaTwo/*`
 	testConfig.Project.Git.Version = version
 	testConfig.Project.Schema.Namespaces = []config.SchemaNamespace{
 		{
-			Name:      "Schema",
+			Name:        "Schema",
 			TablePrefix: "SS",
-			Path:    "schema",
+			SchemaPath:  "schema",
 		},
 		{
-			Name:      "SchemaTwo",
+			Name:        "SchemaTwo",
 			TablePrefix: "ST",
-			Path:    "schemaTwo",
+			SchemaPath:  "schemaTwo",
 		},
 	}
 

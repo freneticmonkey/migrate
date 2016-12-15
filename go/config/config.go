@@ -53,7 +53,8 @@ type Project struct {
 }
 
 type Schema struct {
-	Namespaces []SchemaNamespace
+	WorkingRelative bool
+	Namespaces      []SchemaNamespace
 }
 
 type Git struct {
@@ -65,7 +66,8 @@ type Git struct {
 type SchemaNamespace struct {
 	Name        string
 	TablePrefix string
-	Path        string
+	SchemaPath  string
+	GenPath		string
 }
 
 type DB struct {

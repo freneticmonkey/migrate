@@ -30,7 +30,7 @@ func ReadTables(conf config.Config) (err error) {
 
 	// Read any Schema namespaces
 	for _, ns := range conf.Project.Schema.Namespaces {
-		nsPath := ns.Path//filepath.Join(path, ns.Path)
+		nsPath := ns.SchemaPath//filepath.Join(path, ns.Path)
 		err = readPath(nsPath, true, conf)
 
 		if err != nil {
