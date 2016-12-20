@@ -1105,7 +1105,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -1135,7 +1135,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		testConfig.Project.Git.Version,
 		m.VersionTimestamp,
 		m.VersionDescription,
-		migration.Forced,
+		migration.ForcedCI,
 		"",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -1149,7 +1149,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -1160,7 +1160,7 @@ func TestExecAllowDestructive(t *testing.T) {
 		Rollback:         rollback,
 		PTODisabled:      PTODisabled,
 		AllowDestructive: allowDestructive,
-		Force:            force,
+		ForceCI:          force,
 	})
 
 	if err != nil {

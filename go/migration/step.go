@@ -58,7 +58,7 @@ func LoadStepsList(sids []int64) (s []Step, err error) {
 func (s *Step) UpdateMetadata() (err error) {
 	var m *metadata.Metadata
 
-	if s.Status == Forced || s.Status == Complete || s.Status == Rollback {
+	if s.Status == ForcedCI || s.Status == Complete || s.Status == Rollback {
 
 		m, err = metadata.Load(s.MDID)
 		if util.ErrorCheckf(err, "Failed to load Metadata from the database") {
