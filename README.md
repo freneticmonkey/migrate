@@ -20,3 +20,15 @@ Migrate can also run as a REST API service which allows for schema management vi
 # Version 0.1.0
 - Added Namespace support
   Namespaces are intended to support deploying multiple projects to the same database.  Config has been modified to separate Git options from Schema options.  Namespace configuration has also been moved into Schema.  Namespace paths are used to define subfolders containing the schema YAML.
+
+# Version 0.2.0
+- Added better support for Continuous Integration
+  Migrations can now be forced using the --force-ci flag
+- Manual step mode for Migrations
+  Migrations can now be applied from the console with an approve/deny prompt for each step of the migration
+- Better working path support
+  The working path root is now the path to the config file rather than the current working directory
+- Namespace improvements
+  Namespaces are now better handled in tables
+- Migration Step Ordering
+  The migration steps are now processed and logically ordered.  Previously Add/Mod/Del operations could be incorrectly ordered resulting in invalid statements being executed.∏
