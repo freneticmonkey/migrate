@@ -78,6 +78,7 @@ func LoadConfig(configURL, configFile string) (targetConfig config.Config, err e
 				// Unmarshal the YAML config
 				err = yaml.ReadData(configURL, data, &targetConfig)
 				configSource = configURL
+				targetConfig.ConfigURL = configURL
 			}
 		}
 
@@ -85,6 +86,7 @@ func LoadConfig(configURL, configFile string) (targetConfig config.Config, err e
 		// Assume that it's a local file
 		err = yaml.ReadFile(configFile, &targetConfig)
 		configSource = configFile
+		targetConfig.ConfigFile = configFile
 	}
 
 	if util.ErrorCheckf(err, "Configuration read failed for: %s", configSource) {

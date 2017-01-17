@@ -471,7 +471,7 @@ func TestMigrateSandbox(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -501,7 +501,7 @@ func TestMigrateSandbox(t *testing.T) {
 		testConfig.Project.Git.Version,
 		m.VersionTimestamp,
 		m.VersionDescription,
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -515,7 +515,7 @@ func TestMigrateSandbox(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -765,7 +765,7 @@ func TestRefreshDatabase(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -796,7 +796,7 @@ func TestRefreshDatabase(t *testing.T) {
 		testConfig.Project.Git.Version,
 		m.VersionTimestamp,
 		m.VersionDescription,
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		m.MID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -810,7 +810,7 @@ func TestRefreshDatabase(t *testing.T) {
 		step.Forward,
 		step.Backward,
 		"Row(s) Affected: 1",
-		migration.Forced,
+		migration.ForcedCI,
 		"sandbox",
 		step.SID,
 	).WillReturnResult(sqlmock.NewResult(1, 1))

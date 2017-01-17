@@ -84,12 +84,23 @@ func Config(conf config.Config) afero.Fs {
 		configGrayLog(conf.Options.GrayLog)
 	}
 
-	// Make path absolute
-	cwd, err := os.Getwd()
-	ErrorCheck(err)
+	rootPath := ""
+
+	if conf.ConfigURL == "" {
+		// The Working Path is Relative to the config file
+		rootPath = filepath.Dir(conf.ConfigFile)
+
+	} else {
+		// Config URL is active, or defaulting to config.yml being loaded from CWD.
+
+		rootPath, err = os.Getwd()
+		if err != nil {
+			LogErrorf("Problem extracting the CWD while configuring the Working Directory")
+		}
+	}
 
 	// Configure the working path, ensuring the it's lowercase
-	WorkingPathAbs = filepath.Join(cwd, strings.ToLower(conf.Options.WorkingPath))
+	WorkingPathAbs = filepath.Join(rootPath, strings.ToLower(conf.Options.WorkingPath))
 	WorkingPathAbs, err = filepath.Abs(WorkingPathAbs)
 
 	LogInfof("Set Working Path: %s", WorkingPathAbs)

@@ -51,6 +51,10 @@ func GetExecCommand() (setup cli.Command) {
 				Name:  "step-confirm",
 				Usage: "Manually confirm each migration step. Skipped steps will be marked as skipped.",
 			},
+			cli.BoolFlag{
+				Name:  "force-ci",
+				Usage: "Force apply the migration.  For use with a Continuous Integration pipeline.",
+			},
 		},
 		Action: func(ctx *cli.Context) (err error) {
 			var mid int64
@@ -120,10 +124,12 @@ func GetExecCommand() (setup cli.Command) {
 			PTODisabled := ctx.Bool("pto-disabled")
 			allowDestructive := ctx.Bool("allow-destructive")
 			stepConfirm := ctx.Bool("step-confirm")
+			forceCI := ctx.Bool("force-ci")
 
 			err = exec.Exec(exec.Options{
 				MID:              mid,
 				Dryrun:           dryrun,
+				ForceCI:		  forceCI,
 				Rollback:         rollback,
 				PTODisabled:      PTODisabled,
 				AllowDestructive: allowDestructive,

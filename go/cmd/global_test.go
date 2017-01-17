@@ -73,6 +73,7 @@ func TestConfigReadFile(t *testing.T) {
 				Environment: "UNITTEST",
 			},
 		},
+		ConfigFile: configFilename,
 	}
 
 	// Set Testing FileSystem
@@ -217,6 +218,8 @@ func TestConfigReadURL(t *testing.T) {
 	defer ts.Close()
 
 	configsetup.SetConfigURL(ts.URL)
+	// Unfortunately we need to alter the test data with the mock http info
+	expectedConfig.ConfigURL = ts.URL
 
 	urlConfig, err := configsetup.LoadConfig(ts.URL, "")
 

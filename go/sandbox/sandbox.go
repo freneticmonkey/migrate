@@ -64,7 +64,7 @@ func migrateSandbox(actionTitle string, dryrun bool, m *migration.Migration) (er
 
 	exec.Exec(exec.Options{
 		Dryrun:           dryrun,
-		Force:            true,
+		ForceCI:          true,
 		Rollback:         false,
 		PTODisabled:      true,
 		AllowDestructive: true,

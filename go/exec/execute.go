@@ -14,7 +14,7 @@ import (
 type Options struct {
 	MID               int64
 	Dryrun            bool
-	Force             bool
+	ForceCI           bool
 	Rollback          bool
 	PTODisabled       bool
 	AllowDestructive  bool
@@ -29,7 +29,7 @@ func Exec(options Options) (err error) {
 
 	mid := options.MID
 	dryrun := options.Dryrun
-	force := options.Force
+	force := options.ForceCI
 	rollback := options.Rollback
 	sandbox := options.Sandbox
 	ptodisbled := options.PTODisabled
@@ -287,7 +287,7 @@ func Exec(options Options) (err error) {
 										m.Steps[i].Output = output
 
 										if force {
-											m.Steps[i].Status = migration.Forced
+											m.Steps[i].Status = migration.ForcedCI
 										} else if rollback {
 											m.Steps[i].Status = migration.Rollback
 										} else {
@@ -366,7 +366,7 @@ func Exec(options Options) (err error) {
 			if success {
 				if !dryrun {
 					if force {
-						m.Status = migration.Forced
+						m.Status = migration.ForcedCI
 					} else if rollback {
 						m.Status = migration.Rollback
 					} else {
@@ -376,18 +376,18 @@ func Exec(options Options) (err error) {
 					if err != nil {
 						return err
 					}
-					util.LogInfof("Migration with ID: [%d] completed successfully.", m.MID)
+					util.LogInfof("Migration with ID: [%d] and Description: [%s] completed successfully with status: [%s]", m.MID, m.VersionDescription, migration.StatusString[m.Status])
 				} else {
-					util.LogInfof("(DRYRUN) Migration with ID: [%d] completed successfully.", m.MID)
+					util.LogInfof("(DRYRUN) Migration with ID: [%d] and Description: [%s] completed successfully with status: [%s]", m.MID, m.VersionDescription, migration.StatusString[m.Status])
 				}
 
 			}
 
 		} else {
-			err = fmt.Errorf("Migration with ID: [%d] failed validation. Reason: %s", m.MID, failReason)
+			err = fmt.Errorf("Migration with ID: [%d] and Description: [%s] failed validation. Reason: %s", m.MID, m.VersionDescription, failReason)
 		}
 	} else {
-		err = fmt.Errorf("Migration with id: [%d] has not been approved for migration.  Migration failed.", m.MID)
+		err = fmt.Errorf("Migration with id: [%d] and Description: [%s] has not been approved for migration.  Migration failed.", m.MID, m.VersionDescription)
 	}
 
 	return err
