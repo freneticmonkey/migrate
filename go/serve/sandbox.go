@@ -157,7 +157,7 @@ func diffTables(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forwardDiff, err = table.DiffTables(diffSchema, dbSchema, true)
+	forwardDiff, err = table.DiffTables(diffSchema, dbSchema, true, true)
 	if util.ErrorCheck(err) {
 		writeErrorResponse(w, r, "Diff failed. Problems while calculating differences.", err, problems)
 		return

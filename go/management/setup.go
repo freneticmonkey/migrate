@@ -82,7 +82,7 @@ func Setup(conf config.Config) (err error) {
 	if err != nil {
 		// if util.ErrorCheckf(err, "Target Database entry doesn't exist for Project: [%s]. Creating it", conf.Project.Name) {
 		util.LogWarnf("Target Database entry doesn't exist for Project: [%s]", conf.Project.Name)
-		util.LogGreen("Creating it")
+		util.LogInfo("Creating it")
 		tdb = database.TargetDatabase{
 			Project: conf.Project.Name,
 			Name:    projDB.Database,

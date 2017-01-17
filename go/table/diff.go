@@ -273,15 +273,101 @@ func diffColumns(toTable Table, fromTable Table) (hasDiff bool, differences Diff
 	return hasDiff, differences
 }
 
+func diffIndexColumns(toIndex Index, fromIndex Index, fromTable Table, indexName string) (hasDiff bool, differences Differences) {
+
+	if !reflect.DeepEqual(toIndex.Columns, fromIndex.Columns) {
+		hasDiff = true
+		var autoIncColDisabled Column
+		// Check if any of the columns are AUTO_INCREMENT columns.
+		autoIncCol := Column{}
+		hasAutoIncCol := false
+		for _, indCol := range fromIndex.Columns {
+			for _, tableCol := range fromTable.Columns {
+				// If the Column matches and its an AUTO_INCREMENT column
+				if tableCol.Name == indCol.Name && tableCol.AutoInc {
+					// Record it and break because there can only be a single AUTO_INCREMENT per table
+					autoIncCol = tableCol
+					autoIncColDisabled = tableCol
+					autoIncColDisabled.AutoInc = false
+					hasAutoIncCol = true
+					break
+				}
+			}
+		}
+
+		if hasAutoIncCol {
+			// if so remove the auto increment Property
+
+			differences.Add(Diff{
+				Table:    fromTable.Name,
+				Field:    "Columns",
+				Op:       Mod,
+				Property: "AutoInc",
+				Value: DiffPair{
+					From: autoIncCol,
+					To:   autoIncColDisabled,
+				},
+				Metadata: autoIncCol.Metadata,
+			})
+		}
+
+		// Build the separate DEL/ADD Diffs
+		differences.Add(Diff{
+			Table:    fromTable.Name,
+			Field:    indexName,
+			Op:       Del,
+			Property: "Columns",
+			Value:    fromIndex,
+			Metadata: toIndex.Metadata,
+		})
+
+		differences.Add(Diff{
+			Table:    fromTable.Name,
+			Field:    indexName,
+			Op:       Add,
+			Property: "Columns",
+			Value:    toIndex,
+			Metadata: toIndex.Metadata,
+		})
+
+		// if necessary readd the AUTO_INCREMENT Property
+		if hasAutoIncCol {
+			// re-enable the auto inc column
+
+			differences.Add(Diff{
+				Table:    fromTable.Name,
+				Field:    "Columns",
+				Op:       Mod,
+				Property: "AutoInc",
+				Value: DiffPair{
+					From: autoIncColDisabled,
+					To:   autoIncCol,
+				},
+				Metadata: autoIncCol.Metadata,
+			})
+		}
+	}
+
+	return hasDiff, differences
+}
+
 func diffIndexes(toTable Table, fromTable Table) (hasDiff bool, differences Differences) {
+
+	var colDiffs Differences
+
 	// Ugly, but it works?
 	toIndexes := make([]interface{}, 1)
 	toIndexes[0] = toTable.PrimaryIndex
 	fromIndexes := make([]interface{}, 1)
 	fromIndexes[0] = fromTable.PrimaryIndex
 
+	// Diff PrimaryIndex columns
+	if hasDiff, colDiffs = diffIndexColumns(toTable.PrimaryIndex, fromTable.PrimaryIndex, fromTable, "PrimaryIndex"); hasDiff {
+		differences.Merge(colDiffs)
+	}
+
 	// Primary Index Properties
-	fieldNames := []string{"Columns", "IsPrimary", "PropertyID"}
+	fieldNames := []string{"IsPrimary", "PropertyID"}
 
 	if primaryIndex := diffProperties(toTable.Name, "PrimaryIndex", fieldNames, toIndexes, fromIndexes); len(primaryIndex.Slice) > 0 {
 		hasDiff = true
@@ -342,8 +428,14 @@ func diffTable(toTable Table, fromTable Table) (hasDiff bool, differences Differ
 
 // DiffTables Compare the toTables and fromTables Slices of Table structs and
 // return a Differences Slice containing all of the differences between the tables.
-func DiffTables(toTables []Table, fromTables []Table, dryrun bool) (tableDiffs Differences, err error) {
+func DiffTables(toTables []Table, fromTables []Table, dryrun bool, forward bool) (tableDiffs Differences, err error) {
 	util.LogInfo("Starting Diff")
+
+	if !forward {
+		intTables := fromTables
+		fromTables = toTables
+		toTables = intTables
+	}
 
 	// Search through the input tables
 	for i := 0; i < len(toTables); i++ {
@@ -368,6 +460,10 @@ func DiffTables(toTables []Table, fromTables []Table, dryrun bool) (tableDiffs D
 			if toTable.Metadata.PropertyID == fromTable.Metadata.PropertyID {
 				found = true
 				if hasDiff, diff := diffTable(toTable, fromTable); hasDiff {
+
+					// Post process the diff operations on a per table basis
+					diff, err = orderDiffs(diff, forward)
+
 					tableDiffs.Merge(diff)
 				}
 			}
@@ -407,6 +503,8 @@ func DiffTables(toTables []Table, fromTables []Table, dryrun bool) (tableDiffs D
 			})
 		}
 	}
+
+	util.LogInfo("Finished Diff")
 
 	return tableDiffs, err
 }

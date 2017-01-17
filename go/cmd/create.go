@@ -151,13 +151,13 @@ func create(version string, gitinfo string, clone bool, rollback bool, conf conf
 		return cli.NewExitError("Validation failed. Detected YAML PropertyID problems", problems.Count())
 	}
 
-	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false)
+	forwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false, true)
 	if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
 		return cli.NewExitError("Create failed. Unable to generate a forward migration", 1)
 	}
 	forwardOps := mysql.GenerateAlters(forwardDiff)
 
-	backwardDiff, err := table.DiffTables(mysql.Schema, yaml.Schema, false)
+	backwardDiff, err := table.DiffTables(yaml.Schema, mysql.Schema, false, false)
 	if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
 		return cli.NewExitError("Create failed. Unable to generate a backward migration", 1)
 	}
