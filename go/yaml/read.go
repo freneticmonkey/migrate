@@ -30,8 +30,16 @@ func ReadTables(conf config.Config) (err error) {
 
 	// Read any Schema namespaces
 	for _, ns := range conf.Project.Schema.Namespaces {
-		nsPath := ns.SchemaPath//filepath.Join(path, ns.Path)
-		err = readPath(nsPath, true, conf)
+
+		nsPath := ""
+
+		if ns.SchemaPath != "" {
+			nsPath = ns.SchemaPath//filepath.Join(path, ns.Path)
+			err = readPath(nsPath, true, conf)
+
+		} else {
+			err = fmt.Errorf("SchemaPath value missing for Schema Namespace: %s", ns.Name)
+		}
 
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -61,7 +69,7 @@ func readPath(path string, recursive bool, conf config.Config) (err error) {
 
 			var tbl table.Table
 			err = ReadFile(filename, &tbl)
-
+			util.LogInfof("Reading YAML Table: %s", filename)
 			if err != nil {
 				return err
 			}
