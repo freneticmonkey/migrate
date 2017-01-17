@@ -31,14 +31,14 @@ func Action(conf config.Config, dryrun bool, recreate bool, actionTitle string) 
 	// Check that a local schema exists
 	forwardOps, backwardOps, err := diffSchema(conf, actionTitle, recreate)
 
-	if util.ErrorCheck(err) {
+	if err != nil {
 		return successmsg, err
 	}
 
 	// Create a local migration
 	m, err := createMigration(conf, actionTitle, dryrun, forwardOps, backwardOps)
 
-	if util.ErrorCheck(err) {
+	if err != nil {
 		return successmsg, err
 	}
 
@@ -125,16 +125,19 @@ func diffSchema(conf config.Config, actionTitle string, recreate bool) (forwardO
 		}
 
 		// Generate Diffs
-		forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema, false)
+		util.LogMagenta("Generating Forward Diff  >>")
+		forwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema, false, true)
 		if util.ErrorCheckf(err, "Diff Failed while generating forward migration") {
 			return forwardOps, backwardOps, err
 		}
 		forwardOps = mysql.GenerateAlters(forwardDiff)
 
-		backwardDiff, err = table.DiffTables(mysql.Schema, yaml.Schema, false)
+		util.LogMagenta("Generating Backward Diff  <<")
+		backwardDiff, err = table.DiffTables(yaml.Schema, mysql.Schema, false, false)
 		if util.ErrorCheckf(err, "Diff Failed while generating backward migration") {
 			return forwardOps, backwardOps, err
 		}
+
 		backwardOps = mysql.GenerateAlters(backwardDiff)
 	}
 

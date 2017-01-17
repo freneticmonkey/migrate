@@ -216,9 +216,20 @@ func generateAlterColumn(diff table.Diff) (ops SQLOperations) {
 	case table.Mod:
 		// Process modification by type
 
-		diffPair := diff.Value.(table.DiffPair)
-		toColumn := diffPair.To.(table.Column)
-		fromColumn := diffPair.From.(table.Column)
+		diffPair, ok := diff.Value.(table.DiffPair)
+		if !ok {
+			util.LogErrorf("Unable to extract DiffPair from Diff: %s", diff.Print())
+		}
+
+		toColumn, ok := diffPair.To.(table.Column)
+		if !ok {
+			util.LogErrorf("Unable to extract To Column from Diff: %s", diff.Print())
+		}
+
+		fromColumn, ok := diffPair.From.(table.Column)
+		if !ok {
+			util.LogErrorf("Unable to extract From Column from Diff: %s", diff.Print())
+		}
 
 		builder.AddQuote(diff.Table)
 
@@ -275,9 +286,8 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 	var index table.Index
 
 	// Obtain Index Object
-
 	diffPair, ok := diff.Value.(table.DiffPair)
-
+	
 	if !ok {
 		index, ok = diff.Value.(table.Index)
 	} else {
@@ -287,18 +297,23 @@ func generateAlterIndex(diff table.Diff) (ops SQLOperations) {
 	if ok {
 		indexName := ""
 
+		// Drop
 		if diff.Field == "PrimaryIndex" {
 			indexName = "PRIMARY KEY"
 
+			builder.Add("ALTER TABLE")
+			builder.AddQuote(diff.Table)
+			builder.Add("DROP")
+			builder.Add(indexName)
+
 		} else if diff.Field == "SecondaryIndexes" {
 			indexName = fmt.Sprintf("%s", index.Name)
-		}
 
-		// Drop
-		builder.Add("DROP INDEX")
-		builder.AddQuote(indexName)
-		builder.Add("ON")
-		builder.AddQuote(diff.Table)
+			builder.Add("DROP INDEX")
+			builder.AddQuote(indexName)
+			builder.Add("ON")
+			builder.AddQuote(diff.Table)
+		}
 
 		removeOp := SQLOperation{
 			Statement: builder.Format(),

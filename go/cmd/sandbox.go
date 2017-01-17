@@ -97,38 +97,38 @@ func sandboxProcessFlags(conf config.Config, recreate, migrate, dryrun, force, p
 			// If performing a migration
 
 			successmsg, err = sandbox.Action(conf, dryrun, false, "Sandbox Migration")
-			if util.ErrorCheck(err) {
+			if err != nil {
 				return cli.NewExitError(err.Error(), 1)
 			}
 			return cli.NewExitError(successmsg, 0)
 
-		}
+		} else {
+			// If recreating the sandbox database from scratch
 
-		// If recreating the sandbox database from scratch
-
-		// If a dryrun, or being forced, don't prompt
-		if dryrun || force {
-			action = YES
-		}
-
-		if action == "" {
-			action, err = util.SelectAction("Are you sure you want to reset your sandbox?", []string{YES, NO})
-			if util.ErrorCheck(err) {
-				return cli.NewExitError("There was a problem confirming the action.", 1)
+			// If a dryrun, or being forced, don't prompt
+			if dryrun || force {
+				action = YES
 			}
-		}
 
-		switch action {
-		case YES:
-			{
-				successmsg, err = sandbox.Action(conf, dryrun, true, "Sandbox Recreation")
-				if util.ErrorCheck(err) {
-					return cli.NewExitError(err.Error(), 1)
+			if action == "" {
+				action, err = util.SelectAction("Are you sure you want to reset your sandbox?", []string{YES, NO})
+				if err != nil {
+					return cli.NewExitError("There was a problem confirming the action.", 1)
 				}
-				return cli.NewExitError(successmsg, 0)
 			}
+
+			switch action {
+			case YES:
+				{
+					successmsg, err = sandbox.Action(conf, dryrun, true, "Sandbox Recreation")
+					if err != nil {
+						return cli.NewExitError(err.Error(), 1)
+					}
+					return cli.NewExitError(successmsg, 0)
+				}
+			}
+			return cli.NewExitError("Sandbox Recreation cancelled.", 0)
 		}
-		return cli.NewExitError("Sandbox Recreation cancelled.", 0)
 
 	} else if pulldiff {
 

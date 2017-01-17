@@ -25,6 +25,20 @@ func DebugDumpDiff(left interface{}, right interface{}) {
 	DebugDiffStrings(l, r)
 }
 
+// DebugDumpDiffDetail Pretty print differences between data structures
+func DebugDumpDiffDetail(left interface{}, right interface{}, leftTitle, rightTitle string) {
+
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	fmt.Printf("\t\t ===  Diff === \n")
+	fmt.Printf("\t %s %s\t %s %s\n\n", red("<<<<"), red(leftTitle), yellow(rightTitle), yellow(">>>>"))
+
+	l := strings.Split(spew.Sdump(left), "\n")
+	r := strings.Split(spew.Sdump(right), "\n")
+
+	DebugDiffStrings(l, r)
+}
+
 //DebugDiffString Diff two strings
 func DebugDiffString(l, r string) {
 	// If the string contains a newline, then split on newlines first

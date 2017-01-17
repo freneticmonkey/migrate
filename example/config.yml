@@ -52,11 +52,11 @@ project:
         namespaces:
             - name:         "Ferrari"
               tableprefix:  "ferrari_"
-              path:         "cars/manufacturer/ferrari"
+              schemapath:   "cars/manufacturer/ferrari"
 
             - name:         "Porsche"
               tableprefix:  "porsche_"
-              path:         "cars/manufacturer/porsche"
+              schemapath:   "cars/manufacturer/porsche"
 
     # The Project Git configuration
     # git:

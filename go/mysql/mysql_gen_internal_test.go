@@ -524,6 +524,60 @@ var genTableAlterTests = []SQLGenTest{
 		Description: "Table Index: Add Column",
 		TestType:    Index,
 	},
+
+
+
+	{
+		Diff: table.Diff{
+			Table:    "TestTable",
+			Field:    "PrimaryIndex",
+			Op:       table.Mod,
+			Property: "Columns",
+			Value: table.DiffPair{
+				From: table.Index{
+					ID:   "PrimaryIndex",
+					Name: "PrimaryIndex",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+					},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "PrimaryIndex",
+					},
+				},
+				To: table.Index{
+					ID:   "PrimaryIndex",
+					Name: "PrimaryIndex",
+					Columns: []table.IndexColumn{
+						{
+							Name: "address",
+						},
+						{
+							Name: "add",
+						},
+					},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "PrimaryIndex",
+					},
+				},
+			},
+			Metadata: metadata.Metadata{
+				PropertyID: "PrimaryIndex",
+			},
+		},
+		Statements: []string{
+			"ALTER TABLE `TestTable` DROP PRIMARY KEY;",
+			"CREATE INDEX `PRIMARY KEY` ON `TestTable` (`address`,`add`);",
+		},
+		ExpectFail:  false,
+		Description: "Table PrimaryKey: Alter Primary Key",
+		TestType:    Index,
+	},
 }
 
 func TestGenerateAlters(t *testing.T) {

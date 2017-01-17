@@ -37,6 +37,14 @@ A growing list of features and tasks that need to be completed before this proje
 - [x] ROW_FORMAT support
 - [x] Column Collation support
 - [x] Table Default Collation support
+- [x] Step confirm during migration exec
+- [x] Add vetted by field for auditing
+- [x] Add force-ci flag to allow force exec for continuous integration
+- [x] Column <-> Index interdependency ordering handling i.e. mod/drop index before dropping column
+- [x] Index Column change detection
+
+# Outstanding Issues
+- [ ] validation needs to detect column / index interdependency i.e. removing a column without dropping index, creating index with missing column
 
 # TODO Management
 - [x] Implement tables:

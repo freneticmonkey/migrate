@@ -984,35 +984,42 @@ var diffTests = []DiffTest{
 			Diff{
 				Table:    "TestTable",
 				Field:    "PrimaryIndex",
-				Op:       Mod,
+				Op:       Del,
 				Property: "Columns",
-				Value: DiffPair{
-					From: Index{
-						Columns: []IndexColumn{
-							{
-								Name: "address",
-							},
-							{
-								Name: "age",
-							},
+				Value: Index{
+					Columns: []IndexColumn{
+						{
+							Name: "address",
 						},
-						IsPrimary: true,
-						IsUnique:  false,
-						Metadata: metadata.Metadata{
-							PropertyID: "pk1",
+						{
+							Name: "age",
 						},
 					},
-					To: Index{
-						Columns: []IndexColumn{
-							{
-								Name: "address",
-							},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "pk1",
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "pk1",
+				},
+			},
+			Diff{
+				Table:    "TestTable",
+				Field:    "PrimaryIndex",
+				Op:       Add,
+				Property: "Columns",
+				Value: Index{
+					Columns: []IndexColumn{
+						{
+							Name: "address",
 						},
-						IsPrimary: true,
-						IsUnique:  false,
-						Metadata: metadata.Metadata{
-							PropertyID: "pk1",
-						},
+					},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "pk1",
 					},
 				},
 				Metadata: metadata.Metadata{
@@ -1024,8 +1031,142 @@ var diffTests = []DiffTest{
 		Description: "Primary Key Field Diff: Change Columns",
 	},
 
-	// Secondary Indexes
+	{
+		From: Table{
+			Name: "TestTable",
+			Columns: []Column{
+				{
+					Name:    "id",
+					AutoInc: true,
+				},
+				{
+					Name: "otherId",
+				},
+			},
+			PrimaryIndex: Index{
+				Columns: []IndexColumn{
+					{
+						Name: "id",
+					},
+				},
+				IsPrimary: true,
+				IsUnique:  false,
+				Metadata: metadata.Metadata{
+					PropertyID: "primarykey",
+				},
+			},
+		},
+		To: Table{
+			Name: "TestTable",
+			Columns: []Column{
+				{
+					Name:    "id",
+					AutoInc: true,
+				},
+				{
+					Name: "otherId",
+				},
+			},
+			PrimaryIndex: Index{
+				Columns: []IndexColumn{
+					{
+						Name: "otherId",
+					},
+				},
+				IsPrimary: true,
+				IsUnique:  false,
+				Metadata: metadata.Metadata{
+					PropertyID: "primarykey",
+				},
+			},
+		},
+		Expected: []Diff{
+			Diff{
+				Table:    "TestTable",
+				Field:    "Columns",
+				Op:       Mod,
+				Property: "AutoInc",
+				Value: DiffPair{
+					From: Column{
+						Name:    "id",
+						AutoInc: true,
+					},
+					To: Column{
+						Name:    "id",
+						AutoInc: false,
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "",
+				},
+			},
+			Diff{
+				Table:    "TestTable",
+				Field:    "PrimaryIndex",
+				Op:       Del,
+				Property: "Columns",
+				Value: Index{
+					Columns: []IndexColumn{
+						{
+							Name: "id",
+						},
+					},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "primarykey",
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "primarykey",
+				},
+			},
+			Diff{
+				Table:    "TestTable",
+				Field:    "PrimaryIndex",
+				Op:       Add,
+				Property: "Columns",
+				Value: Index{
+					Columns: []IndexColumn{
+						{
+							Name: "otherId",
+						},
+					},
+					IsPrimary: true,
+					IsUnique:  false,
+					Metadata: metadata.Metadata{
+						PropertyID: "primarykey",
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "primarykey",
+				},
+			},
+			Diff{
+				Table:    "TestTable",
+				Field:    "Columns",
+				Op:       Mod,
+				Property: "AutoInc",
+				Value: DiffPair{
+					From: Column{
+						Name:    "id",
+						AutoInc: false,
+					},
+					To: Column{
+						Name:    "id",
+						AutoInc: true,
+					},
+				},
+				Metadata: metadata.Metadata{
+					PropertyID: "",
+				},
+			},
+		},
+		ExpectFail:  false,
+		Description: "Primary Key Field Diff: Change Primary Key Columns one of which is an AutoInc",
+	},
 
+	// Secondary Indexes
 	{
 		From: Table{
 			Name: "TestTable",
@@ -1338,6 +1479,7 @@ var diffTests = []DiffTest{
 func TestDifferences(t *testing.T) {
 	util.VerboseOverrideSet(true)
 	for _, test := range diffTests {
+		util.LogAttentionf("Testing: %s", test.Description)
 		hasDiff, difference := diffTable(test.To, test.From)
 
 		if len(difference.Slice) != len(test.Expected) {
@@ -1439,7 +1581,7 @@ func TestTables(t *testing.T) {
 	// TODO: Fix Mock DB to get this working :(
 	var diffs Differences
 	if false {
-		diffs, _ = DiffTables(toTables, fromTables, true)
+		diffs, _ = DiffTables(toTables, fromTables, true, true)
 	}
 
 	if len(diffs.Slice) > 0 {
