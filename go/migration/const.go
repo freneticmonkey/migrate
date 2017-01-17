@@ -12,8 +12,8 @@ const (
 	Approved
 	// Is complete
 	Complete
-	// Is complete and was forced
-	Forced
+	// Is complete and was forced by Continuous Integration
+	ForcedCI
 	// Is currently being applied
 	InProgress
 	// Failed to apply
@@ -30,7 +30,7 @@ var StatusString = [10]string{
 	"Depreciated",
 	"Approved",
 	"Complete",
-	"Forced",
+	"ForcedCI",
 	"InProgress",
 	"Failed",
 	"Skipped",

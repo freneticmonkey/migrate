@@ -18,6 +18,7 @@ type Column struct {
 	AutoInc   bool   `yaml:",omitempty"`
 	Unsigned  bool   `yaml:",omitempty"`
 	Collation string `yaml:",omitempty"`
+	OnUpdate  string `yaml:",omitempty"`
 
 	// Binary      bool
 	// Unique      bool
@@ -46,7 +47,7 @@ func (c Column) ToSQL() string {
 	if len(c.Default) > 0 {
 		value := c.Default
 		// Throw quotes around it if the value is not NULL
-		if value != "NULL" {
+		if value != "NULL" && value != "CURRENT_TIMESTAMP" {
 			value = fmt.Sprintf("'%s'", value)
 		}
 		params.Add(fmt.Sprintf("DEFAULT %s", value))
@@ -54,6 +55,10 @@ func (c Column) ToSQL() string {
 
 	if len(c.Collation) > 0 {
 		params.Add(fmt.Sprintf("COLLATE %s", c.Collation))
+	}
+
+	if len(c.OnUpdate) > 0 {
+		params.Add(fmt.Sprintf("ON UPDATE %s", c.OnUpdate))
 	}
 
 	size := ""

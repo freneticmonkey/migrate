@@ -128,6 +128,9 @@ Migrations created by the **create** are executed by this subcommand.  Migration
 > ### step-confirm
   Manually confirm each migration step during the apply process. Skipped steps will be marked as skipped in the database.
 
+> ### force-ci
+Force execution of the migration.  This feature is intended for use with Continuous Integration pipelines in which the migration can be applied without review.
+
 ## serve
 Starts a REST API Server which provides access to the management database.  Optionally, if the --frontend flag is used, the contents of a subfolder named 'static' will also be served.  The REST API provides endpoints for listing Migrations and Migration Steps, and allows for the status of Migration and Migration Steps to be updated.
 

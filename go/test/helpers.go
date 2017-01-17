@@ -18,12 +18,12 @@ func GetTestConfig() config.Config {
 					{
 						Name:      	 "Schema",
 						TablePrefix: "ss",
-						Path:    	 "schema",
+						SchemaPath:  "schema",
 					},
 					{
 						Name:      	 "SchemaTwo",
 						TablePrefix: "st",
-						Path:    	 "schemaTwo",
+						SchemaPath:  "schemaTwo",
 					},
 				},
 			},

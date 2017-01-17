@@ -3,8 +3,10 @@ package config
 import "fmt"
 
 type Config struct {
-	Options Options
-	Project Project
+	Options     Options
+	Project 	Project
+	ConfigFile  string `yaml:"-"`
+	ConfigURL   string `yaml:"-"`
 }
 
 type Options struct {
@@ -53,7 +55,8 @@ type Project struct {
 }
 
 type Schema struct {
-	Namespaces []SchemaNamespace
+	WorkingRelative bool
+	Namespaces      []SchemaNamespace
 }
 
 type Git struct {
@@ -65,7 +68,8 @@ type Git struct {
 type SchemaNamespace struct {
 	Name        string
 	TablePrefix string
-	Path        string
+	SchemaPath  string
+	GenPath		string
 }
 
 type DB struct {

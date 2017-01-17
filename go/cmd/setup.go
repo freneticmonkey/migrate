@@ -142,7 +142,19 @@ func setupExistingDB(conf config.Config) *cli.ExitError {
 				tbl.GeneratePropertyIDs()
 
 				// Generate YAML from the Tables and write to the working folder
-				err = yaml.WriteTable(path, *tbl)
+				// If the table is part of a Namespace
+				if len(tbl.Namespace.SchemaName) > 0 {
+					// Calculate the absolute path from the working directory
+					if conf.Project.Schema.WorkingRelative {
+						// nsPath := util.WorkingSubDir(tbl.Namespace.Path)
+						err = yaml.WriteTable(util.WorkingPathAbs, *tbl)
+					} else {
+						// Namespace is in an absolute path
+						err = yaml.WriteTable("", *tbl)
+					}
+				} else {
+					err = yaml.WriteTable(path, *tbl)
+				}
 
 				if err != nil {
 					return cli.NewExitError(fmt.Sprintf("Existing Database Setup FAILED.  Unable to create YAML Table: %s due to error: %v", path, err), 1)

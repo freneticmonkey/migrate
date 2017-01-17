@@ -8,6 +8,10 @@ echo ">>>>>>> Starting Docker <<<<<<<"
 
 docker-compose up -d
 
+echo ">>>>>>> Building a new version of migrate <<<<<<<<"
+
+go build -o migrate ../go/.
+
 echo ">>>>>>> Waiting for Docker to start (15 seconds) <<<<<<<"
 
 sleep 15
